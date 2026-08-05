@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Spending</title>
+  <link rel="icon" type="image/png" href="kiddosprout_logo_128.png">
+  <link rel="apple-touch-icon" href="kiddosprout_logo_128.png">
+  <style>
+    :root {
+      --ink: #18222d;
+      --muted: #657586;
+      --paper: #f5fbf7;
+      --panel: #ffffff;
+      --line: #dce8df;
+      --green: #17775d;
+      --leaf: #6aaa45;
+      --gold: #f0b83f;
+      --coral: #df604a;
+      --blue: #346f9f;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 12%, rgba(240, 184, 63, 0.26), transparent 28%),
+        radial-gradient(circle at 86% 18%, rgba(52, 111, 159, 0.18), transparent 26%),
+        linear-gradient(135deg, #f7fff6, #eef8ff 52%, #fff8ea);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      min-height: 38px;
+      border: 0;
+      border-radius: 8px;
+      padding: 0 14px;
+      font-weight: 850;
+      cursor: pointer;
+      transition: transform 170ms ease, box-shadow 170ms ease, background 170ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(24, 34, 45, 0.12);
+    }
+
+    input {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 12px;
+      background: white;
+    }
+
+    .shell {
+      width: min(1080px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 44px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 950;
+      font-size: 20px;
+    }
+
+    .mark {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      color: white;
+      background: linear-gradient(135deg, var(--green), var(--leaf));
+      box-shadow: 0 14px 26px rgba(23, 119, 93, 0.22);
+    }
+
+    .back {
+      color: var(--ink);
+      background: #eaf3ef;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      min-height: 38px;
+      border-radius: 8px;
+      padding: 0 14px;
+      font-weight: 850;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+      gap: 16px;
+      align-items: stretch;
+      margin-bottom: 16px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 18px 42px rgba(24, 34, 45, 0.08);
+    }
+
+    .money-card {
+      position: relative;
+      overflow: hidden;
+      color: white;
+      background: linear-gradient(135deg, var(--green), var(--leaf));
+    }
+
+    .money-card::after {
+      content: "";
+      position: absolute;
+      right: -54px;
+      bottom: -54px;
+      width: 190px;
+      height: 190px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    .money-card > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+      font-size: clamp(30px, 5vw, 56px);
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin-bottom: 8px;
+    }
+
+    .small {
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .money-card .small {
+      color: rgba(255, 255, 255, 0.84);
+    }
+
+    .balance {
+      display: block;
+      margin: 18px 0 8px;
+      font-size: clamp(42px, 7vw, 76px);
+      font-weight: 950;
+      line-height: 0.9;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .mini {
+      min-height: 126px;
+    }
+
+    .mini strong {
+      display: block;
+      margin: 7px 0;
+      font-size: 26px;
+    }
+
+    .track {
+      height: 12px;
+      border-radius: 999px;
+      background: #e7eee9;
+      overflow: hidden;
+    }
+
+    .fill {
+      width: var(--w);
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--gold), var(--leaf));
+      transition: width 220ms ease;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .primary {
+      color: white;
+      background: var(--green);
+    }
+
+    .secondary {
+      color: var(--ink);
+      background: #edf4ef;
+    }
+
+    .warn {
+      color: white;
+      background: var(--coral);
+    }
+
+    .form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 130px auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .history {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .bank-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .bank-badge {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 8px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      color: #105f4c;
+      background: #e4f5ec;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .bank-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfdfa;
+    }
+
+    .row strong {
+      color: var(--green);
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      width: min(360px, calc(100% - 36px));
+      border-radius: 8px;
+      padding: 14px;
+      color: white;
+      background: var(--ink);
+      box-shadow: 0 18px 36px rgba(24, 34, 45, 0.24);
+      transform: translateY(120%);
+      opacity: 0;
+      transition: transform 220ms ease, opacity 220ms ease;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    @media (max-width: 820px) {
+      .hero,
+      .grid,
+      .actions,
+      .form,
+      .bank-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .bank-actions {
+        justify-content: stretch;
+      }
+
+      .bank-actions button {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="mark">KS</span>
+        <span>Smart Spending</span>
+      </div>
+      <a class="back" href="index.html#child">Back to KiddoSprout</a>
+    </header>
+
+    <section class="hero">
+      <article class="card money-card">
+        <p class="small">Kid money practice</p>
+        <h1>Spend smart, save steadily.</h1>
+        <span class="balance" id="balance">$18.00</span>
+        <p class="small">Children can practise choices here. Real spending still needs a parent.</p>
+      </article>
+      <article class="card">
+        <h2>Savings Goal</h2>
+        <p class="small" id="goalName">New Football</p>
+        <strong id="goalLabel">$18.00 / $40.00</strong>
+        <div class="track" style="margin-top: 12px;">
+          <div class="fill" id="goalFill" style="--w: 45%;"></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="grid">
+      <article class="card mini">
+        <span class="small">Weekly allowance</span>
+        <strong id="allowance">$5.00</strong>
+        <button class="secondary" id="addAllowance">Add allowance</button>
+      </article>
+      <article class="card mini">
+        <span class="small">Saved this week</span>
+        <strong id="savedWeek">$0.00</strong>
+        <button class="secondary" id="saveFive">Save $5</button>
+      </article>
+      <article class="card mini">
+        <span class="small">Parent status</span>
+        <strong id="parentStatus">Ready</strong>
+        <button class="primary" id="requestApproval">Ask parent</button>
+      </article>
+    </section>
+
+    <section class="card bank-panel">
+      <div>
+        <span class="bank-badge" id="bankStatusBadge">Bank not connected</span>
+        <h2>Bank Link</h2>
+        <p class="small" id="bankStatusText">Parents can connect a real bank through a secure provider. Kids never enter bank passwords here.</p>
+        <div class="history" id="bankAccounts"></div>
+      </div>
+      <div class="bank-actions">
+        <button class="primary" id="connectBank">Connect bank</button>
+        <button class="secondary" id="syncBank">Sync balance</button>
+      </div>
+    </section>
+
+    <section class="card" style="margin-bottom: 16px;">
+      <h2>Request Something</h2>
+      <p class="small">Type what you want and how much it costs. This records a pretend approval request.</p>
+      <div class="form">
+        <label>
+          <span class="small">Thing to buy</span>
+          <input id="itemName" type="text" placeholder="Book, football, craft kit">
+        </label>
+        <label>
+          <span class="small">Cost</span>
+          <input id="itemCost" type="number" min="1" step="1" value="4">
+        </label>
+        <button class="warn" id="requestSpend">Request</button>
+      </div>
+    </section>
+
+    <section class="actions">
+      <button class="primary" id="earnTwo">Earn $2 task credit</button>
+      <button class="secondary" id="changeGoal">Change goal</button>
+    </section>
+
+    <section class="card">
+      <h2>Spending History</h2>
+      <div class="history" id="history"></div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+  <script>
+    const STORAGE_KEY = "kiddoSproutSmartSpending";
+    const state = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || {
+      balance: 18,
+      allowance: 5,
+      goal: 40,
+      goalName: "New Football",
+      savedWeek: 0,
+      bank: {
+        connected: false,
+        institution: "",
+        accounts: []
+      },
+      history: [
+        { label: "Started Smart Spending", amount: "+$18.00", type: "save" }
+      ]
+    };
+    state.bank ||= { connected: false, institution: "", accounts: [] };
+
+    const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+    const toast = document.querySelector("#toast");
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toast.classList.remove("show"), 2400);
+    }
+
+    function showKiddoSproutGate(title, message) {
+      document.body.innerHTML = `
+        <main class="shell">
+          <section class="card" style="max-width:520px;margin:70px auto;text-align:center;">
+            <div class="brand" style="justify-content:center;margin-bottom:14px;">
+              <span class="mark">KS</span>
+              <span>KiddoSprout Access</span>
+            </div>
+            <h1>${title}</h1>
+            <p class="small">${message}</p>
+            <a class="back" href="index.html#child" style="justify-content:center;margin-top:12px;">Back to KiddoSprout</a>
+          </section>
+        </main>
+      `;
+    }
+
+    function requestKiddoSproutAccess(appId, appTitle) {
+      try {
+        const family = JSON.parse(localStorage.getItem("kiddosproutState") || "null");
+        const child = family?.children?.[family.activeChild];
+        if (!child) return;
+        child.pending = Number(child.pending || 0) + 1;
+        child.currentRequest = [appTitle, `${appTitle} requested from a connected app page`, appTitle.charAt(0), "appAccess", appId];
+        localStorage.setItem("kiddosproutState", JSON.stringify(family));
+      } catch (err) {
+        // If local storage is unavailable, KiddoSprout will ask again from the main hub.
+      }
+    }
+
+    function canOpenKiddoSproutApp(appId, appTitle) {
+      try {
+        const family = JSON.parse(localStorage.getItem("kiddosproutState") || "null");
+        if (!family || !family.parentAccountCreated) {
+          showKiddoSproutGate("Parent account needed", "Create or log in to the parent account before opening connected child apps.");
+          return false;
+        }
+        const child = family.children?.[family.activeChild];
+        let rule = child?.appRules?.[appId] || "allowed";
+        if (appId === "spending" && rule === "request") {
+          rule = "allowed";
+        }
+        if (rule === "allowed") return true;
+        if (rule === "blocked") {
+          showKiddoSproutGate(appTitle + " is blocked", "A parent has blocked this app for the current child profile.");
+          return false;
+        }
+        requestKiddoSproutAccess(appId, appTitle);
+        showKiddoSproutGate("Ask a parent first", "A request was sent to the parent dashboard for approval.");
+        return false;
+      } catch (err) {
+        showKiddoSproutGate("KiddoSprout check failed", "Open KiddoSprout again so this app can check the parent settings.");
+        return false;
+      }
+    }
+
+    function addHistory(label, amount, type) {
+      const sign = amount >= 0 ? "+" : "-";
+      state.history.unshift({ label, amount: sign + money.format(Math.abs(amount)), type });
+      state.history = state.history.slice(0, 10);
+    }
+
+    async function apiPost(path, body = {}) {
+      const response = await fetch(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ parentId: "kiddo-sprout-parent", ...body })
+      });
+      const contentType = response.headers.get("content-type") || "";
+      const data = contentType.includes("application/json")
+        ? await response.json()
+        : { error: await response.text() };
+      if (!response.ok || data.ok === false) {
+        throw new Error(data.error || "Bank request failed.");
+      }
+      return data;
+    }
+
+    function renderBank() {
+      const badge = document.querySelector("#bankStatusBadge");
+      const text = document.querySelector("#bankStatusText");
+      const accounts = document.querySelector("#bankAccounts");
+      if (state.bank.connected) {
+        badge.textContent = "Bank connected";
+        text.textContent = state.bank.institution
+          ? "Connected to " + state.bank.institution + ". Parent-approved balances can be synced into Smart Spending."
+          : "A bank is connected. Parent-approved balances can be synced into Smart Spending.";
+      } else {
+        badge.textContent = "Bank not connected";
+        text.textContent = "Parents can connect a real bank through a secure provider. Kids never enter bank passwords here.";
+      }
+      accounts.innerHTML = state.bank.accounts.length
+        ? state.bank.accounts.map((account) => `
+          <div class="row">
+            <span>${account.name}${account.mask ? " •••• " + account.mask : ""}</span>
+            <strong>${account.available == null ? "Ready" : money.format(Number(account.available || account.current || 0))}</strong>
+          </div>
+        `).join("")
+        : `<div class="row"><span>No linked accounts yet</span><strong>Parent</strong></div>`;
+    }
+
+    function render() {
+      const progress = Math.min(100, Math.round((state.balance / Math.max(1, state.goal)) * 100));
+      document.querySelector("#balance").textContent = money.format(state.balance);
+      document.querySelector("#allowance").textContent = money.format(state.allowance);
+      document.querySelector("#savedWeek").textContent = money.format(state.savedWeek);
+      document.querySelector("#goalName").textContent = state.goalName;
+      document.querySelector("#goalLabel").textContent = money.format(state.balance) + " / " + money.format(state.goal);
+      document.querySelector("#goalFill").style.setProperty("--w", progress + "%");
+      document.querySelector("#history").innerHTML = state.history.length
+        ? state.history.map((item) => `
+          <div class="row">
+            <span>${item.label}</span>
+            <strong>${item.amount}</strong>
+          </div>
+        `).join("")
+        : `<div class="row"><span>No history yet</span><strong>Start</strong></div>`;
+      renderBank();
+      save();
+    }
+
+    async function connectBank() {
+      try {
+        const status = await apiPost("/api/bank/status");
+        if (!status.configured) {
+          showToast("Bank linking needs Plaid keys on the Python server.");
+          return;
+        }
+        if (!window.Plaid) {
+          showToast("Bank-link screen is still loading. Try again in a moment.");
+          return;
+        }
+        const tokenData = await apiPost("/api/bank/link-token");
+        const handler = window.Plaid.create({
+          token: tokenData.link_token,
+          onSuccess: async (publicToken, metadata) => {
+            await apiPost("/api/bank/exchange-public-token", { publicToken });
+            state.bank.connected = true;
+            state.bank.institution = metadata?.institution?.name || "Connected bank";
+            addHistory("Connected bank", 0, "bank");
+            await syncBank();
+          },
+          onExit: () => showToast("Bank link closed.")
+        });
+        handler.open();
+      } catch (error) {
+        showToast(error.message || "Bank could not be connected.");
+      }
+    }
+
+    async function syncBank() {
+      try {
+        const data = await apiPost("/api/bank/accounts");
+        state.bank.connected = true;
+        state.bank.accounts = data.accounts || [];
+        const primary = state.bank.accounts.find((account) => account.available != null || account.current != null);
+        if (primary) {
+          state.balance = Number(primary.available ?? primary.current ?? state.balance);
+          addHistory("Synced bank balance", 0, "bank");
+        }
+        render();
+        showToast("Bank balance synced.");
+      } catch (error) {
+        showToast(error.message || "Bank sync failed.");
+      }
+    }
+
+    document.querySelector("#addAllowance").addEventListener("click", () => {
+      state.balance += state.allowance;
+      addHistory("Weekly allowance", state.allowance, "earn");
+      render();
+      showToast("Allowance added.");
+    });
+
+    document.querySelector("#saveFive").addEventListener("click", () => {
+      const amount = Math.min(5, state.balance);
+      state.savedWeek += amount;
+      addHistory("Saved toward goal", amount, "save");
+      render();
+      showToast("Savings updated.");
+    });
+
+    document.querySelector("#earnTwo").addEventListener("click", () => {
+      state.balance += 2;
+      addHistory("Helpful task credit", 2, "earn");
+      render();
+      showToast("Task credit added.");
+    });
+
+    document.querySelector("#requestSpend").addEventListener("click", () => {
+      const name = document.querySelector("#itemName").value.trim() || "Spend request";
+      const cost = Math.max(1, Number(document.querySelector("#itemCost").value || 1));
+      document.querySelector("#parentStatus").textContent = "Waiting";
+      addHistory("Requested: " + name, -cost, "request");
+      render();
+      showToast("Parent approval request saved.");
+    });
+
+    document.querySelector("#requestApproval").addEventListener("click", () => {
+      document.querySelector("#parentStatus").textContent = "Asked";
+      addHistory("Asked parent to review", 0, "request");
+      render();
+      showToast("Parent review requested.");
+    });
+
+    document.querySelector("#connectBank").addEventListener("click", connectBank);
+    document.querySelector("#syncBank").addEventListener("click", syncBank);
+
+    document.querySelector("#changeGoal").addEventListener("click", () => {
+      const goalName = prompt("Goal name", state.goalName);
+      const goalAmount = Number(prompt("Goal amount", state.goal));
+      if (goalName) {
+        state.goalName = goalName.slice(0, 32);
+      }
+      if (goalAmount > 0) {
+        state.goal = goalAmount;
+      }
+      render();
+      showToast("Goal updated.");
+    });
+
+    if (canOpenKiddoSproutApp("spending", "Smart Spending")) {
+      render();
+    }
+  </script>
+</body>
+</html>

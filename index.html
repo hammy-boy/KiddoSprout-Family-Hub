@@ -3,29 +3,51 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Safe Sprout</title>
+  <title>KiddoSprout</title>
+  <link rel="icon" type="image/png" href="kiddosprout_logo_128.png">
+  <link rel="apple-touch-icon" href="kiddosprout_logo_128.png">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="shell">
     <header class="topbar">
       <div class="brand">
-        <div class="brand-mark" aria-hidden="true">SS</div>
-        <span id="siteTitle">Safe Sprout Family Hub</span>
+        <img class="brand-mark" src="kiddosprout_logo_128.png" alt="" aria-hidden="true">
+        <span id="siteTitle">KiddoSprout Family Hub</span>
       </div>
       <nav class="nav parent-only" aria-label="Dashboard sections">
         <button class="active" data-jump="today">Today</button>
         <button data-jump="controls">Controls</button>
         <button data-jump="reports">Reports</button>
       </nav>
-      <button class="tiny" id="modeToggle">Child Site</button>
+      <div class="top-actions">
+        <button class="icon-button" id="settingsToggle" type="button" aria-label="Open settings menu" aria-expanded="false" aria-controls="settingsMenu">⚙</button>
+        <button class="tiny" id="modeToggle">Child Site</button>
+        <div class="settings-menu" id="settingsMenu" aria-label="Quick settings">
+          <div class="settings-menu-head">
+            <strong>Settings</strong>
+            <button class="icon-button small-icon" id="settingsClose" type="button" aria-label="Close settings menu">×</button>
+          </div>
+          <label>
+            <span class="small">Theme</span>
+            <select id="quickThemeModeSetting">
+              <option value="auto">Auto by time</option>
+              <option value="day">Day</option>
+              <option value="night">Night</option>
+            </select>
+          </label>
+          <button class="settings-link" id="quickParentSettings" type="button">Parent settings</button>
+          <a class="settings-link" href="app_6.html">FlavorNest recipes</a>
+          <a class="settings-link" href="app_7.html">Smart Spending</a>
+        </div>
+      </div>
     </header>
 
     <section class="hero" id="today">
       <img class="hero-photo" src="family-tech-hub.png" alt="Family using technology together in a calm home setting">
       <div class="hero-content">
-        <h1 id="heroTitle">One calm command center for kids online.</h1>
-        <p>Money practice, creator videos, nature learning, movement breaks, story time, app approvals, screen locks, and web filtering in a single family dashboard.</p>
+        <h1 id="heroTitle">KiddoSprout helps kids grow online.</h1>
+        <p>A brighter family hub for parent approvals, child requests, homework focus, recipe ideas, smart spending, safe games, and calm screen-time routines.</p>
         <div class="hero-actions">
           <button class="primary parent-only" data-jump="controls">Review Requests</button>
           <button class="secondary" id="heroChildMode">Open Child Mode</button>
@@ -34,6 +56,50 @@
     </section>
 
     <main>
+      <div class="app-layout">
+        <aside class="feature-sidebar" aria-label="Feature folders">
+          <div class="sidebar-title">Feature folders</div>
+          <details class="feature-folder child-only" open>
+            <summary>Start</summary>
+            <button data-jump="childStart">Child Home</button>
+            <button data-jump="dailySpark">Daily Spark</button>
+            <button data-jump="hubs">Kid Hubs</button>
+            <button data-jump="avatarStudio">Avatar Studio</button>
+          </details>
+          <details class="feature-folder child-only" open>
+            <summary>Goals</summary>
+            <button data-jump="badges">Badges</button>
+            <button data-jump="streaks">Streaks</button>
+            <button data-jump="todayPlanSection">Today Plan</button>
+            <button data-jump="dailyGoals">Goal Board</button>
+          </details>
+          <details class="feature-folder child-only" open>
+            <summary>Learning & Care</summary>
+            <button data-jump="homework">Homework</button>
+            <button data-jump="focusSession">Focus Session</button>
+            <button data-jump="parentChat">Parent Chat</button>
+            <button data-jump="helpSafety">Help & Safety</button>
+            <button data-jump="checkIn">Check-In</button>
+            <button data-jump="reading">Reading Log</button>
+            <button data-jump="healthyBreaks">Healthy Breaks</button>
+            <button data-jump="chores">Chores</button>
+            <button data-jump="kindness">Kindness Quest</button>
+          </details>
+          <details class="feature-folder parent-only" open>
+            <summary>Parent Home</summary>
+            <button data-jump="parentOverview">Overview</button>
+            <button data-jump="parentStatus">Family Status</button>
+            <button data-jump="controls">Controls</button>
+            <button data-jump="reports">Reports</button>
+          </details>
+          <details class="feature-folder parent-only" open>
+            <summary>Setup</summary>
+            <button data-jump="manageChildren">Manage Children</button>
+            <button data-jump="advancedSettings">Advanced Settings</button>
+            <button data-jump="childContentSettings">Child Content</button>
+          </details>
+        </aside>
+        <div class="content-flow">
       <section class="card signup-only" aria-label="Sign up" style="margin-bottom: 18px;">
         <div class="card-head">
           <div>
@@ -48,7 +114,11 @@
             <label class="small" for="signupParent">Parent name</label>
             <input id="signupParent" type="text" autocomplete="name" placeholder="Parent name">
             <label class="small" for="signupEmail">Parent email</label>
-            <input id="signupEmail" type="email" autocomplete="email" placeholder="Email used for recovery">
+            <input id="signupEmail" type="email" autocomplete="off" placeholder="example@gmail.com">
+            <label class="small" for="signupParentTwo">Second parent name</label>
+            <input id="signupParentTwo" type="text" autocomplete="name" placeholder="Second parent name">
+            <label class="small" for="signupEmailTwo">Second parent email</label>
+            <input id="signupEmailTwo" type="email" autocomplete="off" placeholder="example@gmail.com">
             <label class="small" for="signupPasscode">Parent passcode</label>
             <input id="signupPasscode" type="password" inputmode="numeric" autocomplete="new-password" placeholder="Create passcode">
             <label class="view-password setting-view">
@@ -62,20 +132,29 @@
             <p class="passcode-status" id="signupStatus" aria-live="polite"></p>
           </div>
           <aside class="signup-note">
-            <h3>Linked Sites</h3>
-            <p class="small">The child site sends requests into the parent dashboard. The parent account controls approvals, limits, reports, and the passcode.</p>
+            <h3>KiddoSprout Links</h3>
+            <p class="small">The child site, recipe app, smart spending app, and blocker all send requests into the parent dashboard.</p>
           </aside>
         </div>
       </section>
 
-      <section class="card parent-only" aria-label="Child profiles" style="margin-bottom: 18px;">
-        <div class="card-head">
-          <div>
-            <h2>Child Profiles</h2>
-            <p class="small">Switch profiles to manage separate limits, requests, locks, and reports.</p>
-          </div>
-          <button class="tiny" id="saveNow">Save</button>
+      <section class="parent-welcome parent-only" id="parentOverview" aria-label="Parent dashboard summary" style="margin-bottom: 18px;">
+        <div>
+          <h2>Parent Dashboard</h2>
+          <p class="small">Start with the four cards below: time left, requests, blocked sites, and bedtime. Open setup panels only when you need to change details.</p>
         </div>
+        <button class="tiny" data-jump="controls">Go to Controls</button>
+      </section>
+
+      <details class="card parent-only setup-panel" id="manageChildren" aria-label="Child profiles" style="margin-bottom: 18px;">
+        <summary>
+          <div>
+            <h2>Manage Children</h2>
+            <p class="small">Add, switch, or edit a child profile.</p>
+          </div>
+          <span class="summary-action">Open</span>
+        </summary>
+        <button class="tiny panel-save" id="saveNow">Save</button>
         <div class="profile-strip" id="profileStrip"></div>
         <div class="signup-form" aria-label="Add child profile">
           <div class="grid two">
@@ -105,6 +184,9 @@
                 <option value="rocket">Rocket</option>
                 <option value="heart">Heart</option>
                 <option value="smile">Smile</option>
+                <option value="rainbow">Rainbow</option>
+                <option value="leaf">Leaf</option>
+                <option value="crown">Crown</option>
               </select>
             </label>
             <label>
@@ -171,6 +253,9 @@
                 <option value="rocket">Rocket</option>
                 <option value="heart">Heart</option>
                 <option value="smile">Smile</option>
+                <option value="rainbow">Rainbow</option>
+                <option value="leaf">Leaf</option>
+                <option value="crown">Crown</option>
               </select>
             </label>
             <label>
@@ -206,16 +291,16 @@
             <button class="approve" id="saveChildProfile">Save Child Details</button>
           </div>
         </div>
-      </section>
+      </details>
 
-      <section class="card parent-only" aria-label="Security settings" style="margin-bottom: 18px;">
-        <div class="card-head">
+      <details class="card parent-only setup-panel" id="advancedSettings" aria-label="Security settings" style="margin-bottom: 18px;">
+        <summary>
           <div>
-            <h2>Security Settings</h2>
-            <p class="small">Set the parent dashboard passcode used by the login screen.</p>
+            <h2>Advanced Settings</h2>
+            <p class="small">Passcode, trusted contacts, and wellbeing targets.</p>
           </div>
-          <button class="tiny" id="savePasscodeSetting">Update</button>
-        </div>
+          <span class="summary-action">Open</span>
+        </summary>
         <div class="slider-row">
           <label for="passcodeSetting">
             <span>Parent passcode</span>
@@ -226,62 +311,34 @@
             <input id="viewSettingPassword" type="checkbox">
             <span>View password</span>
           </label>
+          <button class="tiny" id="savePasscodeSetting">Update Passcode</button>
         </div>
-      </section>
-
-      <section class="card parent-only" aria-label="Family rules" style="margin-bottom: 18px;">
-        <div class="card-head">
-          <div>
-            <h2>Family Rules</h2>
-            <p class="small">Write one rule per line. These appear on the child site.</p>
-          </div>
-          <button class="tiny" id="saveRules">Save</button>
+        <div class="grid two" style="margin-bottom: 12px;">
+          <label>
+            <span class="small">Second parent name</span>
+            <input id="secondParentNameSetting" type="text" autocomplete="name" placeholder="Second parent name">
+          </label>
+          <label>
+            <span class="small">Second parent email</span>
+            <input id="secondParentEmailSetting" type="email" autocomplete="off" placeholder="example@gmail.com">
+          </label>
         </div>
-        <textarea id="rulesInput" placeholder="One family rule per line"></textarea>
-      </section>
-
-      <section class="card parent-only" aria-label="Chores and rewards" style="margin-bottom: 18px;">
-        <div class="card-head">
-          <div>
-            <h2>Chores & Rewards</h2>
-            <p class="small">Write chores as "task = reward", one per line.</p>
-          </div>
-          <button class="tiny" id="saveChores">Save</button>
-        </div>
-        <textarea id="choresInput" placeholder="Tidy desk = 2"></textarea>
-      </section>
-
-      <section class="card parent-only" aria-label="Reward store settings" style="margin-bottom: 18px;">
-        <div class="card-head">
-          <div>
-            <h2>Reward Store</h2>
-            <p class="small">Write rewards as "reward = cost", one per line.</p>
-          </div>
-          <button class="tiny" id="saveRewards">Save</button>
-        </div>
-        <textarea id="rewardsInput" placeholder="Choose movie night = 8"></textarea>
-      </section>
-
-      <section class="card parent-only" aria-label="Focus settings" style="margin-bottom: 18px;">
-        <div class="card-head">
-          <div>
-            <h2>Focus Session</h2>
-            <p class="small">Set the child focus goal shown on the child site.</p>
-          </div>
-          <button class="tiny" id="saveFocus">Save</button>
-        </div>
-        <input id="focusInput" type="text" placeholder="Read or learn for 15 minutes">
-      </section>
-
-      <section class="card parent-only" aria-label="Wellbeing settings" style="margin-bottom: 18px;">
-        <div class="card-head">
-          <div>
-            <h2>Wellbeing Goals</h2>
-            <p class="small">Set gentle daily targets that appear on the child site.</p>
-          </div>
-          <button class="tiny" id="saveWellbeing">Save</button>
+        <div class="choice-row" style="margin: 0 0 16px;">
+          <button class="tiny" id="saveSecondParent">Save Second Parent</button>
         </div>
         <div class="grid two">
+          <label>
+            <span class="small">Theme</span>
+            <select id="themeModeSetting">
+              <option value="auto">Auto by time</option>
+              <option value="day">Day</option>
+              <option value="night">Night</option>
+            </select>
+          </label>
+          <label>
+            <span class="small">Current look</span>
+            <input id="themeModeStatus" type="text" value="Auto" readonly>
+          </label>
           <label>
             <span class="small">Daily water goal</span>
             <input id="waterGoalInput" type="number" min="1" max="12" value="4">
@@ -291,20 +348,44 @@
             <input id="eyeGoalInput" type="number" min="1" max="12" value="3">
           </label>
         </div>
-      </section>
-
-      <section class="card parent-only" aria-label="Trusted contacts" style="margin-bottom: 18px;">
-        <div class="card-head">
-          <div>
-            <h2>Trusted Contacts</h2>
-            <p class="small">Write one safe adult or support option per line.</p>
-          </div>
-          <button class="tiny" id="saveTrustedContacts">Save</button>
+        <div class="choice-row" style="margin: 12px 0 16px;">
+          <button class="tiny" id="saveWellbeing">Save Wellbeing</button>
         </div>
-        <textarea id="trustedContactsInput" placeholder="Mum&#10;Dad&#10;School office"></textarea>
-      </section>
+        <label>
+          <span class="small">Trusted contacts</span>
+          <textarea id="trustedContactsInput" placeholder="Mum&#10;Dad&#10;School office"></textarea>
+        </label>
+        <div class="choice-row" style="margin-top: 12px;">
+          <button class="tiny" id="saveTrustedContacts">Save Contacts</button>
+        </div>
+      </details>
 
-      <section class="status-strip" aria-label="Family status">
+      <details class="card parent-only setup-panel" id="childContentSettings" aria-label="Child content settings" style="margin-bottom: 18px;">
+        <summary>
+          <div>
+            <h2>Child Content</h2>
+            <p class="small">Rules, chores, and focus goal shown on the child site.</p>
+          </div>
+          <span class="summary-action">Open</span>
+        </summary>
+        <div class="card-head compact-head">
+          <h3>Family Rules</h3>
+          <button class="tiny" id="saveRules">Save Rules</button>
+        </div>
+        <textarea id="rulesInput" placeholder="One family rule per line"></textarea>
+        <div class="card-head compact-head">
+          <h3>Chores</h3>
+          <button class="tiny" id="saveChores">Save Chores</button>
+        </div>
+        <textarea id="choresInput" placeholder="Tidy desk"></textarea>
+        <div class="card-head compact-head">
+          <h3>Focus Session</h3>
+          <button class="tiny" id="saveFocus">Save Focus</button>
+        </div>
+        <input id="focusInput" type="text" placeholder="Read or learn for 15 minutes">
+      </details>
+
+      <section class="status-strip parent-only" id="parentStatus" aria-label="Family status">
         <article class="metric">
           <span>Screen time left</span>
           <strong id="timeLeft">1h 36m</strong>
@@ -323,7 +404,7 @@
         </article>
       </section>
 
-      <section class="card child-only" aria-label="Child mode" style="margin-bottom: 18px;">
+      <section class="card child-only" id="childStart" aria-label="Child mode" style="margin-bottom: 18px;">
         <div class="card-head">
           <div>
             <h2 id="childWelcome">Child Mode</h2>
@@ -333,11 +414,41 @@
         </div>
       </section>
 
+      <section class="card child-only lively-panel" id="dailySpark" aria-label="Daily spark" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2>Daily Spark</h2>
+            <p class="small">A fresh idea, a tiny challenge, and room for your next apps.</p>
+          </div>
+          <button class="tiny" id="newSpark">New Spark</button>
+        </div>
+        <div class="spark-layout">
+          <article class="spark-card">
+            <span class="pulse-dot" aria-hidden="true"></span>
+            <span class="small">Today's idea</span>
+            <strong id="sparkTitle">Ready to grow</strong>
+            <p class="small" id="sparkText">Pick one hub and finish a small win.</p>
+          </article>
+          <article class="mini-card coming-soon spending-slot">
+            <span class="small">Connected app</span>
+            <strong>Final Smart Spending</strong>
+            <p class="small">Open the final Smart Spending app.</p>
+            <a class="mini-link" href="app_7.html" data-open-app-link="spending">Open Smart Spending</a>
+          </article>
+          <article class="mini-card coming-soon spending-slot recipe-slot">
+            <span class="small" data-app-status-label="recipe">Connected app</span>
+            <strong>FlavorNest</strong>
+            <p class="small">Open recipes, saved meals, and kitchen wins.</p>
+            <a class="mini-link" href="app_6.html" data-open-app-link="recipe">Open FlavorNest</a>
+          </article>
+        </div>
+      </section>
+
       <section class="card child-only" id="hubs" style="margin-bottom: 18px;">
         <div class="card-head">
           <div>
             <h2>Kid Hubs</h2>
-            <p class="small">Original spaces inspired by allowance tools, creator learning, nature media, movement breaks, and read-aloud stories.</p>
+            <p class="small">Original spaces inspired by creator learning, nature media, movement breaks, and read-aloud stories.</p>
           </div>
         </div>
         <div class="tabs" role="tablist" aria-label="Hub filters">
@@ -347,12 +458,6 @@
           <button data-filter="move">Move</button>
         </div>
         <div class="hub-grid">
-          <article class="hub-card money" data-kind="learn">
-            <span class="hub-label">Greenlight-inspired</span>
-            <strong>Money Missions</strong>
-            <p>Allowance goals, save jars, spend choices, and parent-approved rewards.</p>
-            <button data-open-app="money">Launch</button>
-          </article>
           <article class="hub-card studio" data-kind="create">
             <span class="hub-label">Coverstar-inspired</span>
             <strong>Creator Studio</strong>
@@ -377,10 +482,16 @@
             <p>Read-aloud shelves, character voices, family bookmarks, and calm mode.</p>
             <button data-open-app="story">Launch</button>
           </article>
+          <article class="hub-card flyer" data-kind="move">
+            <span class="hub-label" id="flyerHubLabel" data-app-status-label="flyer">Needs parent approval</span>
+            <strong>Sprout Flyer</strong>
+            <p>Tap to glide through friendly clouds and earn safe play points.</p>
+            <button data-open-app="flyer">Play</button>
+          </article>
         </div>
       </section>
 
-      <section class="card child-only" aria-label="Avatar studio" style="margin-bottom: 18px;">
+      <section class="card child-only" id="avatarStudio" aria-label="Avatar studio" style="margin-bottom: 18px;">
         <div class="card-head">
           <div>
             <h2>Avatar Studio</h2>
@@ -406,11 +517,28 @@
                 <option value="rocket">Rocket</option>
                 <option value="heart">Heart</option>
                 <option value="smile">Smile</option>
+                <option value="rainbow">Rainbow</option>
+                <option value="leaf">Leaf</option>
+                <option value="crown">Crown</option>
               </select>
+              <div class="avatar-choice-grid" aria-label="Profile picture choices">
+                <button type="button" data-avatar-choice="star" aria-label="Star picture">★</button>
+                <button type="button" data-avatar-choice="smile" aria-label="Smile picture">☺</button>
+                <button type="button" data-avatar-choice="heart" aria-label="Heart picture">♥</button>
+                <button type="button" data-avatar-choice="rocket" aria-label="Rocket picture">▲</button>
+                <button type="button" data-avatar-choice="rainbow" aria-label="Rainbow picture">◒</button>
+                <button type="button" data-avatar-choice="leaf" aria-label="Leaf picture">◆</button>
+                <button type="button" data-avatar-choice="crown" aria-label="Crown picture">♛</button>
+              </div>
             </label>
             <label>
               <span class="small">Avatar color</span>
-              <input id="kidAvatarColor" type="color" value="#147d7f">
+              <div class="avatar-color-picker">
+                <span class="color-wheel-control">
+                  <input id="kidAvatarColor" type="color" value="#147d7f" aria-label="Avatar color wheel">
+                </span>
+                <input id="kidAvatarColorText" type="text" value="#147d7f" placeholder="Type green or #147d7f" aria-label="Type avatar color">
+              </div>
             </label>
             <label>
               <span class="small">Costume</span>
@@ -427,7 +555,7 @@
         </div>
       </section>
 
-      <section class="card child-only" aria-label="Badge shelf" style="margin-bottom: 18px;">
+      <section class="card child-only" id="badges" aria-label="Badge shelf" style="margin-bottom: 18px;">
         <div class="card-head">
           <div>
             <h2>Badge Shelf</h2>
@@ -438,38 +566,7 @@
         <div class="badge-grid" id="badgeShelf"></div>
       </section>
 
-      <section class="card child-only" aria-label="Allowance and savings" style="margin-bottom: 18px;">
-        <div class="card-head">
-          <div>
-            <h2>Allowance & Savings</h2>
-            <p class="small">Track balance, weekly allowance, goals, and spending history.</p>
-          </div>
-          <button class="tiny" id="requestAllowance">Request Allowance</button>
-        </div>
-        <div class="mini-grid">
-          <article class="mini-card">
-            <span class="small">Current balance</span>
-            <strong id="allowanceBalance">$0</strong>
-            <p class="small">Money approved by a parent.</p>
-          </article>
-          <article class="mini-card">
-            <span class="small">Weekly allowance</span>
-            <strong id="weeklyAllowance">$0</strong>
-            <p class="small">Ask a parent to approve this week.</p>
-          </article>
-          <article class="mini-card">
-            <span class="small" id="savingsGoalName">Savings goal</span>
-            <strong id="savingsProgressLabel">0%</strong>
-            <div class="track"><div class="fill" id="savingsProgressFill" style="--w: 0%; --c: #5d9b3a;"></div></div>
-          </article>
-          <article class="mini-card">
-            <span class="small">Spending history</span>
-            <div class="filter-list" id="spendingHistory"></div>
-          </article>
-        </div>
-      </section>
-
-      <section class="card child-only" aria-label="Streaks" style="margin-bottom: 18px;">
+      <section class="card child-only" id="streaks" aria-label="Streaks" style="margin-bottom: 18px;">
         <div class="card-head">
           <div>
             <h2>Habit Streaks</h2>
@@ -480,13 +577,12 @@
         <div class="badge-grid" id="streakShelf"></div>
       </section>
 
-      <section class="card child-only" aria-label="Homework mode" style="margin-bottom: 18px;">
+      <section class="card child-only" id="homework" aria-label="Homework mode" style="margin-bottom: 18px;">
         <div class="card-head">
           <div>
             <h2>Homework Mode</h2>
-            <p class="small">Focus mode blocks game and entertainment requests while school work is active.</p>
+            <p class="small">A parent controls when homework mode starts and ends.</p>
           </div>
-          <button class="tiny" id="toggleHomeworkMode">Start Homework</button>
         </div>
         <div class="lock-screen">
           <div>
@@ -496,7 +592,7 @@
         </div>
       </section>
 
-      <section class="card child-only" aria-label="Today plan" style="margin-bottom: 18px;">
+      <section class="card child-only" id="todayPlanSection" aria-label="Today plan" style="margin-bottom: 18px;">
         <div class="card-head">
           <div>
             <h2>Today Plan</h2>
@@ -507,18 +603,18 @@
         <div class="plan-grid" id="todayPlan"></div>
       </section>
 
-      <section class="card child-only" aria-label="Focus session" style="margin-bottom: 18px;">
+      <section class="card child-only" id="focusSession" aria-label="Focus session" style="margin-bottom: 18px;">
         <div class="card-head">
           <div>
             <h2>Focus Session</h2>
-            <p class="small" id="childFocusGoal">Read or learn for 15 minutes</p>
+            <p class="small" id="childFocusGoal">Work quietly, then tell a parent when you are ready for them to check.</p>
           </div>
-          <button class="tiny" id="completeFocus">Complete</button>
+          <button class="tiny" id="completeFocus">Tell Parent</button>
         </div>
         <div class="lock-screen">
           <div>
             <strong id="focusClock">15:00</strong>
-            <span>Stay with one activity, then mark complete.</span>
+            <span>Stay with one activity. A parent confirms homework or focus work.</span>
           </div>
         </div>
         <div class="choice-row" style="margin-top: 12px;">
@@ -527,7 +623,35 @@
         </div>
       </section>
 
-      <section class="card child-only" aria-label="Help and safety" style="margin-bottom: 18px;">
+      <section class="card child-only lively-panel" id="parentChat" aria-label="Parent chat" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2>Parent Chat</h2>
+            <p class="small">Send a short message to the parent dashboard.</p>
+          </div>
+        </div>
+        <div class="grid two">
+          <label>
+            <span class="small">Message</span>
+            <textarea id="parentChatMessage" placeholder="Tell your parent what you need checked or what happened."></textarea>
+          </label>
+          <label>
+            <span class="small">Message type</span>
+            <select id="parentChatType">
+              <option value="Please check my homework">Please check my homework</option>
+              <option value="I need help">I need help</option>
+              <option value="I have a question">I have a question</option>
+              <option value="Something is confusing">Something is confusing</option>
+            </select>
+          </label>
+        </div>
+        <div class="choice-row" style="margin-top: 12px;">
+          <button class="approve" id="sendParentChat">Send to Parent</button>
+          <button class="tiny" id="clearParentChat">Clear</button>
+        </div>
+      </section>
+
+      <section class="card child-only" id="helpSafety" aria-label="Help and safety" style="margin-bottom: 18px;">
         <div class="card-head">
           <div>
             <h2>Help & Safety</h2>
@@ -544,8 +668,8 @@
           <article class="mini-card">
             <span class="small">Safety report</span>
             <strong>Something Wrong</strong>
-            <p class="small">Reports scary, mean, or confusing content.</p>
-            <button class="block" data-help-action="reportProblem">Report Problem</button>
+            <p class="small">Opens a separate page to type what happened.</p>
+            <a class="block button-link" href="report_problem.html" target="_blank" rel="noopener">Open Report Page</a>
           </article>
           <article class="mini-card">
             <span class="small">Reset</span>
@@ -560,31 +684,10 @@
             <button class="tiny" data-help-action="extraTime">Ask for Time</button>
           </article>
         </div>
-        <div class="problem-panel" style="margin-top: 14px;">
-          <h3>Report a Problem</h3>
-          <div class="grid two">
-            <label>
-              <span class="small">Type the problem</span>
-              <textarea id="problemType" placeholder="Type what happened here"></textarea>
-            </label>
-            <label>
-              <span class="small">How urgent?</span>
-              <select id="problemUrgency">
-                <option value="Needs help now">Needs help now</option>
-                <option value="Today">Today</option>
-                <option value="Can wait">Can wait</option>
-              </select>
-            </label>
-          </div>
-          <div class="choice-row" style="margin-top: 12px;">
-            <button class="block" id="submitProblemReport">Send Problem Report</button>
-            <button class="tiny" id="clearProblemForm">Clear</button>
-          </div>
-          <div class="filter-list" id="trustedContactsList"></div>
-        </div>
+        <div class="filter-list" id="trustedContactsList"></div>
       </section>
 
-      <section class="card child-only" aria-label="Check in and rules" style="margin-bottom: 18px;">
+      <section class="card child-only color-pop" id="checkIn" aria-label="Check in and rules" style="margin-bottom: 18px;">
         <div class="card-head">
           <div>
             <h2>Check-In</h2>
@@ -609,7 +712,7 @@
         </div>
       </section>
 
-      <section class="card child-only" aria-label="Daily goals" style="margin-bottom: 18px;">
+      <section class="card child-only color-pop" id="dailyGoals" aria-label="Daily goals" style="margin-bottom: 18px;">
         <div class="card-head">
           <div>
             <h2>Daily Goal Board</h2>
@@ -620,7 +723,7 @@
         <div class="goal-board" id="dailyGoalBoard"></div>
       </section>
 
-      <section class="card child-only" aria-label="Kindness quest" style="margin-bottom: 18px;">
+      <section class="card child-only color-pop" id="kindness" aria-label="Kindness quest" style="margin-bottom: 18px;">
         <div class="card-head">
           <div>
             <h2>Kindness Quest</h2>
@@ -635,7 +738,7 @@
         </div>
       </section>
 
-      <section class="card child-only" aria-label="Reading log" style="margin-bottom: 18px;">
+      <section class="card child-only color-pop" id="reading" aria-label="Reading log" style="margin-bottom: 18px;">
         <div class="card-head">
           <div>
             <h2>Reading Log</h2>
@@ -659,7 +762,7 @@
         <div class="filter-list" id="readingHistory"></div>
       </section>
 
-      <section class="card child-only" aria-label="Water and eye breaks" style="margin-bottom: 18px;">
+      <section class="card child-only color-pop" id="healthyBreaks" aria-label="Water and eye breaks" style="margin-bottom: 18px;">
         <div class="card-head">
           <div>
             <h2>Healthy Breaks</h2>
@@ -682,33 +785,23 @@
         </div>
       </section>
 
-      <section class="card child-only" aria-label="Chores" style="margin-bottom: 18px;">
+      <section class="card child-only color-pop" id="chores" aria-label="Chores" style="margin-bottom: 18px;">
         <div class="card-head">
           <div>
             <h2>Chores</h2>
-            <p class="small">Mark a chore done to ask a parent to approve the reward.</p>
+            <p class="small">Mark a chore done to send it to the parent dashboard.</p>
           </div>
         </div>
         <div class="filter-list" id="childChores"></div>
       </section>
 
-      <section class="card child-only" aria-label="Reward store" style="margin-bottom: 18px;">
-        <div class="card-head">
-          <div>
-            <h2>Reward Store</h2>
-            <p class="small">Use saved money to ask a parent for a reward.</p>
-          </div>
-        </div>
-        <div class="filter-list" id="childRewards"></div>
-      </section>
-
-      <div class="grid">
+      <div class="grid parent-only">
         <aside class="control-stack parent-only" id="controls">
           <section class="card">
             <div class="card-head">
               <div>
-                <h2>Remote App Management</h2>
-                <p class="small">Requests made in Child Mode wait here for parent approval.</p>
+                <h2>Approve Requests</h2>
+                <p class="small">Apps, games, extra time, and chores from Child Mode.</p>
               </div>
             </div>
             <div class="request" id="requestCard">
@@ -727,8 +820,8 @@
           <section class="card">
             <div class="card-head">
               <div>
-                <h2>Hard Screen Limits</h2>
-                <p class="small">Daily cap plus bedtime lock.</p>
+                <h2>Screen Controls</h2>
+                <p class="small">Time limits, bedtime, and game access.</p>
               </div>
             </div>
             <div class="slider-row">
@@ -748,6 +841,31 @@
                 <span class="knob"></span>
               </label>
             </div>
+            <div class="bedtime">
+              <div>
+                <h3>Homework Mode</h3>
+                <span class="small" id="parentHomeworkLabel">Games and video requests are available.</span>
+              </div>
+              <label class="switch" aria-label="Control homework mode">
+                <input id="parentHomeworkToggle" type="checkbox">
+                <span class="knob"></span>
+              </label>
+            </div>
+            <div class="bedtime">
+              <div>
+                <h3>Sprout Flyer game</h3>
+                <span class="small" id="flyerAllowedLabel">Parent approval required before play.</span>
+              </div>
+              <label class="switch" aria-label="Allow Sprout Flyer game">
+                <input id="flyerAllowedToggle" type="checkbox">
+                <span class="knob"></span>
+              </label>
+            </div>
+            <div class="card-head compact-head" style="margin-top: 16px;">
+              <h3>App Access Rules</h3>
+              <span class="small">Allow, ask, or block each app.</span>
+            </div>
+            <div class="filter-list" id="appAccessList"></div>
             <div class="lock-screen">
               <div>
                 <strong id="deviceState">Device Active</strong>
@@ -793,7 +911,7 @@
           <div class="card-head">
             <div>
               <h2>Granular Web Filtering</h2>
-              <p class="small">Paste a URL or message to check it against Safe Sprout rules.</p>
+              <p class="small">Paste a URL or message to check it against KiddoSprout rules.</p>
             </div>
             <button class="tiny" id="scanBtn">Run Scan</button>
           </div>
@@ -826,6 +944,8 @@
           <div class="filter-list" id="wellbeingSnapshot"></div>
         </article>
       </section>
+        </div>
+      </div>
     </main>
   </div>
 
@@ -844,7 +964,7 @@
 
   <section class="lock-gate" id="parentGate" aria-hidden="true">
     <div class="lock-box">
-      <h2>Parent Passcode</h2>
+      <h2>Parent Login</h2>
       <p class="small">Enter the parent passcode to open approvals, screen limits, filters, and reports.</p>
       <input id="passcodeInput" type="password" inputmode="numeric" autocomplete="off" placeholder="Passcode">
       <label class="view-password">
@@ -859,7 +979,7 @@
       <button class="tiny" id="forgotPassword" style="margin-top: 12px;">Forgot password?</button>
       <div class="signup-form" id="forgotPanel" style="display: none; margin-top: 14px;">
         <label class="small" for="recoveryEmail">Recovery email</label>
-        <input id="recoveryEmail" type="email" autocomplete="email" placeholder="Email used to sign up">
+        <input id="recoveryEmail" type="email" autocomplete="off" placeholder="example@gmail.com">
         <button class="approve" id="sendRecoveryCode">Use One-Time Code</button>
         <label class="small" for="recoveryCode">One-time code</label>
         <input id="recoveryCode" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="Enter code">

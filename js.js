@@ -14,9 +14,20 @@
     const passcodeSetting = document.querySelector("#passcodeSetting");
     const viewSettingPassword = document.querySelector("#viewSettingPassword");
     const passcodeSettingStatus = document.querySelector("#passcodeSettingStatus");
+    const themeModeSetting = document.querySelector("#themeModeSetting");
+    const themeModeStatus = document.querySelector("#themeModeStatus");
+    const secondParentNameSetting = document.querySelector("#secondParentNameSetting");
+    const secondParentEmailSetting = document.querySelector("#secondParentEmailSetting");
+    const settingsToggle = document.querySelector("#settingsToggle");
+    const settingsMenu = document.querySelector("#settingsMenu");
+    const settingsClose = document.querySelector("#settingsClose");
+    const quickThemeModeSetting = document.querySelector("#quickThemeModeSetting");
+    const quickParentSettings = document.querySelector("#quickParentSettings");
     const signupFamily = document.querySelector("#signupFamily");
     const signupParent = document.querySelector("#signupParent");
     const signupEmail = document.querySelector("#signupEmail");
+    const signupParentTwo = document.querySelector("#signupParentTwo");
+    const signupEmailTwo = document.querySelector("#signupEmailTwo");
     const signupPasscode = document.querySelector("#signupPasscode");
     const viewSignupPassword = document.querySelector("#viewSignupPassword");
     const signupStatus = document.querySelector("#signupStatus");
@@ -27,7 +38,6 @@
     const viewRecoveryPassword = document.querySelector("#viewRecoveryPassword");
     const rulesInput = document.querySelector("#rulesInput");
     const choresInput = document.querySelector("#choresInput");
-    const rewardsInput = document.querySelector("#rewardsInput");
     const focusInput = document.querySelector("#focusInput");
     const newChildName = document.querySelector("#newChildName");
     const newChildDob = document.querySelector("#newChildDob");
@@ -51,17 +61,22 @@
     const editChildWarning = document.querySelector("#editChildWarning");
     const kidAvatarIcon = document.querySelector("#kidAvatarIcon");
     const kidAvatarColor = document.querySelector("#kidAvatarColor");
+    const kidAvatarColorText = document.querySelector("#kidAvatarColorText");
     const kidCostume = document.querySelector("#kidCostume");
     const kidAvatarPreview = document.querySelector("#kidAvatarPreview");
     const kidAvatarName = document.querySelector("#kidAvatarName");
     const kidCostumePreview = document.querySelector("#kidCostumePreview");
+    const avatarChoiceButtons = document.querySelectorAll("[data-avatar-choice]");
+    const flyerAllowedToggle = document.querySelector("#flyerAllowedToggle");
+    const flyerAllowedLabel = document.querySelector("#flyerAllowedLabel");
+    const parentHomeworkToggle = document.querySelector("#parentHomeworkToggle");
+    const parentHomeworkLabel = document.querySelector("#parentHomeworkLabel");
     const passcodeStatus = document.querySelector("#passcodeStatus");
     const unlockParentButton = document.querySelector("#unlockParent");
     const reportColors = {
       Explorer: "#147d7f",
       Stories: "#8c5aa8",
       Movement: "#df604a",
-      Money: "#5d9b3a",
       Games: "#f1b43f"
     };
     const requestNames = [
@@ -71,8 +86,46 @@
       ["Stream Box", "S", "Video app"],
       ["Sketch Pad", "S", "Creative app"]
     ];
+    const APP_CATALOG = {
+      studio: { title: "Creator Studio", initial: "C", kind: "Create", defaultRule: "request" },
+      explore: { title: "Explorer Lab", initial: "E", kind: "Learning", defaultRule: "allowed" },
+      move: { title: "Move Breaks", initial: "M", kind: "Movement", defaultRule: "allowed" },
+      story: { title: "Story Theater", initial: "S", kind: "Reading", defaultRule: "allowed" },
+      recipe: { title: "FlavorNest", initial: "F", kind: "Recipe app", defaultRule: "allowed" },
+      spending: { title: "Smart Spending", initial: "$", kind: "Money app", defaultRule: "allowed" },
+      flyer: { title: "Sprout Flyer", initial: "F", kind: "Game", defaultRule: "request" },
+      gameSites: {
+        title: "Game Websites",
+        initial: "G",
+        kind: "External game websites",
+        defaultRule: "blocked",
+        domains: [
+          "crazygames.com",
+          "poki.com",
+          "coolmathgames.com",
+          "miniclip.com",
+          "friv.com",
+          "kongregate.com",
+          "addictinggames.com",
+          "y8.com",
+          "now.gg",
+          "itch.io",
+          "steamcommunity.com",
+          "steampowered.com",
+          "epicgames.com",
+          "xbox.com",
+          "playstation.com",
+          "nintendo.com",
+          "minecraft.net",
+          "fortnite.com"
+        ],
+        keywordMatch: true
+      },
+      roblox: { title: "Roblox", initial: "R", kind: "External game site", defaultRule: "blocked", domains: ["roblox.com", "web.roblox.com"] },
+      youtube: { title: "YouTube", initial: "Y", kind: "External video site", defaultRule: "request", domains: ["youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"] }
+    };
     const todayTasks = [
-      { id: "money", title: "Chore Check", detail: "Add allowance and review one saving goal.", report: "Money", minutes: 5 },
+      { id: "chore", title: "Chore Check", detail: "Finish one helpful task and mark it done.", report: "Stories", minutes: 5 },
       { id: "explore", title: "Nature Quest", detail: "Open Explorer Lab and finish one fact card.", report: "Explorer", minutes: 8 },
       { id: "move", title: "Move Reset", detail: "Complete one movement break before games.", report: "Movement", minutes: 5 },
       { id: "story", title: "Read Aloud", detail: "Read one Story Theater page before bedtime.", report: "Stories", minutes: 10 }
@@ -94,12 +147,42 @@
       "Put away one thing without being asked.",
       "Use calm words to solve a tiny problem."
     ];
+    const sparkPrompts = [
+      {
+        title: "Explorer burst",
+        text: "Open Explorer Lab, learn one fact, then tell someone at home what surprised you."
+      },
+      {
+        title: "Mini maker moment",
+        text: "Use Creator Studio to plan a safe 20-second clip about something you know well."
+      },
+      {
+        title: "Move and reset",
+        text: "Take a short movement break, breathe slowly, then come back ready for your next task."
+      },
+      {
+        title: "Story spotlight",
+        text: "Read one Story Theater page using a different voice for each character."
+      },
+      {
+        title: "Kindness signal",
+        text: "Do one helpful thing quietly, then mark a daily win when you finish."
+      },
+      {
+        title: "Future app slot",
+        text: "Your final Smart Spending app has a place ready when you bring it in."
+      }
+    ];
     const DEFAULT_STATE = {
       "activeChild": "ava",
-      "familyName": "Safe Sprout Family",
+      "familyName": "KiddoSprout Family",
       "parentName": "Parent",
       "parentEmail": "",
+      "secondParentName": "",
+      "secondParentEmail": "",
       "parentPasscode": "4321",
+      "parentAccountCreated": false,
+      "themeMode": "auto",
       "wellbeingGoals": {
             "water": 4,
             "eyeBreaks": 3
@@ -119,32 +202,9 @@
             "Take a movement break after long screen time."
       ],
       "chores": [
-            {
-                  "title": "Tidy desk",
-                  "reward": 2
-            },
-            {
-                  "title": "Read 10 minutes",
-                  "reward": 3
-            },
-            {
-                  "title": "Pack school bag",
-                  "reward": 2
-            }
-      ],
-      "rewards": [
-            {
-                  "title": "Choose movie night",
-                  "cost": 8
-            },
-            {
-                  "title": "Extra story",
-                  "cost": 5
-            },
-            {
-                  "title": "Small toy fund",
-                  "cost": 12
-            }
+            { "title": "Tidy desk" },
+            { "title": "Read 10 minutes" },
+            { "title": "Pack school bag" }
       ],
       "focusGoal": "Read or learn for 15 minutes",
       "children": {
@@ -165,7 +225,6 @@
                         "Explorer": 184,
                         "Stories": 148,
                         "Movement": 116,
-                        "Money": 72,
                         "Games": 48
                   }
             },
@@ -186,7 +245,6 @@
                         "Explorer": 92,
                         "Stories": 64,
                         "Movement": 143,
-                        "Money": 35,
                         "Games": 112
                   }
             },
@@ -207,7 +265,6 @@
                         "Explorer": 132,
                         "Stories": 201,
                         "Movement": 87,
-                        "Money": 44,
                         "Games": 66
                   }
             }
@@ -222,15 +279,17 @@
     let focusTimer = null;
     let focusSeconds = 900;
     let closeTimer = null;
-    let viewMode = (window.location.hash || "#child").slice(1);
+    let flyerAnimation = null;
+    let flyerGame = null;
+    let viewMode = (window.location.hash || "#parent").slice(1);
     if (!["child", "parent", "signup"].includes(viewMode)) {
-      viewMode = "child";
+      viewMode = "parent";
     }
     let parentUnlocked = window.sessionStorage.getItem("parentUnlocked") === "true";
     let failedPasscodeAttempts = Number(window.sessionStorage.getItem("failedPasscodeAttempts") || "0");
     let lockoutUntil = Number(window.sessionStorage.getItem("lockoutUntil") || "0");
     let lockoutTimer = null;
-    let oneTimeCode = "";
+    let recoveryCodeRequested = false;
     let pendingRemoveChildId = "";
 
     function currentChild() {
@@ -250,6 +309,94 @@
     function currentParentPasscode() {
       return state.parentPasscode || "4321";
     }
+
+    function hasParentAccount() {
+      return Boolean(state.parentAccountCreated || (state.parentEmail && state.parentName));
+    }
+
+    function normalizeAppRules(child) {
+      child.appRules ??= {};
+      Object.entries(APP_CATALOG).forEach(([id, app]) => {
+        child.appRules[id] ??= app.defaultRule;
+      });
+      child.appRules.spending = "allowed";
+      if (child.flyerAllowed === true) {
+        child.appRules.flyer = "allowed";
+      }
+      if (child.flyerAllowed === false && !child.appRules.flyer) {
+        child.appRules.flyer = "request";
+      }
+      child.flyerAllowed = child.appRules.flyer === "allowed";
+    }
+
+    function getAppRule(child, appId) {
+      normalizeAppRules(child);
+      return child.appRules[appId] || APP_CATALOG[appId]?.defaultRule || "request";
+    }
+
+    function setAppRule(child, appId, rule) {
+      normalizeAppRules(child);
+      child.appRules[appId] = ["allowed", "request", "blocked"].includes(rule) ? rule : "request";
+      if (appId === "flyer") {
+        child.flyerAllowed = child.appRules.flyer === "allowed";
+      }
+    }
+
+    function appRuleLabel(rule) {
+      if (rule === "allowed") return "Allowed";
+      if (rule === "blocked") return "Blocked";
+      return "Ask parent";
+    }
+
+    function requestAppAccess(child, appId) {
+      const app = APP_CATALOG[appId] || { title: "App", initial: "A", kind: "App" };
+      child.currentRequest = [
+        app.title,
+        `${child.name} wants to open ${app.title} (${app.kind}).`,
+        app.initial,
+        "appAccess",
+        appId
+      ];
+      child.pending += 1;
+      render();
+      queueSave();
+      showToast(app.title + " request sent to parent dashboard.");
+    }
+
+    function extensionBlockRules() {
+      const child = currentChild();
+      ensureChildAppState(child);
+      return Object.entries(APP_CATALOG)
+        .filter(([, app]) => Array.isArray(app.domains) && app.domains.length)
+        .map(([id, app]) => ({
+          id,
+          title: app.title,
+          rule: getAppRule(child, id),
+          domains: app.domains,
+          keywordMatch: Boolean(app.keywordMatch)
+        }));
+    }
+
+    function broadcastExtensionBlockRules() {
+      window.postMessage({
+        source: "kiddosprout",
+        type: "blockRules",
+        child: currentChild().name,
+        rules: extensionBlockRules()
+      }, window.location.origin);
+    }
+
+    window.addEventListener("message", (event) => {
+      if (event.source !== window || event.data?.source !== "kiddosprout-blocker") {
+        return;
+      }
+      if (event.data.type === "ready") {
+        showToast("KiddoSprout browser blocker connected.");
+        broadcastExtensionBlockRules();
+      } else if (event.data.type === "rulesSaved") {
+        showToast("Browser blocker rules updated.");
+      }
+    });
 
     function formatMinutes(minutes) {
       const hours = Math.floor(minutes / 60);
@@ -320,15 +467,104 @@
     }
 
     async function saveState(showMessage = false) {
-      window.localStorage.setItem("safesproutState", JSON.stringify(state));
+      window.localStorage.setItem("kiddosproutState", JSON.stringify(state));
       if (showMessage) {
         showToast("Family settings saved.");
       }
     }
 
+    function cleanBrandText(value) {
+      if (typeof value !== "string") {
+        return value;
+      }
+      const compactOldBrand = ["Safe", "Sprout"].join("");
+      const spacedOldBrand = ["Safe", " Sprout"].join("");
+      return value
+        .replaceAll(compactOldBrand, "KiddoSprout")
+        .replaceAll(spacedOldBrand, "KiddoSprout")
+        .replaceAll(compactOldBrand.toLowerCase(), "kiddosprout")
+        .replaceAll(spacedOldBrand.toLowerCase(), "kiddosprout");
+    }
+
+    function cleanSavedBranding(value) {
+      if (Array.isArray(value)) {
+        return value.map(cleanSavedBranding);
+      }
+      if (value && typeof value === "object") {
+        Object.keys(value).forEach((key) => {
+          value[key] = cleanSavedBranding(value[key]);
+        });
+        return value;
+      }
+      return cleanBrandText(value);
+    }
+
     function queueSave() {
       window.clearTimeout(saveTimer);
       saveTimer = window.setTimeout(() => saveState(), 450);
+    }
+
+    function themeChoiceLabel(choice, resolved) {
+      if (choice === "auto") {
+        return "Auto now using " + (resolved === "night" ? "Night" : "Day");
+      }
+      return choice === "night" ? "Night" : "Day";
+    }
+
+    function resolveTheme(choice = "auto") {
+      if (choice === "day" || choice === "night") {
+        return choice;
+      }
+      const hour = new Date().getHours();
+      return hour >= 19 || hour < 7 ? "night" : "day";
+    }
+
+    function applyThemeMode(choice = state?.themeMode || "auto") {
+      const themeChoice = ["auto", "day", "night"].includes(choice) ? choice : "auto";
+      const resolved = resolveTheme(themeChoice);
+      document.body.classList.toggle("theme-night", resolved === "night");
+      document.body.classList.toggle("theme-day", resolved === "day");
+      document.body.dataset.themeMode = themeChoice;
+      if (themeModeSetting) {
+        themeModeSetting.value = themeChoice;
+      }
+      if (quickThemeModeSetting) {
+        quickThemeModeSetting.value = themeChoice;
+      }
+      if (themeModeStatus) {
+        themeModeStatus.value = themeChoiceLabel(themeChoice, resolved);
+      }
+    }
+
+    function saveThemeMode(choice = themeModeSetting.value) {
+      state.themeMode = choice;
+      applyThemeMode(state.themeMode);
+      queueSave();
+      showToast(themeModeStatus.value + " theme saved.");
+    }
+
+    function setSettingsMenu(open) {
+      settingsMenu.classList.toggle("open", open);
+      settingsToggle.setAttribute("aria-expanded", String(open));
+    }
+
+    function closeSettingsMenu() {
+      setSettingsMenu(false);
+    }
+
+    function openParentSettingsFromMenu() {
+      closeSettingsMenu();
+      const advancedSettings = document.querySelector("#advancedSettings");
+      if (advancedSettings) {
+        advancedSettings.open = true;
+      }
+      setMode("parent");
+      window.setTimeout(() => {
+        const target = document.querySelector("#advancedSettings");
+        if (target) {
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 250);
     }
 
     function updateRoute(mode) {
@@ -358,6 +594,24 @@
     }
 
     function setMode(mode, options = {}) {
+      if ((mode === "parent" || mode === "child") && !hasParentAccount()) {
+        viewMode = "signup";
+        updateRoute("signup");
+        document.body.classList.remove("mode-child");
+        document.body.classList.add("mode-signup");
+        document.querySelector("#modeToggle").textContent = "Child Site";
+        document.querySelector("#siteTitle").textContent = "KiddoSprout Sign Up";
+        document.querySelector("#heroTitle").textContent = "Create your KiddoSprout family hub.";
+        hideParentGate();
+        closeApp();
+        if (state) {
+          render();
+        }
+        if (!options.quiet) {
+          showToast("Create a parent account first.");
+        }
+        return;
+      }
       if (mode === "parent" && !parentUnlocked && !options.unlocked) {
         updateRoute("parent");
         showParentGate();
@@ -372,8 +626,8 @@
       document.body.classList.toggle("mode-child", mode === "child");
       document.body.classList.toggle("mode-signup", mode === "signup");
       document.querySelector("#modeToggle").textContent = mode === "child" ? "Parent Site" : "Child Site";
-      document.querySelector("#siteTitle").textContent = mode === "child" ? "Safe Sprout Child Site" : mode === "signup" ? "Safe Sprout Sign Up" : "Safe Sprout Parent Dashboard";
-      document.querySelector("#heroTitle").textContent = mode === "child" ? "Your safe space for today." : mode === "signup" ? "Create your family hub." : "One calm command center for kids online.";
+      document.querySelector("#siteTitle").textContent = mode === "child" ? "KiddoSprout Child Site" : mode === "signup" ? "KiddoSprout Sign Up" : "KiddoSprout Parent Dashboard";
+      document.querySelector("#heroTitle").textContent = mode === "child" ? "Your KiddoSprout space for today." : mode === "signup" ? "Create your KiddoSprout family hub." : "KiddoSprout helps kids grow online.";
       hideParentGate();
       closeApp();
       if (state) {
@@ -385,6 +639,14 @@
     }
 
     function unlockParent() {
+      if (!hasParentAccount()) {
+        passcodeStatus.textContent = "Create a parent account first.";
+        shakePasscodeBox();
+        showToast("Create a parent account before logging in.");
+        window.setTimeout(() => setMode("signup"), 650);
+        return;
+      }
+
       if (Date.now() < lockoutUntil) {
         updatePasscodeLockout();
         return;
@@ -395,8 +657,8 @@
         failedPasscodeAttempts = 0;
         lockoutUntil = 0;
         window.sessionStorage.setItem("parentUnlocked", "true");
-        window.localStorage.removeItem("safeSproutLockoutUntil");
-        window.localStorage.removeItem("safeSproutFailedAttempts");
+        window.localStorage.removeItem("kiddoSproutLockoutUntil");
+        window.localStorage.removeItem("kiddoSproutFailedAttempts");
         window.sessionStorage.removeItem("failedPasscodeAttempts");
         window.sessionStorage.removeItem("lockoutUntil");
         showPasscodeSuccess("Welcome");
@@ -405,15 +667,15 @@
         return;
       }
 
-      failedPasscodeAttempts = Number(window.localStorage.getItem("safeSproutFailedAttempts") || "0") + 1;
-      window.localStorage.setItem("safeSproutFailedAttempts", String(failedPasscodeAttempts));
+      failedPasscodeAttempts = Number(window.localStorage.getItem("kiddoSproutFailedAttempts") || "0") + 1;
+      window.localStorage.setItem("kiddoSproutFailedAttempts", String(failedPasscodeAttempts));
       window.sessionStorage.setItem("failedPasscodeAttempts", String(failedPasscodeAttempts));
       passcodeInput.value = "";
       shakePasscodeBox();
 
       if (failedPasscodeAttempts >= 3) {
         lockoutUntil = Date.now() + 30000;
-        window.localStorage.setItem("safeSproutLockoutUntil", String(lockoutUntil));
+        window.localStorage.setItem("kiddoSproutLockoutUntil", String(lockoutUntil));
         window.sessionStorage.setItem("lockoutUntil", String(lockoutUntil));
         updatePasscodeLockout();
         showToast("Too many attempts. Try again in 30 seconds.");
@@ -427,7 +689,7 @@
     }
 
     function checkServerLockout() {
-      const sharedLockout = Number(window.localStorage.getItem("safeSproutLockoutUntil") || "0");
+      const sharedLockout = Number(window.localStorage.getItem("kiddoSproutLockoutUntil") || "0");
       if (sharedLockout > Date.now()) {
         lockoutUntil = sharedLockout;
         window.sessionStorage.setItem("lockoutUntil", String(lockoutUntil));
@@ -468,22 +730,46 @@
       }, 900);
     }
 
+    function saveSecondParent() {
+      const name = secondParentNameSetting.value.trim();
+      const email = secondParentEmailSetting.value.trim().toLowerCase();
+      if ((name && !email) || (!name && email)) {
+        showToast("Add both second parent name and email, or leave both blank.");
+        return;
+      }
+      state.secondParentName = name;
+      state.secondParentEmail = email;
+      queueSave();
+      showToast(name ? "Second parent saved." : "Second parent cleared.");
+    }
+
     function createAccount() {
       const familyName = signupFamily.value.trim();
       const parentName = signupParent.value.trim();
       const parentEmail = signupEmail.value.trim().toLowerCase();
+      const secondParentName = signupParentTwo.value.trim();
+      const secondParentEmail = signupEmailTwo.value.trim().toLowerCase();
       const passcode = signupPasscode.value.trim();
 
       if (!familyName || !parentName || !parentEmail || !passcode) {
-        signupStatus.textContent = "Complete every field";
-        showToast("Complete every sign up field.");
+        signupStatus.textContent = "Complete required fields";
+        showToast("Complete the required sign up fields.");
+        return;
+      }
+
+      if ((secondParentName && !secondParentEmail) || (!secondParentName && secondParentEmail)) {
+        signupStatus.textContent = "Add both second parent details";
+        showToast("Add both second parent name and email, or leave both blank.");
         return;
       }
 
       state.familyName = familyName;
       state.parentName = parentName;
       state.parentEmail = parentEmail;
+      state.secondParentName = secondParentName;
+      state.secondParentEmail = secondParentEmail;
       state.parentPasscode = passcode;
+      state.parentAccountCreated = true;
       signupStatus.textContent = "Welcome";
       signupStatus.classList.add("success");
       parentUnlocked = true;
@@ -495,30 +781,50 @@
       }, 650);
     }
 
-    function sendRecoveryCode() {
+    async function sendRecoveryCode() {
       const email = recoveryEmail.value.trim().toLowerCase();
       const savedEmail = (state.parentEmail || "").toLowerCase();
+      const secondSavedEmail = (state.secondParentEmail || "").toLowerCase();
 
-      if (!savedEmail || email !== savedEmail) {
+      if (!email || (email !== savedEmail && email !== secondSavedEmail)) {
         passcodeStatus.textContent = "Email not found";
         shakePasscodeBox();
         showToast("Email not found");
         return;
       }
 
-      oneTimeCode = String(Math.floor(100000 + Math.random() * 900000));
-      passcodeStatus.textContent = "One-time code: " + oneTimeCode;
-      passcodeStatus.classList.add("success");
-      window.setTimeout(() => passcodeStatus.classList.remove("success"), 1200);
+      passcodeStatus.textContent = "Sending code...";
+      try {
+        const response = await fetch("/api/recovery/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email })
+        });
+        const result = await response.json();
+        if (!response.ok || !result.ok) {
+          throw new Error(result.error || "Could not send code");
+        }
+        recoveryCodeRequested = true;
+        passcodeStatus.textContent = "Code sent to your email";
+        passcodeStatus.classList.add("success");
+        showToast("One-time code sent.");
+        window.setTimeout(() => passcodeStatus.classList.remove("success"), 1200);
+      } catch (error) {
+        recoveryCodeRequested = false;
+        passcodeStatus.textContent = error.message;
+        shakePasscodeBox();
+        showToast(error.message);
+      }
     }
 
-    function resetPasscodeWithCode() {
+    async function resetPasscodeWithCode() {
       const newPasscode = recoveryPasscode.value.trim();
+      const email = recoveryEmail.value.trim().toLowerCase();
 
-      if (!oneTimeCode || recoveryCode.value.trim() !== oneTimeCode) {
-        passcodeStatus.textContent = "Incorrect one-time code";
+      if (!recoveryCodeRequested) {
+        passcodeStatus.textContent = "Send a one-time code first";
         shakePasscodeBox();
-        showToast("Incorrect one-time code");
+        showToast("Send a one-time code first.");
         return;
       }
 
@@ -528,8 +834,26 @@
         return;
       }
 
+      passcodeStatus.textContent = "Checking code...";
+      try {
+        const response = await fetch("/api/recovery/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, code: recoveryCode.value.trim() })
+        });
+        const result = await response.json();
+        if (!response.ok || !result.ok) {
+          throw new Error(result.error || "Incorrect one-time code");
+        }
+      } catch (error) {
+        passcodeStatus.textContent = error.message;
+        shakePasscodeBox();
+        showToast(error.message);
+        return;
+      }
+
       state.parentPasscode = newPasscode;
-      oneTimeCode = "";
+      recoveryCodeRequested = false;
       failedPasscodeAttempts = 0;
       lockoutUntil = 0;
       window.sessionStorage.removeItem("failedPasscodeAttempts");
@@ -582,13 +906,7 @@
       child.report.Explorer ??= 0;
       child.report.Stories ??= 0;
       child.report.Movement ??= 0;
-      child.report.Money ??= 0;
       child.report.Games ??= 0;
-      child.moneyBalance ??= 18;
-      child.savingsGoal ??= 40;
-      child.weeklyAllowance ??= 5;
-      child.savingsGoalName ??= "New Football";
-      child.spendingHistory ??= [];
       child.streaks ??= { reading: 0, homework: 0, exercise: 0, chores: 0 };
       child.streaks.reading ??= 0;
       child.streaks.homework ??= 0;
@@ -605,9 +923,13 @@
       child.dailyWins ??= {};
       child.kindnessPoints ??= 0;
       child.kindnessPrompt ??= 0;
+      child.sparkIndex ??= 0;
       child.readingLog ??= [];
       child.waterCount ??= 0;
       child.eyeBreaks ??= 0;
+      child.flyerBest ??= 0;
+      child.flyerAllowed ??= false;
+      normalizeAppRules(child);
     }
 
     function escapeHtml(value) {
@@ -650,18 +972,41 @@
 
     function avatarSymbol(icon, fallbackName) {
       const symbols = {
-        star: "*",
+        star: "★",
         bolt: "!",
         book: "B",
-        rocket: "^",
-        heart: "+",
-        smile: ":)"
+        rocket: "▲",
+        heart: "♥",
+        smile: "☺",
+        rainbow: "◒",
+        leaf: "◆",
+        crown: "♛"
       };
       return symbols[icon] || (fallbackName || "?").slice(0, 1).toUpperCase();
     }
 
     function safeAvatarColor(color) {
       return /^#[0-9a-f]{6}$/i.test(color || "") ? color : "#147d7f";
+    }
+
+    function colorTextToHex(value) {
+      const text = String(value || "").trim();
+      if (/^#[0-9a-f]{6}$/i.test(text)) {
+        return text;
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = 1;
+      canvas.height = 1;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        return "";
+      }
+      ctx.fillStyle = "#000000";
+      ctx.fillStyle = text;
+      if (ctx.fillStyle === "#000000" && !/^black$/i.test(text)) {
+        return "";
+      }
+      return ctx.fillStyle;
     }
 
     function createDefaultChild(name, dateOfBirth, age, device, avatarIcon, avatarColor, costume, schoolYear, emergencyContact, careNote) {
@@ -686,14 +1031,8 @@
           Explorer: 0,
           Stories: 0,
           Movement: 0,
-          Money: 0,
           Games: 0
         },
-        moneyBalance: 18,
-        savingsGoal: 40,
-        weeklyAllowance: 5,
-        savingsGoalName: "New Football",
-        spendingHistory: [],
         streaks: {
           reading: 0,
           homework: 0,
@@ -708,9 +1047,12 @@
         dailyWins: {},
         kindnessPoints: 0,
         kindnessPrompt: 0,
+        sparkIndex: 0,
         readingLog: [],
         waterCount: 0,
-        eyeBreaks: 0
+        eyeBreaks: 0,
+        flyerBest: 0,
+        flyerAllowed: false
       };
     }
 
@@ -951,7 +1293,7 @@
     function renderTrustedContacts() {
       const contacts = state.trustedContacts || [];
       const contactList = document.querySelector("#trustedContactsList");
-      document.querySelector("#trustedContactsInput").value = contacts.join("\\n");
+      document.querySelector("#trustedContactsInput").value = contacts.join("\n");
       contactList.innerHTML = contacts.length
         ? contacts.map((contact) => `<div class="filter-item"><span>${escapeHtml(contact)}</span><strong>Trusted</strong></div>`).join("")
         : `<div class="filter-item"><span>No contacts set</span><strong>Ask</strong></div>`;
@@ -971,7 +1313,7 @@
 
     function renderFamilyRules() {
       const rules = state.familyRules || [];
-      rulesInput.value = rules.join("\\n");
+      rulesInput.value = rules.join("\n");
       document.querySelector("#childRules").innerHTML = rules.length
         ? rules.map((rule) => `<div class="filter-item"><span>${rule}</span><strong>Rule</strong></div>`).join("")
         : `<div class="filter-item"><span>No rules set</span><strong>Open</strong></div>`;
@@ -979,35 +1321,18 @@
 
     function renderChores() {
       const chores = state.chores || [];
-      choresInput.value = chores.map((chore) => `${chore.title} = ${chore.reward}`).join("\\n");
+      choresInput.value = chores.map((chore) => chore.title).join("\n");
       document.querySelector("#childChores").innerHTML = chores.length
         ? chores.map((chore, index) => `
           <div class="filter-item">
             <span>${chore.title}</span>
-            <button class="tiny" data-chore="${index}">$${chore.reward} Done</button>
+            <button class="tiny" data-chore="${index}">Done</button>
           </div>
         `).join("")
         : `<div class="filter-item"><span>No chores set</span><strong>Open</strong></div>`;
 
       document.querySelectorAll("[data-chore]").forEach((button) => {
         button.addEventListener("click", () => submitChore(Number(button.dataset.chore)));
-      });
-    }
-
-    function renderRewards() {
-      const rewards = state.rewards || [];
-      rewardsInput.value = rewards.map((reward) => `${reward.title} = ${reward.cost}`).join("\\n");
-      document.querySelector("#childRewards").innerHTML = rewards.length
-        ? rewards.map((reward, index) => `
-          <div class="filter-item">
-            <span>${reward.title}</span>
-            <button class="tiny" data-reward="${index}">$${reward.cost} Request</button>
-          </div>
-        `).join("")
-        : `<div class="filter-item"><span>No rewards set</span><strong>Open</strong></div>`;
-
-      document.querySelectorAll("[data-reward]").forEach((button) => {
-        button.addEventListener("click", () => requestReward(Number(button.dataset.reward)));
       });
     }
 
@@ -1026,11 +1351,15 @@
       kidAvatarPreview.style.background = color;
       kidAvatarName.textContent = child.name + "'s avatar";
       kidCostumePreview.textContent = "Costume: " + costume;
+      avatarChoiceButtons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.avatarChoice === icon);
+      });
     }
 
     function renderKidAvatarStudio(child) {
       kidAvatarIcon.value = child.avatarIcon || "star";
       kidAvatarColor.value = safeAvatarColor(child.avatarColor);
+      kidAvatarColorText.value = safeAvatarColor(child.avatarColor);
       kidCostume.value = child.costume || "Explorer";
       updateKidAvatarPreview();
     }
@@ -1038,7 +1367,9 @@
     function saveKidAvatar() {
       const child = currentChild();
       child.avatarIcon = kidAvatarIcon.value;
-      child.avatarColor = safeAvatarColor(kidAvatarColor.value);
+      child.avatarColor = safeAvatarColor(colorTextToHex(kidAvatarColorText.value) || kidAvatarColor.value);
+      kidAvatarColor.value = child.avatarColor;
+      kidAvatarColorText.value = child.avatarColor;
       child.costume = kidCostume.value;
       render();
       queueSave();
@@ -1083,12 +1414,6 @@
           unlocked: (report.Movement || 0) >= 20
         },
         {
-          mark: "$",
-          title: "Smart Saver",
-          detail: "Saved $25 or more",
-          unlocked: (child.moneyBalance || 0) >= 25
-        },
-        {
           mark: "30",
           title: "30-Day Streak Master",
           detail: "Built any 30-day habit streak",
@@ -1112,26 +1437,13 @@
       `).join("");
     }
 
-    function renderAllowanceTracker(child) {
-      const progress = Math.min(100, Math.round(((child.moneyBalance || 0) / Math.max(1, child.savingsGoal || 1)) * 100));
-      document.querySelector("#allowanceBalance").textContent = "$" + (child.moneyBalance || 0);
-      document.querySelector("#weeklyAllowance").textContent = "$" + (child.weeklyAllowance || 0);
-      document.querySelector("#savingsGoalName").textContent = child.savingsGoalName || "Savings goal";
-      document.querySelector("#savingsProgressLabel").textContent = progress + "%";
-      document.querySelector("#savingsProgressFill").style.setProperty("--w", progress + "%");
-      const history = (child.spendingHistory || []).slice(0, 4);
-      document.querySelector("#spendingHistory").innerHTML = history.length
-        ? history.map((item) => `<div class="filter-item"><span>${item.label}</span><strong>${item.amount}</strong></div>`).join("")
-        : `<div class="filter-item"><span>No spending yet</span><strong>Saved</strong></div>`;
-    }
-
     function renderStreaks(child) {
       const streaks = child.streaks || {};
       const items = [
         ["Reading Streak", streaks.reading || 0, "Story pages and reading time"],
         ["Homework Streak", streaks.homework || 0, "Focus sessions and plan work"],
         ["Exercise Streak", streaks.exercise || 0, "Move breaks and active resets"],
-        ["Chore Streak", streaks.chores || 0, "Chores and money missions"]
+        ["Chore Streak", streaks.chores || 0, "Helpful tasks and home routines"]
       ];
       const best = Math.max(...items.map((item) => item[1]), 0);
       document.querySelector("#bestStreak").textContent = best + " days";
@@ -1147,11 +1459,18 @@
     }
 
     function renderHomeworkMode(child) {
-      document.querySelector("#toggleHomeworkMode").textContent = child.homeworkMode ? "End Homework" : "Start Homework";
       document.querySelector("#homeworkModeState").textContent = child.homeworkMode ? "Homework On" : "Homework Off";
       document.querySelector("#homeworkModeSub").textContent = child.homeworkMode
         ? "Games, videos, and entertainment requests are paused."
         : "Games and video requests are available.";
+      if (parentHomeworkToggle) {
+        parentHomeworkToggle.checked = Boolean(child.homeworkMode);
+      }
+      if (parentHomeworkLabel) {
+        parentHomeworkLabel.textContent = child.homeworkMode
+          ? "Games, videos, and entertainment requests are paused."
+          : "Games and video requests are available.";
+      }
     }
 
     function renderDailyGoalBoard(child) {
@@ -1175,6 +1494,12 @@
       const index = Number(child.kindnessPrompt || 0) % kindnessPrompts.length;
       document.querySelector("#kindnessPrompt").textContent = kindnessPrompts[index];
       document.querySelector("#kindnessPoints").textContent = (child.kindnessPoints || 0) + " points";
+    }
+
+    function renderDailySpark(child) {
+      const spark = sparkPrompts[Number(child.sparkIndex || 0) % sparkPrompts.length];
+      document.querySelector("#sparkTitle").textContent = spark.title;
+      document.querySelector("#sparkText").textContent = spark.text;
     }
 
     function renderReadingLog(child) {
@@ -1234,17 +1559,65 @@
       });
     }
 
+    function renderAppAccessRules(child) {
+      normalizeAppRules(child);
+      const list = document.querySelector("#appAccessList");
+      if (!list) {
+        return;
+      }
+      list.innerHTML = Object.entries(APP_CATALOG).map(([id, app]) => {
+        const rule = getAppRule(child, id);
+        return `
+          <div class="filter-item app-access-item">
+            <span>${escapeHtml(app.title)} <small>${escapeHtml(app.kind)}</small></span>
+            <div class="choice-row">
+              <button class="tiny ${rule === "allowed" ? "active-rule" : ""}" data-app-rule="${id}" data-rule="allowed">Allow</button>
+              <button class="tiny ${rule === "request" ? "active-rule" : ""}" data-app-rule="${id}" data-rule="request">Ask</button>
+              <button class="block ${rule === "blocked" ? "active-rule" : ""}" data-app-rule="${id}" data-rule="blocked">Block</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      document.querySelectorAll("[data-app-rule]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const app = APP_CATALOG[button.dataset.appRule];
+          setAppRule(child, button.dataset.appRule, button.dataset.rule);
+          renderControls(child);
+          broadcastExtensionBlockRules();
+          queueSave();
+          showToast(app.title + " is now set to " + appRuleLabel(button.dataset.rule) + ".");
+        });
+      });
+    }
+
+    function renderHubAccess(child) {
+      normalizeAppRules(child);
+      Object.entries(APP_CATALOG).forEach(([id, app]) => {
+        const rule = getAppRule(child, id);
+        const label = document.querySelector(`[data-app-status-label="${id}"]`);
+        if (label) {
+          label.textContent = rule === "allowed" ? "Approved app" : rule === "blocked" ? "Blocked by parent" : "Needs parent approval";
+        }
+        document.querySelectorAll(`[data-open-app="${id}"], [data-open-app-link="${id}"]`).forEach((control) => {
+          control.classList.toggle("blocked-app", rule === "blocked");
+          control.classList.toggle("request-app", rule === "request");
+          control.setAttribute("aria-label", `${app.title}: ${appRuleLabel(rule)}`);
+        });
+      });
+    }
+
     function renderControls(child) {
       ensureChildAppState(child);
       const left = Math.max(0, child.dailyLimit - child.usedToday);
       document.querySelector("#childWelcome").textContent = child.name + "'s Child Mode";
       renderKidAvatarStudio(child);
       renderBadgeShelf(child);
-      renderAllowanceTracker(child);
       renderStreaks(child);
       renderHomeworkMode(child);
       renderDailyGoalBoard(child);
       renderKindnessQuest(child);
+      renderDailySpark(child);
       renderReadingLog(child);
       renderHealthyBreaks(child);
       document.querySelector("#timeLeft").textContent = formatMinutes(left);
@@ -1255,6 +1628,15 @@
       decorateRange(document.querySelector("#limitRange"));
       document.querySelector("#limitValue").textContent = formatMinutes(child.dailyLimit);
       document.querySelector("#bedtimeToggle").checked = child.bedtime;
+      const flyerRule = getAppRule(child, "flyer");
+      flyerAllowedToggle.checked = flyerRule === "allowed";
+      flyerAllowedLabel.textContent = flyerRule === "allowed"
+        ? "Allowed for this child profile."
+        : flyerRule === "blocked"
+          ? "Blocked by parent settings."
+          : "Parent approval required before play.";
+      renderAppAccessRules(child);
+      renderHubAccess(child);
       document.querySelector("#deviceState").textContent = child.bedtime ? "Device Locked" : "Device Active";
       document.querySelector("#deviceSub").textContent = child.bedtime
         ? "Only emergency phone calls are available."
@@ -1271,17 +1653,23 @@
       renderMoodCheckins();
       renderFamilyRules();
       renderChores();
-      renderRewards();
       renderFocus();
       renderWellbeingSnapshot(child);
+      broadcastExtensionBlockRules();
     }
 
     function render() {
+      state.themeMode ??= "auto";
+      applyThemeMode(state.themeMode);
       passcodeSetting.value = currentParentPasscode();
       passcodeSettingStatus.textContent = "Saved";
       signupFamily.value = state.familyName || "";
       signupParent.value = state.parentName || "";
       signupEmail.value = state.parentEmail || "";
+      signupParentTwo.value = state.secondParentName || "";
+      signupEmailTwo.value = state.secondParentEmail || "";
+      secondParentNameSetting.value = state.secondParentName || "";
+      secondParentEmailSetting.value = state.secondParentEmail || "";
       document.querySelector("#waterGoalInput").value = Number(state.wellbeingGoals?.water || 4);
       document.querySelector("#eyeGoalInput").value = Number(state.wellbeingGoals?.eyeBreaks || 3);
       renderProfiles();
@@ -1291,13 +1679,27 @@
     function openApp(app) {
       const child = currentChild();
       ensureChildAppState(child);
+      const rule = getAppRule(child, app);
+      if (rule === "blocked") {
+        const appTitle = APP_CATALOG[app]?.title || "This app";
+        child.blockedHits += 1;
+        renderControls(child);
+        queueSave();
+        showToast(appTitle + " is blocked by parent settings.");
+        return;
+      }
+      if (rule === "request") {
+        requestAppAccess(child, app);
+        return;
+      }
       window.clearTimeout(closeTimer);
       const titles = {
-        money: ["Money Missions", "Allowance goals, saving practice, and parent-approved rewards."],
         studio: ["Creator Studio", "Safe prompts, pretend recording, and parent review queue."],
         explore: ["Explorer Lab", "Nature facts, map quests, and discovery minutes."],
         move: ["Move Breaks", "Short activity timers that count toward healthy movement."],
-        story: ["Story Theater", "Read-aloud pages, bookmarks, and calm story time."]
+        story: ["Story Theater", "Read-aloud pages, bookmarks, and calm story time."],
+        recipe: ["FlavorNest", "Connected recipes, safe steps, and family kitchen wins."],
+        flyer: ["Sprout Flyer", "Tap, click, or press Space to fly through friendly clouds."]
       };
       appTitle.textContent = titles[app][0];
       appSubtitle.textContent = child.name + " · " + titles[app][1];
@@ -1305,6 +1707,30 @@
       appModal.classList.add("open");
       appModal.setAttribute("aria-hidden", "false");
       bindAppActions(app);
+      if (app === "flyer") {
+        setupFlyerGame();
+      }
+    }
+
+    function openLinkedApp(event) {
+      const link = event.currentTarget;
+      const appId = link.dataset.openAppLink;
+      const child = currentChild();
+      ensureChildAppState(child);
+      const rule = getAppRule(child, appId);
+      if (rule === "allowed") {
+        return;
+      }
+      event.preventDefault();
+      const appTitleText = APP_CATALOG[appId]?.title || "This app";
+      if (rule === "blocked") {
+        child.blockedHits += 1;
+        renderControls(child);
+        queueSave();
+        showToast(appTitleText + " is blocked by parent settings.");
+        return;
+      }
+      requestAppAccess(child, appId);
     }
 
     function completeTask(taskId) {
@@ -1321,7 +1747,7 @@
         child.streaks.reading += 1;
       } else if (task.id === "move") {
         child.streaks.exercise += 1;
-      } else if (task.id === "money") {
+      } else if (task.id === "chore") {
         child.streaks.chores += 1;
       } else {
         child.streaks.homework += 1;
@@ -1341,22 +1767,6 @@
       showToast(child.name + "'s plan was reset.");
     }
 
-    function requestWeeklyAllowance() {
-      const child = currentChild();
-      ensureChildAppState(child);
-      child.currentRequest = [
-        "Weekly Allowance",
-        `${child.name} requested this week's $${child.weeklyAllowance} allowance`,
-        "$",
-        "weeklyAllowance"
-      ];
-      child.pending += 1;
-      render();
-      queueSave();
-      showToast("Allowance request sent to parent dashboard.");
-      celebrate();
-    }
-
     function toggleHomeworkMode() {
       const child = currentChild();
       ensureChildAppState(child);
@@ -1366,7 +1776,7 @@
       }
       renderControls(child);
       queueSave();
-      showToast(child.homeworkMode ? "Homework Mode started." : "Homework Mode ended.");
+      showToast(child.homeworkMode ? "Homework Mode started by parent." : "Homework Mode ended by parent.");
     }
 
     function saveWellbeingGoals() {
@@ -1381,7 +1791,7 @@
 
     function saveTrustedContacts() {
       state.trustedContacts = document.querySelector("#trustedContactsInput").value
-        .split("\\n")
+        .split(/\r?\n/)
         .map((contact) => contact.trim())
         .filter(Boolean);
       renderTrustedContacts();
@@ -1607,6 +2017,16 @@
       showToast("New kindness quest ready.");
     }
 
+    function nextDailySpark() {
+      const child = currentChild();
+      ensureChildAppState(child);
+      child.sparkIndex = Number(child.sparkIndex || 0) + 1;
+      renderDailySpark(child);
+      queueSave();
+      showToast("New daily spark ready.");
+      celebrateElement(document.querySelector(".spark-card"));
+    }
+
     function completeKindnessQuest() {
       const child = currentChild();
       ensureChildAppState(child);
@@ -1789,26 +2209,26 @@
         "Behind the door was a library where every shelf whispered a different adventure.",
         "Mara chose the quietest whisper and carried a new story home."
       ];
-
-      if (app === "money") {
-        const progress = Math.min(100, Math.round((child.moneyBalance / child.savingsGoal) * 100));
-        const history = (child.spendingHistory || []).slice(0, 3).map((item) => `
-          <div class="filter-item"><span>${item.label}</span><strong>${item.amount}</strong></div>
-        `).join("") || `<div class="filter-item"><span>No spending yet</span><strong>Saved</strong></div>`;
-        return `
-          <div class="mini-grid">
-            <div class="mini-card"><span class="small">Saved</span><strong>$${child.moneyBalance}</strong><div class="track"><div class="fill" style="--w: ${progress}%; --c: #5d9b3a;"></div></div></div>
-            <div class="mini-card"><span class="small">Goal</span><strong>$${child.savingsGoal}</strong><p class="small">Reward: ${child.savingsGoalName || "New Football"}</p></div>
-            <div class="mini-card"><span class="small">Weekly allowance</span><strong>$${child.weeklyAllowance}</strong><p class="small">Parent approval required.</p></div>
-            <div class="mini-card"><span class="small">History</span><div class="filter-list">${history}</div></div>
-          </div>
-          <div class="choice-row">
-            <button class="approve" data-app-action="earn">Ask for $5 Chore Credit</button>
-            <button class="tiny" data-app-action="save">Practice Saving</button>
-            <button class="block" data-app-action="spend">Request $4 Spend</button>
-          </div>
-        `;
-      }
+      const recipes = [
+        {
+          title: "Rainbow Fruit Cup",
+          time: "8 min",
+          ingredients: "Banana, berries, apple, yoghurt",
+          steps: "Wash fruit, chop with an adult nearby, layer colors, add yoghurt."
+        },
+        {
+          title: "Crunchy Wrap",
+          time: "10 min",
+          ingredients: "Wrap, cheese, cucumber, carrot",
+          steps: "Spread, sprinkle, add crunchy veg, roll tightly, slice with help."
+        },
+        {
+          title: "Cosy Toast Faces",
+          time: "7 min",
+          ingredients: "Toast, spread, fruit slices",
+          steps: "Toast bread, add spread, make a smile face with fruit."
+        }
+      ];
 
       if (app === "studio") {
         const queue = child.creatorQueue.length
@@ -1851,6 +2271,41 @@
         `;
       }
 
+      if (app === "recipe") {
+        return `
+          <div class="mini-grid">
+            ${recipes.map((recipe, index) => `
+              <article class="mini-card recipe-card">
+                <span class="small">${recipe.time}</span>
+                <strong>${recipe.title}</strong>
+                <p class="small">${recipe.ingredients}</p>
+                <p>${recipe.steps}</p>
+                <button class="tiny" data-app-action="recipe${index}">Made it</button>
+              </article>
+            `).join("")}
+          </div>
+          <div class="story-box">Kitchen safety: ask an adult before using knives, heat, blenders, or anything sharp.</div>
+        `;
+      }
+
+      if (app === "flyer") {
+        return `
+          <div class="flyer-game">
+            <div class="flyer-score">
+              <span>Score <strong id="flyerScore">0</strong></span>
+              <span>Best <strong id="flyerBest">${Number(child.flyerBest || 0)}</strong></span>
+            </div>
+            <canvas id="flyerCanvas" width="640" height="360" aria-label="Sprout Flyer game"></canvas>
+            <div class="choice-row">
+              <button class="approve" data-app-action="startFlyer">Start Game</button>
+              <button class="tiny" data-app-action="flapFlyer">Fly</button>
+              <button class="tiny" data-app-action="resetFlyer">Restart</button>
+            </div>
+            <p class="small">Tap the game, click Fly, or press Space to stay in the air.</p>
+          </div>
+        `;
+      }
+
       return `
         <div class="story-box">${storyPages[child.storyPage % storyPages.length]}</div>
         <div class="mini-grid">
@@ -1875,19 +2330,7 @@
       ensureChildAppState(child);
       let shouldCelebrate = false;
 
-      if (action === "earn") {
-        child.currentRequest = ["$5 Chore Credit", "Chore credit requested from " + child.name + "'s profile", "$", "moneyEarn"];
-        child.pending += 1;
-        showToast("Chore credit request sent for approval.");
-      } else if (action === "save") {
-        addReportMinutes("Money", 2);
-        showToast(child.name + " practiced a saving choice.");
-        shouldCelebrate = true;
-      } else if (action === "spend") {
-        child.currentRequest = ["$4 Spend Request", "Reward spend requested from " + child.name + "'s profile", "$", "moneySpend"];
-        child.pending += 1;
-        showToast("Spend request sent for approval.");
-      } else if (action === "record") {
+      if (action === "record") {
         child.creatorQueue.push("Fact clip " + (child.creatorQueue.length + 1));
         child.currentRequest = ["Creator Clip", "Video upload requested from " + child.name + "'s profile", "C", "creatorUpload"];
         child.pending += 1;
@@ -1909,6 +2352,26 @@
         return;
       } else if (action === "resetMove") {
         resetMoveTimer();
+        return;
+      } else if (action.startsWith("recipe")) {
+        child.dailyWins.kind = true;
+        child.report.Stories = (child.report.Stories || 0) + 3;
+        state.moodCheckins = state.moodCheckins || [];
+        state.moodCheckins.unshift({
+          child: child.name,
+          mood: "Made a FlavorNest snack",
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        });
+        showToast("Recipe win saved for " + child.name + ".");
+        shouldCelebrate = true;
+      } else if (action === "startFlyer") {
+        startFlyerGame();
+        return;
+      } else if (action === "flapFlyer") {
+        flapFlyer();
+        return;
+      } else if (action === "resetFlyer") {
+        resetFlyerGame(true);
         return;
       } else if (action === "nextPage") {
         child.storyPage += 1;
@@ -1955,8 +2418,248 @@
       showToast("Move timer reset.");
     }
 
+    function setupFlyerGame() {
+      stopFlyerGame();
+      const canvas = document.querySelector("#flyerCanvas");
+      if (!canvas) {
+        return;
+      }
+      flyerGame = {
+        canvas,
+        ctx: canvas.getContext("2d"),
+        bird: { x: 110, y: 170, vy: 0, size: 22 },
+        clouds: [],
+        frame: 0,
+        score: 0,
+        running: false,
+        over: false
+      };
+      canvas.addEventListener("pointerdown", flapFlyer);
+      document.addEventListener("keydown", handleFlyerKey);
+      resetFlyerGame(false);
+    }
+
+    function stopFlyerGame() {
+      if (flyerAnimation) {
+        window.cancelAnimationFrame(flyerAnimation);
+        flyerAnimation = null;
+      }
+      document.removeEventListener("keydown", handleFlyerKey);
+      flyerGame = null;
+    }
+
+    function handleFlyerKey(event) {
+      if (event.code === "Space" && appModal.classList.contains("open") && flyerGame) {
+        event.preventDefault();
+        flapFlyer();
+      }
+    }
+
+    function resetFlyerGame(startNow) {
+      if (!flyerGame) {
+        return;
+      }
+      if (flyerAnimation) {
+        window.cancelAnimationFrame(flyerAnimation);
+        flyerAnimation = null;
+      }
+      flyerGame.bird = { x: 110, y: 170, vy: 0, size: 22 };
+      flyerGame.clouds = [
+        { x: 390, gapY: 150, passed: false },
+        { x: 650, gapY: 210, passed: false }
+      ];
+      flyerGame.frame = 0;
+      flyerGame.score = 0;
+      flyerGame.running = Boolean(startNow);
+      flyerGame.over = false;
+      updateFlyerScore();
+      drawFlyerGame(startNow ? "" : "Press Start");
+      if (startNow) {
+        loopFlyerGame();
+      }
+    }
+
+    function startFlyerGame() {
+      if (!flyerGame) {
+        return;
+      }
+      if (flyerGame.over) {
+        resetFlyerGame(true);
+        return;
+      }
+      flyerGame.running = true;
+      flapFlyer();
+      loopFlyerGame();
+    }
+
+    function flapFlyer() {
+      if (!flyerGame) {
+        return;
+      }
+      if (flyerGame.over) {
+        resetFlyerGame(true);
+        return;
+      }
+      flyerGame.running = true;
+      flyerGame.bird.vy = -6.2;
+    }
+
+    function loopFlyerGame() {
+      if (!flyerGame || !flyerGame.running) {
+        return;
+      }
+      if (flyerAnimation) {
+        return;
+      }
+      flyerAnimation = window.requestAnimationFrame(() => {
+        flyerAnimation = null;
+        updateFlyerGame();
+        drawFlyerGame("");
+        if (flyerGame && flyerGame.running) {
+          loopFlyerGame();
+        }
+      });
+    }
+
+    function updateFlyerGame() {
+      const game = flyerGame;
+      const bird = game.bird;
+      const gap = 120;
+      game.frame += 1;
+      bird.vy += 0.26;
+      bird.y += bird.vy;
+      game.clouds.forEach((cloud) => {
+        cloud.x -= 1.65;
+        if (!cloud.passed && cloud.x + 42 < bird.x) {
+          cloud.passed = true;
+          game.score += 1;
+          updateFlyerScore();
+        }
+      });
+      if (game.clouds[0].x < -80) {
+        game.clouds.shift();
+        game.clouds.push({
+          x: game.clouds[game.clouds.length - 1].x + 310,
+          gapY: 92 + Math.round(Math.random() * 148),
+          passed: false
+        });
+      }
+      const hitEdge = bird.y < 8 || bird.y + bird.size > game.canvas.height - 34;
+      const hitCloud = game.clouds.some((cloud) => (
+        bird.x + bird.size > cloud.x &&
+        bird.x < cloud.x + 58 &&
+        (bird.y < cloud.gapY - gap / 2 || bird.y + bird.size > cloud.gapY + gap / 2)
+      ));
+      if (hitEdge || hitCloud) {
+        finishFlyerGame();
+      }
+    }
+
+    function drawFlyerGame(message) {
+      const game = flyerGame;
+      if (!game) {
+        return;
+      }
+      const { canvas, ctx, bird, clouds } = game;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      sky.addColorStop(0, "#bdefff");
+      sky.addColorStop(1, "#effadf");
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.78)";
+      for (let index = 0; index < 6; index += 1) {
+        const x = (index * 125 + game.frame * 0.45) % 760 - 80;
+        const y = 38 + (index % 3) * 34;
+        ctx.beginPath();
+        ctx.arc(x, y, 20, 0, Math.PI * 2);
+        ctx.arc(x + 22, y - 8, 24, 0, Math.PI * 2);
+        ctx.arc(x + 48, y, 18, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      clouds.forEach((cloud) => {
+        drawCloudWall(ctx, cloud.x, 0, cloud.gapY - 60);
+        drawCloudWall(ctx, cloud.x, cloud.gapY + 60, canvas.height - cloud.gapY - 94);
+      });
+
+      ctx.fillStyle = "#6fbf73";
+      ctx.fillRect(0, canvas.height - 34, canvas.width, 34);
+      ctx.fillStyle = "#4c9a59";
+      ctx.fillRect(0, canvas.height - 34, canvas.width, 6);
+
+      ctx.fillStyle = "#f4c14a";
+      ctx.beginPath();
+      ctx.arc(bird.x, bird.y, bird.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#fff4c1";
+      ctx.beginPath();
+      ctx.ellipse(bird.x - 5, bird.y + 2, 12, 8, -0.35, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#17202a";
+      ctx.beginPath();
+      ctx.arc(bird.x + 7, bird.y - 7, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#df604a";
+      ctx.beginPath();
+      ctx.moveTo(bird.x + bird.size - 2, bird.y);
+      ctx.lineTo(bird.x + bird.size + 12, bird.y + 6);
+      ctx.lineTo(bird.x + bird.size - 2, bird.y + 12);
+      ctx.fill();
+
+      if (message || game.over) {
+        ctx.fillStyle = "rgba(23, 32, 42, 0.74)";
+        ctx.fillRect(190, 126, 260, 90);
+        ctx.fillStyle = "white";
+        ctx.font = "700 24px system-ui";
+        ctx.textAlign = "center";
+        ctx.fillText(game.over ? "Nice try!" : message, canvas.width / 2, 166);
+        ctx.font = "600 14px system-ui";
+        ctx.fillText(game.over ? "Tap Restart to fly again" : "Tap, click, or press Space", canvas.width / 2, 192);
+      }
+    }
+
+    function drawCloudWall(ctx, x, y, height) {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(x, y, 58, height);
+      ctx.fillStyle = "#dff4f8";
+      for (let offset = 0; offset < height + 32; offset += 28) {
+        ctx.beginPath();
+        ctx.arc(x + 8, y + offset, 15, 0, Math.PI * 2);
+        ctx.arc(x + 30, y + offset + 4, 18, 0, Math.PI * 2);
+        ctx.arc(x + 54, y + offset, 15, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function updateFlyerScore() {
+      const child = currentChild();
+      const score = flyerGame ? flyerGame.score : 0;
+      document.querySelector("#flyerScore").textContent = score;
+      document.querySelector("#flyerBest").textContent = Math.max(Number(child.flyerBest || 0), score);
+    }
+
+    function finishFlyerGame() {
+      const child = currentChild();
+      if (flyerAnimation) {
+        window.cancelAnimationFrame(flyerAnimation);
+        flyerAnimation = null;
+      }
+      flyerGame.running = false;
+      flyerGame.over = true;
+      child.flyerBest = Math.max(Number(child.flyerBest || 0), flyerGame.score);
+      child.report.Games = (child.report.Games || 0) + Math.max(1, flyerGame.score);
+      updateFlyerScore();
+      drawFlyerGame("");
+      renderReport(child);
+      queueSave();
+      showToast("Sprout Flyer score: " + flyerGame.score + ".");
+    }
+
     function closeApp() {
       window.clearInterval(moveTimer);
+      stopFlyerGame();
       appModal.classList.remove("open");
       appModal.setAttribute("aria-hidden", "true");
       closeTimer = window.setTimeout(() => {
@@ -1998,9 +2701,6 @@
     function handleHelpAction(action) {
       if (action === "needHelp") {
         sendSafetyAlert("Needs help now");
-      } else if (action === "reportProblem") {
-        document.querySelector("#problemType").focus();
-        showToast("Choose the problem type, then send the report.");
       } else if (action === "extraTime") {
         const child = currentChild();
         child.currentRequest = ["Extra Time", "Extra screen time requested from " + child.name + "'s profile", "+", "extraTime"];
@@ -2038,7 +2738,7 @@
 
     function saveFamilyRules() {
       state.familyRules = rulesInput.value
-        .split("\\n")
+        .split(/\r?\n/)
         .map((rule) => rule.trim())
         .filter(Boolean);
       renderFamilyRules();
@@ -2048,36 +2748,13 @@
 
     function saveChores() {
       state.chores = choresInput.value
-        .split("\\n")
+        .split(/\r?\n/)
         .map((line) => line.trim())
         .filter(Boolean)
-        .map((line) => {
-          const parts = line.split("=");
-          return {
-            title: (parts[0] || "Chore").trim(),
-            reward: Math.max(1, Number((parts[1] || "1").trim()) || 1)
-          };
-        });
+        .map((line) => ({ title: line }));
       renderChores();
       queueSave();
       showToast("Chores saved.");
-    }
-
-    function saveRewards() {
-      state.rewards = rewardsInput.value
-        .split("\\n")
-        .map((line) => line.trim())
-        .filter(Boolean)
-        .map((line) => {
-          const parts = line.split("=");
-          return {
-            title: (parts[0] || "Reward").trim(),
-            cost: Math.max(1, Number((parts[1] || "1").trim()) || 1)
-          };
-        });
-      renderRewards();
-      queueSave();
-      showToast("Rewards saved.");
     }
 
     function saveFocusGoal() {
@@ -2110,13 +2787,33 @@
     function completeFocusSession() {
       const child = currentChild();
       ensureChildAppState(child);
-      addReportMinutes("Explorer", 15);
-      child.streaks.homework += 1;
-      sendMoodCheckin("Completed focus: " + (state.focusGoal || "Focus session"));
+      const message = "Please check my focus work: " + (state.focusGoal || "Focus session");
+      child.currentRequest = ["Parent Chat", `${child.name}: ${message}`, "P", "parentChat", message];
+      child.pending += 1;
       focusSeconds = 900;
       renderControls(child);
       queueSave();
-      showToast("Focus session complete.");
+      showToast("Message sent to parent for checking.");
+    }
+
+    function sendParentChat() {
+      const child = currentChild();
+      ensureChildAppState(child);
+      const type = document.querySelector("#parentChatType").value;
+      const note = document.querySelector("#parentChatMessage").value.trim();
+      const message = note ? type + ": " + note : type;
+      child.currentRequest = ["Parent Chat", `${child.name}: ${message}`, "P", "parentChat", message];
+      child.pending += 1;
+      document.querySelector("#parentChatMessage").value = "";
+      render();
+      queueSave();
+      showToast("Parent chat sent.");
+    }
+
+    function clearParentChat() {
+      document.querySelector("#parentChatMessage").value = "";
+      document.querySelector("#parentChatType").value = "Please check my homework";
+      showToast("Parent chat cleared.");
     }
 
     function submitChore(index) {
@@ -2127,10 +2824,9 @@
       }
       child.currentRequest = [
         chore.title,
-        `${child.name} marked chore done for $${chore.reward}`,
-        "$",
-        "choreReward",
-        chore.reward
+        `${child.name} marked a helpful chore as done.`,
+        "C",
+        "choreComplete"
       ];
       child.pending += 1;
       render();
@@ -2138,58 +2834,25 @@
       showToast("Chore sent for parent approval.");
     }
 
-    function requestReward(index) {
-      const child = currentChild();
-      const reward = (state.rewards || [])[index];
-      if (!reward) {
-        return;
-      }
-      if ((child.moneyBalance || 0) < reward.cost) {
-        showToast("Not enough saved money yet.");
-        return;
-      }
-      child.currentRequest = [
-        reward.title,
-        `${child.name} wants to redeem ${reward.title} for $${reward.cost}`,
-        "$",
-        "rewardRedeem",
-        reward.cost
-      ];
-      child.pending += 1;
-      render();
-      queueSave();
-      showToast("Reward request sent.");
-    }
-
     function approveCurrentRequest(child) {
       ensureChildAppState(child);
       const kind = child.currentRequest[3] || "appDownload";
-      if (kind === "moneyEarn") {
-        child.moneyBalance += 5;
-        child.report.Money = (child.report.Money || 0) + 3;
-        child.spendingHistory.unshift({ label: "Chore credit", amount: "+$5" });
-      } else if (kind === "moneySpend") {
-        child.moneyBalance = Math.max(0, child.moneyBalance - 4);
-        child.report.Money = (child.report.Money || 0) + 2;
-        child.spendingHistory.unshift({ label: "Spend request", amount: "-$4" });
-      } else if (kind === "creatorUpload") {
+      if (kind === "creatorUpload") {
         child.creatorQueue = child.creatorQueue.slice(1);
       } else if (kind === "extraTime") {
         child.dailyLimit += 15;
-      } else if (kind === "weeklyAllowance") {
-        child.moneyBalance += Number(child.weeklyAllowance || 0);
-        child.report.Money = (child.report.Money || 0) + 4;
-        child.spendingHistory.unshift({ label: "Weekly allowance", amount: "+$" + Number(child.weeklyAllowance || 0) });
-      } else if (kind === "choreReward") {
-        child.moneyBalance += Number(child.currentRequest[4] || 1);
-        child.report.Money = (child.report.Money || 0) + 3;
-        child.spendingHistory.unshift({ label: child.currentRequest[0], amount: "+$" + Number(child.currentRequest[4] || 1) });
-      } else if (kind === "rewardRedeem") {
-        child.moneyBalance = Math.max(0, child.moneyBalance - Number(child.currentRequest[4] || 1));
-        child.report.Money = (child.report.Money || 0) + 2;
-        child.spendingHistory.unshift({ label: child.currentRequest[0], amount: "-$" + Number(child.currentRequest[4] || 1) });
+      } else if (kind === "choreComplete") {
+        child.report.Stories = (child.report.Stories || 0) + 2;
+        child.streaks.chores += 1;
+      } else if (kind === "parentChat") {
+        if (String(child.currentRequest[4] || "").toLowerCase().includes("homework")) {
+          child.streaks.homework += 1;
+        }
+      } else if (kind === "appAccess") {
+        setAppRule(child, child.currentRequest[4], "allowed");
+      } else if (kind === "flyerAccess") {
+        setAppRule(child, "flyer", "allowed");
       }
-      child.spendingHistory = (child.spendingHistory || []).slice(0, 8);
       child.pending = Math.max(0, child.pending - 1);
     }
 
@@ -2197,6 +2860,13 @@
       button.addEventListener("click", () => {
         const target = document.querySelector("#" + button.dataset.jump);
         if (target) {
+          if (target.tagName === "DETAILS") {
+            target.open = true;
+          }
+          const parentPanel = target.closest("details");
+          if (parentPanel) {
+            parentPanel.open = true;
+          }
           target.scrollIntoView({ behavior: "smooth", block: "start" });
         }
         document.querySelectorAll(".nav button").forEach((item) => item.classList.remove("active"));
@@ -2220,6 +2890,9 @@
     document.querySelectorAll("[data-open-app]").forEach((button) => {
       button.addEventListener("click", () => openApp(button.dataset.openApp));
     });
+    document.querySelectorAll("[data-open-app-link]").forEach((link) => {
+      link.addEventListener("click", openLinkedApp);
+    });
     document.querySelectorAll("[data-help-action]").forEach((button) => {
       button.addEventListener("click", () => handleHelpAction(button.dataset.helpAction));
     });
@@ -2234,9 +2907,18 @@
     document.querySelector("#backToChild").addEventListener("click", () => setMode("child"));
     document.querySelector("#openSignup").addEventListener("click", () => setMode("signup"));
     document.querySelector("#savePasscodeSetting").addEventListener("click", saveParentPasscode);
+    document.querySelector("#saveSecondParent").addEventListener("click", saveSecondParent);
+    settingsToggle.addEventListener("click", (event) => {
+      event.stopPropagation();
+      setSettingsMenu(!settingsMenu.classList.contains("open"));
+    });
+    settingsClose.addEventListener("click", closeSettingsMenu);
+    settingsMenu.addEventListener("click", (event) => event.stopPropagation());
+    quickParentSettings.addEventListener("click", openParentSettingsFromMenu);
+    themeModeSetting.addEventListener("change", () => saveThemeMode(themeModeSetting.value));
+    quickThemeModeSetting.addEventListener("change", () => saveThemeMode(quickThemeModeSetting.value));
     document.querySelector("#saveRules").addEventListener("click", saveFamilyRules);
     document.querySelector("#saveChores").addEventListener("click", saveChores);
-    document.querySelector("#saveRewards").addEventListener("click", saveRewards);
     document.querySelector("#saveFocus").addEventListener("click", saveFocusGoal);
     document.querySelector("#saveWellbeing").addEventListener("click", saveWellbeingGoals);
     document.querySelector("#saveTrustedContacts").addEventListener("click", saveTrustedContacts);
@@ -2244,8 +2926,24 @@
     removeChildButton.addEventListener("click", removeSelectedChild);
     document.querySelector("#saveKidAvatar").addEventListener("click", saveKidAvatar);
     kidAvatarIcon.addEventListener("input", updateKidAvatarPreview);
-    kidAvatarColor.addEventListener("input", updateKidAvatarPreview);
+    kidAvatarColor.addEventListener("input", () => {
+      kidAvatarColorText.value = kidAvatarColor.value;
+      updateKidAvatarPreview();
+    });
+    kidAvatarColorText.addEventListener("input", () => {
+      const color = colorTextToHex(kidAvatarColorText.value);
+      if (color) {
+        kidAvatarColor.value = color;
+        updateKidAvatarPreview();
+      }
+    });
     kidCostume.addEventListener("input", updateKidAvatarPreview);
+    avatarChoiceButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        kidAvatarIcon.value = button.dataset.avatarChoice;
+        updateKidAvatarPreview();
+      });
+    });
     newChildDob.max = new Date().toISOString().slice(0, 10);
     editChildDob.max = new Date().toISOString().slice(0, 10);
     newChildDob.addEventListener("input", updateNewChildWarning);
@@ -2287,21 +2985,29 @@
     });
     window.addEventListener("popstate", () => {
       parentUnlocked = window.sessionStorage.getItem("parentUnlocked") === "true";
-      const nextMode = (window.location.hash || "#child").slice(1);
-      setMode(["child", "parent", "signup"].includes(nextMode) ? nextMode : "child", { quiet: true });
+      const nextMode = (window.location.hash || "#parent").slice(1);
+      setMode(["child", "parent", "signup"].includes(nextMode) ? nextMode : "parent", { quiet: true });
     });
     document.querySelector("#saveNow").addEventListener("click", () => saveState(true));
     document.querySelector("#resetPlan").addEventListener("click", resetTodayPlan);
-    document.querySelector("#requestAllowance").addEventListener("click", requestWeeklyAllowance);
-    document.querySelector("#toggleHomeworkMode").addEventListener("click", toggleHomeworkMode);
+    document.querySelector("#newSpark").addEventListener("click", nextDailySpark);
+    parentHomeworkToggle.addEventListener("change", toggleHomeworkMode);
     document.querySelector("#resetDailyWins").addEventListener("click", resetDailyWins);
     document.querySelector("#completeKindness").addEventListener("click", completeKindnessQuest);
     document.querySelector("#nextKindness").addEventListener("click", nextKindnessQuest);
     document.querySelector("#addReading").addEventListener("click", addReadingLog);
     document.querySelector("#addWater").addEventListener("click", addWaterBreak);
     document.querySelector("#addEyeBreak").addEventListener("click", addEyeBreak);
-    document.querySelector("#submitProblemReport").addEventListener("click", submitProblemReport);
-    document.querySelector("#clearProblemForm").addEventListener("click", clearProblemForm);
+    document.querySelector("#sendParentChat").addEventListener("click", sendParentChat);
+    document.querySelector("#clearParentChat").addEventListener("click", clearParentChat);
+    document.querySelector("#parentChatMessage").addEventListener("keydown", (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+        event.preventDefault();
+        sendParentChat();
+      }
+    });
+    document.querySelector("#submitProblemReport")?.addEventListener("click", submitProblemReport);
+    document.querySelector("#clearProblemForm")?.addEventListener("click", clearProblemForm);
     document.querySelector("#startFocus").addEventListener("click", startFocusSession);
     document.querySelector("#resetFocus").addEventListener("click", resetFocusSession);
     document.querySelector("#completeFocus").addEventListener("click", completeFocusSession);
@@ -2317,6 +3023,12 @@
       }
     });
     document.addEventListener("click", addButtonRipple);
+    document.addEventListener("click", closeSettingsMenu);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeSettingsMenu();
+      }
+    });
 
     document.querySelector("#approveBtn").addEventListener("click", () => {
       const child = currentChild();
@@ -2330,6 +3042,12 @@
     document.querySelector("#blockBtn").addEventListener("click", () => {
       const child = currentChild();
       const requestName = child.currentRequest[0];
+      const kind = child.currentRequest[3] || "appDownload";
+      if (kind === "appAccess") {
+        setAppRule(child, child.currentRequest[4], "blocked");
+      } else if (kind === "flyerAccess") {
+        setAppRule(child, "flyer", "blocked");
+      }
       child.pending = Math.max(0, child.pending - 1);
       render();
       queueSave();
@@ -2350,6 +3068,13 @@
       renderControls(child);
       queueSave();
       showToast(child.bedtime ? child.name + "'s bedtime lock is active." : child.name + "'s bedtime lock is off.");
+    });
+    flyerAllowedToggle.addEventListener("change", (event) => {
+      const child = currentChild();
+      setAppRule(child, "flyer", event.target.checked ? "allowed" : "request");
+      renderControls(child);
+      queueSave();
+      showToast(event.target.checked ? "Sprout Flyer allowed for " + child.name + "." : "Sprout Flyer will ask before play.");
     });
 
     document.querySelector("#scanBtn").addEventListener("click", () => {
@@ -2378,8 +3103,21 @@
     });
 
     try {
-      state = JSON.parse(window.localStorage.getItem("safesproutState")) || JSON.parse(JSON.stringify(DEFAULT_STATE));
+      state = JSON.parse(window.localStorage.getItem("kiddosproutState")) || JSON.parse(JSON.stringify(DEFAULT_STATE));
     } catch (error) {
       state = JSON.parse(JSON.stringify(DEFAULT_STATE));
     }
+    cleanSavedBranding(state);
+    state.parentAccountCreated ??= Boolean(state.parentEmail && state.parentName);
+    if (!state.parentAccountCreated) {
+      state.parentEmail = "";
+      state.secondParentEmail = "";
+    }
+    state.themeMode ??= "auto";
+    applyThemeMode(state.themeMode);
+    window.setInterval(() => {
+      if (state.themeMode === "auto") {
+        applyThemeMode("auto");
+      }
+    }, 60000);
     setMode(viewMode, { quiet: true });

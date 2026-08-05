@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "KiddoSprout Browser Blocker",
+  "version": "1.0.1",
+  "description": "Blocks websites that parents mark as blocked in KiddoSprout.",
+  "icons": {
+    "128": "icon128.png"
+  },
+  "permissions": ["storage"],
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "action": {
+    "default_title": "KiddoSprout Blocker",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ]
+}
