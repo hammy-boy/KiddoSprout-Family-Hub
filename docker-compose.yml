@@ -2,7 +2,7 @@ services:
   kiddosprout:
     build: .
     ports:
-      - "8001:8001"
+      - "8001:80"
     environment:
       PORT: "8001"
       SUPABASE_URL: "${SUPABASE_URL}"

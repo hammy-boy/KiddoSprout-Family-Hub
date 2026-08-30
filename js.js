@@ -23,6 +23,11 @@
     const settingsClose = document.querySelector("#settingsClose");
     const quickThemeModeSetting = document.querySelector("#quickThemeModeSetting");
     const quickParentSettings = document.querySelector("#quickParentSettings");
+    const loginEmail = document.querySelector("#loginEmail");
+    const loginPassword = document.querySelector("#loginPassword");
+    const viewLoginPassword = document.querySelector("#viewLoginPassword");
+    const loginStatus = document.querySelector("#loginStatus");
+    const loginSupabaseStatus = document.querySelector("#loginSupabaseStatus");
     const signupFamily = document.querySelector("#signupFamily");
     const signupParent = document.querySelector("#signupParent");
     const signupEmail = document.querySelector("#signupEmail");
@@ -31,6 +36,9 @@
     const signupPasscode = document.querySelector("#signupPasscode");
     const viewSignupPassword = document.querySelector("#viewSignupPassword");
     const signupStatus = document.querySelector("#signupStatus");
+    const downloadSignupButton = document.querySelector("#downloadSignup");
+    const resendLoginEmailButton = document.querySelector("#resendLoginEmail");
+    const resendSignupEmailButton = document.querySelector("#resendSignupEmail");
     const forgotPanel = document.querySelector("#forgotPanel");
     const recoveryEmail = document.querySelector("#recoveryEmail");
     const recoveryCode = document.querySelector("#recoveryCode");
@@ -73,6 +81,30 @@
     const parentHomeworkLabel = document.querySelector("#parentHomeworkLabel");
     const passcodeStatus = document.querySelector("#passcodeStatus");
     const unlockParentButton = document.querySelector("#unlockParent");
+    const downloadKiddoSproutButton = document.querySelector("#downloadKiddoSprout");
+    const SUPABASE_CONFIG = window.KIDDO_SPROUT_SUPABASE || {};
+    const KIDDO_AUTH_SESSION_KEY = "kiddosproutSupabaseSession";
+    const FLAVORNEST_AUTH_SESSION_KEY = "flavornest_session";
+    const DEFAULT_SUPABASE_URL = "";
+    const DEFAULT_SUPABASE_PUBLISHABLE_KEY = "";
+    function cleanSupabaseUrl(value) {
+      const url = String(value || "").trim().replace(/\/rest\/v1\/?$/i, "").replace(/\/+$/, "");
+      if (!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)) return "";
+      if (url.includes("your_supabase")) return "";
+      return url;
+    }
+    function cleanSupabaseKey(value) {
+      const key = String(value || "").trim();
+      if (!key || key.includes("your_supabase")) return "";
+      return key;
+    }
+    const SUPABASE_URL = cleanSupabaseUrl(SUPABASE_CONFIG.url) || DEFAULT_SUPABASE_URL;
+    const SUPABASE_PUBLISHABLE_KEY = cleanSupabaseKey(SUPABASE_CONFIG.publishableKey || SUPABASE_CONFIG.anonKey) || DEFAULT_SUPABASE_PUBLISHABLE_KEY;
+    const SUPABASE_CONNECTED = Boolean(SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY);
+    const RESEND_EMAIL_COOLDOWN_SECONDS = 30;
+    let resendEmailCooldown = 0;
+    let resendEmailCooldownTimer = null;
+    let kiddoInstallPrompt = null;
     const reportColors = {
       Explorer: "#147d7f",
       Stories: "#8c5aa8",
@@ -90,7 +122,7 @@
       studio: { title: "Creator Studio", initial: "C", kind: "Create", defaultRule: "request" },
       explore: { title: "Explorer Lab", initial: "E", kind: "Learning", defaultRule: "allowed" },
       move: { title: "Move Breaks", initial: "M", kind: "Movement", defaultRule: "allowed" },
-      story: { title: "Story Theater", initial: "S", kind: "Reading", defaultRule: "allowed" },
+      story: { title: "Story Theater", initial: "S", kind: "Original books", defaultRule: "allowed" },
       recipe: { title: "FlavorNest", initial: "F", kind: "Recipe app", defaultRule: "allowed" },
       spending: { title: "Smart Spending", initial: "$", kind: "Money app", defaultRule: "allowed" },
       flyer: { title: "Sprout Flyer", initial: "F", kind: "Game", defaultRule: "request" },
@@ -121,14 +153,13 @@
         ],
         keywordMatch: true
       },
-      roblox: { title: "Roblox", initial: "R", kind: "External game site", defaultRule: "blocked", domains: ["roblox.com", "web.roblox.com"] },
-      youtube: { title: "YouTube", initial: "Y", kind: "External video site", defaultRule: "request", domains: ["youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"] }
+      roblox: { title: "Roblox", initial: "R", kind: "External game site", defaultRule: "blocked", domains: ["roblox.com", "web.roblox.com"] }
     };
     const todayTasks = [
       { id: "chore", title: "Chore Check", detail: "Finish one helpful task and mark it done.", report: "Stories", minutes: 5 },
       { id: "explore", title: "Nature Quest", detail: "Open Explorer Lab and finish one fact card.", report: "Explorer", minutes: 8 },
       { id: "move", title: "Move Reset", detail: "Complete one movement break before games.", report: "Movement", minutes: 5 },
-      { id: "story", title: "Read Aloud", detail: "Read one Story Theater page before bedtime.", report: "Stories", minutes: 10 }
+      { id: "story", title: "Original Book", detail: "Read one Story Theater page before bedtime.", report: "Stories", minutes: 10 }
     ];
     const dailyGoalItems = [
       { id: "learn", title: "Learn", detail: "Open a learning hub", report: "Explorer", minutes: 5 },
@@ -174,7 +205,7 @@
       }
     ];
     const DEFAULT_STATE = {
-      "activeChild": "ava",
+      "activeChild": "",
       "familyName": "KiddoSprout Family",
       "parentName": "Parent",
       "parentEmail": "",
@@ -187,6 +218,13 @@
             "water": 4,
             "eyeBreaks": 3
       },
+      "schedule": {
+            "schoolStart": "08:45",
+            "schoolEnd": "15:15",
+            "bedtimeStart": "20:30",
+            "bedtimeEnd": "07:00"
+      },
+      "parentNote": "",
       "safetyAlerts": [],
       "moodCheckins": [],
       "problemReports": [],
@@ -207,68 +245,7 @@
             { "title": "Pack school bag" }
       ],
       "focusGoal": "Read or learn for 15 minutes",
-      "children": {
-            "ava": {
-                  "name": "Ava",
-                  "device": "tablet",
-                  "dailyLimit": 120,
-                  "usedToday": 24,
-                  "pending": 1,
-                  "blockedHits": 42,
-                  "bedtime": false,
-                  "currentRequest": [
-                        "Galaxy Game",
-                        "Game app requested from Ava's tablet",
-                        "G"
-                  ],
-                  "report": {
-                        "Explorer": 184,
-                        "Stories": 148,
-                        "Movement": 116,
-                        "Games": 48
-                  }
-            },
-            "noah": {
-                  "name": "Noah",
-                  "device": "phone",
-                  "dailyLimit": 90,
-                  "usedToday": 51,
-                  "pending": 2,
-                  "blockedHits": 18,
-                  "bedtime": true,
-                  "currentRequest": [
-                        "Clip Studio",
-                        "Video app requested from Noah's phone",
-                        "C"
-                  ],
-                  "report": {
-                        "Explorer": 92,
-                        "Stories": 64,
-                        "Movement": 143,
-                        "Games": 112
-                  }
-            },
-            "mia": {
-                  "name": "Mia",
-                  "device": "tablet",
-                  "dailyLimit": 150,
-                  "usedToday": 38,
-                  "pending": 0,
-                  "blockedHits": 27,
-                  "bedtime": false,
-                  "currentRequest": [
-                        "Puzzle Arcade",
-                        "Game app requested from Mia's tablet",
-                        "P"
-                  ],
-                  "report": {
-                        "Explorer": 132,
-                        "Stories": 201,
-                        "Movement": 87,
-                        "Games": 66
-                  }
-            }
-      }
+      "children": {}
 };
 
     let state = null;
@@ -281,9 +258,9 @@
     let closeTimer = null;
     let flyerAnimation = null;
     let flyerGame = null;
-    let viewMode = (window.location.hash || "#parent").slice(1);
-    if (!["child", "parent", "signup"].includes(viewMode)) {
-      viewMode = "parent";
+    let viewMode = (window.location.hash || "#login").slice(1);
+    if (!["child", "parent", "signup", "login"].includes(viewMode)) {
+      viewMode = "login";
     }
     let parentUnlocked = window.sessionStorage.getItem("parentUnlocked") === "true";
     let failedPasscodeAttempts = Number(window.sessionStorage.getItem("failedPasscodeAttempts") || "0");
@@ -295,8 +272,8 @@
     function currentChild() {
       state.children ??= {};
       if (!Object.keys(state.children).length) {
-        state.children.ava = createDefaultChild("Ava", "", "", "Tablet", "star", "#147d7f", "Explorer", "", "", "");
-        state.activeChild = "ava";
+        state.activeChild = "";
+        return null;
       }
       if (!state.children[state.activeChild]) {
         state.activeChild = Object.keys(state.children)[0];
@@ -306,12 +283,139 @@
       return child;
     }
 
+    function hasChildProfiles() {
+      return Boolean(state.children && Object.keys(state.children).length);
+    }
+
+    function removeDemoChildren(savedState) {
+      savedState.children ??= {};
+      const demoProfiles = {
+        ava: "Ava",
+        noah: "Noah",
+        mia: "Mia"
+      };
+      Object.entries(demoProfiles).forEach(([id, name]) => {
+        const child = savedState.children[id];
+        if (child && child.name === name && !child.dateOfBirth && !child.schoolYear && !child.emergencyContact) {
+          delete savedState.children[id];
+        }
+      });
+      if (!savedState.children[savedState.activeChild]) {
+        savedState.activeChild = Object.keys(savedState.children)[0] || "";
+      }
+    }
+
     function currentParentPasscode() {
       return state.parentPasscode || "4321";
     }
 
     function hasParentAccount() {
       return Boolean(state.parentAccountCreated || (state.parentEmail && state.parentName));
+    }
+
+    function getKiddoSession() {
+      try {
+        return JSON.parse(window.localStorage.getItem(KIDDO_AUTH_SESSION_KEY) || window.localStorage.getItem(FLAVORNEST_AUTH_SESSION_KEY) || "null");
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function hasKiddoSession() {
+      const session = getKiddoSession();
+      return Boolean(session && session.access_token && session.user && session.user.email);
+    }
+
+    function saveKiddoSession(session) {
+      if (!session || !session.access_token) return;
+      window.localStorage.setItem(KIDDO_AUTH_SESSION_KEY, JSON.stringify(session));
+      window.localStorage.setItem(FLAVORNEST_AUTH_SESSION_KEY, JSON.stringify(session));
+    }
+
+    function clearKiddoSession() {
+      window.localStorage.removeItem(KIDDO_AUTH_SESSION_KEY);
+      window.localStorage.removeItem(FLAVORNEST_AUTH_SESSION_KEY);
+      window.sessionStorage.removeItem("parentUnlocked");
+      parentUnlocked = false;
+    }
+
+    async function kiddoAuthRequest(path, body) {
+      if (!SUPABASE_CONNECTED) {
+        throw new Error("Supabase is not connected. Check your Supabase URL and publishable key.");
+      }
+      const response = await fetch(`${SUPABASE_URL}/auth/v1/${path}`, {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      });
+      const contentType = response.headers.get("content-type") || "";
+      const data = contentType.includes("application/json")
+        ? await response.json()
+        : { error: await response.text() };
+      if (!response.ok) {
+        throw new Error(data.error_description || data.msg || data.error || "Something went wrong");
+      }
+      return data;
+    }
+
+    function kiddoAuthRedirectUrl() {
+      return window.location.origin + window.location.pathname;
+    }
+
+    function kiddoSignUpRequest(email, password) {
+      return kiddoAuthRequest("signup", {
+        email,
+        password,
+        options: { email_redirect_to: kiddoAuthRedirectUrl() }
+      });
+    }
+
+    function kiddoSignInRequest(email, password) {
+      return kiddoAuthRequest("token?grant_type=password", { email, password });
+    }
+
+    function kiddoResendSignupEmail(email) {
+      return kiddoAuthRequest("resend", {
+        type: "signup",
+        email,
+        options: { email_redirect_to: kiddoAuthRedirectUrl() }
+      });
+    }
+
+    function updateResendEmailButtons() {
+      const label = resendEmailCooldown > 0 ? `Resend in ${resendEmailCooldown}s` : "Resend Email";
+      [resendLoginEmailButton, resendSignupEmailButton].forEach((button) => {
+        if (!button) return;
+        button.textContent = label;
+        button.disabled = resendEmailCooldown > 0;
+      });
+    }
+
+    function startResendEmailCooldown() {
+      resendEmailCooldown = RESEND_EMAIL_COOLDOWN_SECONDS;
+      updateResendEmailButtons();
+      window.clearInterval(resendEmailCooldownTimer);
+      resendEmailCooldownTimer = window.setInterval(() => {
+        resendEmailCooldown -= 1;
+        if (resendEmailCooldown <= 0) {
+          resendEmailCooldown = 0;
+          window.clearInterval(resendEmailCooldownTimer);
+          resendEmailCooldownTimer = null;
+        }
+        updateResendEmailButtons();
+      }, 1000);
+    }
+
+    function friendlySupabaseError(error) {
+      const message = String(error?.message || error || "");
+      if (message.toLowerCase().includes("<!doctype") || message.toLowerCase().includes("not valid json")) {
+        return "Supabase is not connected. Check your Supabase URL and publishable key.";
+      }
+      return message || "Supabase login failed.";
     }
 
     function normalizeAppRules(child) {
@@ -365,6 +469,9 @@
 
     function extensionBlockRules() {
       const child = currentChild();
+      if (!child) {
+        return [];
+      }
       ensureChildAppState(child);
       return Object.entries(APP_CATALOG)
         .filter(([, app]) => Array.isArray(app.domains) && app.domains.length)
@@ -378,10 +485,11 @@
     }
 
     function broadcastExtensionBlockRules() {
+      const child = currentChild();
       window.postMessage({
         source: "kiddosprout",
         type: "blockRules",
-        child: currentChild().name,
+        child: child ? child.name : "",
         rules: extensionBlockRules()
       }, window.location.origin);
     }
@@ -594,10 +702,32 @@
     }
 
     function setMode(mode, options = {}) {
+      if ((mode === "parent" || mode === "child") && !hasKiddoSession()) {
+        viewMode = "login";
+        updateRoute("login");
+        document.body.classList.remove("mode-child", "mode-signup");
+        document.body.classList.add("mode-login");
+        document.querySelector("#modeToggle").textContent = "Child Site";
+        document.querySelector("#siteTitle").textContent = "KiddoSprout Login";
+        document.querySelector("#heroTitle").textContent = "Log in to KiddoSprout.";
+        if (loginSupabaseStatus) {
+          loginSupabaseStatus.textContent = SUPABASE_CONNECTED ? "Supabase is connected." : "Supabase is not connected yet.";
+          loginSupabaseStatus.classList.toggle("success", SUPABASE_CONNECTED);
+        }
+        hideParentGate();
+        closeApp();
+        if (state) {
+          render();
+        }
+        if (!options.quiet) {
+          showToast("Log in to open KiddoSprout.");
+        }
+        return;
+      }
       if ((mode === "parent" || mode === "child") && !hasParentAccount()) {
         viewMode = "signup";
         updateRoute("signup");
-        document.body.classList.remove("mode-child");
+        document.body.classList.remove("mode-child", "mode-login");
         document.body.classList.add("mode-signup");
         document.querySelector("#modeToggle").textContent = "Child Site";
         document.querySelector("#siteTitle").textContent = "KiddoSprout Sign Up";
@@ -617,7 +747,38 @@
         showParentGate();
         return;
       }
-      if (mode === "child" || mode === "signup") {
+      if (mode === "child" && !hasChildProfiles()) {
+        if (!parentUnlocked && !options.unlocked) {
+          updateRoute("parent");
+          showParentGate();
+          if (!options.quiet) {
+            showToast("Parent must unlock before adding a child profile.");
+          }
+          return;
+        }
+        viewMode = "parent";
+        updateRoute("parent");
+        document.body.classList.remove("mode-child", "mode-signup");
+        document.querySelector("#modeToggle").textContent = "Child Site";
+        document.querySelector("#siteTitle").textContent = "KiddoSprout Parent Dashboard";
+        document.querySelector("#heroTitle").textContent = "Add a real child profile first.";
+        hideParentGate();
+        closeApp();
+        if (state) {
+          render();
+        }
+        window.setTimeout(() => {
+          const target = document.querySelector("#manageChildren");
+          if (target) {
+            target.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }, 220);
+        if (!options.quiet) {
+          showToast("Add your first child profile before opening the child site.");
+        }
+        return;
+      }
+      if (mode === "child" || mode === "signup" || mode === "login") {
         parentUnlocked = false;
         window.sessionStorage.removeItem("parentUnlocked");
       }
@@ -625,16 +786,21 @@
       updateRoute(mode);
       document.body.classList.toggle("mode-child", mode === "child");
       document.body.classList.toggle("mode-signup", mode === "signup");
+      document.body.classList.toggle("mode-login", mode === "login");
       document.querySelector("#modeToggle").textContent = mode === "child" ? "Parent Site" : "Child Site";
-      document.querySelector("#siteTitle").textContent = mode === "child" ? "KiddoSprout Child Site" : mode === "signup" ? "KiddoSprout Sign Up" : "KiddoSprout Parent Dashboard";
-      document.querySelector("#heroTitle").textContent = mode === "child" ? "Your KiddoSprout space for today." : mode === "signup" ? "Create your KiddoSprout family hub." : "KiddoSprout helps kids grow online.";
+      document.querySelector("#siteTitle").textContent = mode === "child" ? "KiddoSprout Child Site" : mode === "signup" ? "KiddoSprout Sign Up" : mode === "login" ? "KiddoSprout Login" : "KiddoSprout Parent Dashboard";
+      document.querySelector("#heroTitle").textContent = mode === "child" ? "Your KiddoSprout space for today." : mode === "signup" ? "Create your KiddoSprout family hub." : mode === "login" ? "Log in to KiddoSprout." : "KiddoSprout helps kids grow online.";
       hideParentGate();
       closeApp();
       if (state) {
         render();
       }
+      if (mode === "login" && loginSupabaseStatus) {
+        loginSupabaseStatus.textContent = SUPABASE_CONNECTED ? "Supabase is connected." : "Supabase is not connected yet.";
+        loginSupabaseStatus.classList.toggle("success", SUPABASE_CONNECTED);
+      }
       if (!options.quiet) {
-        showToast(mode === "child" ? "Child Site opened." : mode === "signup" ? "Sign up opened." : "Parent Dashboard opened.");
+        showToast(mode === "child" ? "Child Site opened." : mode === "signup" ? "Sign up opened." : mode === "login" ? "Login opened." : "Parent Dashboard opened.");
       }
     }
 
@@ -743,7 +909,71 @@
       showToast(name ? "Second parent saved." : "Second parent cleared.");
     }
 
-    function createAccount() {
+    async function loginKiddoSprout() {
+      const email = loginEmail.value.trim().toLowerCase();
+      const password = loginPassword.value;
+      if (!email || !password) {
+        loginStatus.textContent = "Enter your email and password.";
+        showToast("Enter your KiddoSprout login details.");
+        return;
+      }
+      loginStatus.textContent = "Logging in...";
+      try {
+        const session = await kiddoSignInRequest(email, password);
+        saveKiddoSession(session);
+        state.parentEmail = email;
+        state.parentName ||= "Parent";
+        state.familyName ||= "KiddoSprout Family";
+        state.parentPasscode ||= password;
+        state.parentAccountCreated = true;
+        parentUnlocked = true;
+        window.sessionStorage.setItem("parentUnlocked", "true");
+        saveState();
+        loginStatus.textContent = "Welcome back";
+        loginStatus.classList.add("success");
+        showToast("Logged in to KiddoSprout.");
+        window.setTimeout(() => {
+          loginStatus.classList.remove("success");
+          setMode("parent", { unlocked: true });
+        }, 700);
+      } catch (error) {
+        loginStatus.textContent = friendlySupabaseError(error);
+        showToast("KiddoSprout login failed.");
+      }
+    }
+
+    async function resendKiddoSproutEmail(source = "login") {
+      const statusElement = source === "signup" ? signupStatus : loginStatus;
+      const emailInput = source === "signup" ? signupEmail : loginEmail;
+      const fallbackEmail = loginEmail.value.trim().toLowerCase() || signupEmail.value.trim().toLowerCase() || state.parentEmail || "";
+      const email = (emailInput.value.trim().toLowerCase() || fallbackEmail).trim();
+
+      if (resendEmailCooldown > 0) {
+        statusElement.textContent = `Wait ${resendEmailCooldown} seconds before resending.`;
+        return;
+      }
+
+      if (!email) {
+        statusElement.textContent = "Enter your parent email first.";
+        showToast("Enter your email first.");
+        return;
+      }
+
+      statusElement.textContent = "Sending confirmation email...";
+      try {
+        await kiddoResendSignupEmail(email);
+        statusElement.textContent = "Confirmation email sent. Check your inbox and spam folder.";
+        statusElement.classList.add("success");
+        showToast("Confirmation email sent.");
+        startResendEmailCooldown();
+        window.setTimeout(() => statusElement.classList.remove("success"), 2000);
+      } catch (error) {
+        statusElement.textContent = friendlySupabaseError(error);
+        showToast("Could not resend email.");
+      }
+    }
+
+    async function createAccount() {
       const familyName = signupFamily.value.trim();
       const parentName = signupParent.value.trim();
       const parentEmail = signupEmail.value.trim().toLowerCase();
@@ -757,9 +987,27 @@
         return;
       }
 
+      if (passcode.length < 6) {
+        signupStatus.textContent = "Password needs at least 6 characters";
+        showToast("Use at least 6 characters for Supabase login.");
+        return;
+      }
+
       if ((secondParentName && !secondParentEmail) || (!secondParentName && secondParentEmail)) {
         signupStatus.textContent = "Add both second parent details";
         showToast("Add both second parent name and email, or leave both blank.");
+        return;
+      }
+
+      signupStatus.textContent = "Creating Supabase account...";
+      try {
+        const session = await kiddoSignUpRequest(parentEmail, passcode);
+        if (session?.access_token) {
+          saveKiddoSession(session);
+        }
+      } catch (error) {
+        signupStatus.textContent = friendlySupabaseError(error);
+        showToast("Supabase sign up failed.");
         return;
       }
 
@@ -770,15 +1018,62 @@
       state.secondParentEmail = secondParentEmail;
       state.parentPasscode = passcode;
       state.parentAccountCreated = true;
-      signupStatus.textContent = "Welcome";
+      signupStatus.textContent = hasKiddoSession() ? "Welcome" : "Account created. Check your email, then log in.";
       signupStatus.classList.add("success");
+      saveState();
+      if (!hasKiddoSession()) {
+        startResendEmailCooldown();
+        window.setTimeout(() => {
+          signupStatus.classList.remove("success");
+          setMode("login");
+        }, 1300);
+        return;
+      }
       parentUnlocked = true;
       window.sessionStorage.setItem("parentUnlocked", "true");
-      saveState();
       window.setTimeout(() => {
         signupStatus.classList.remove("success");
         setMode("parent", { unlocked: true });
+        window.setTimeout(() => {
+          document.querySelector("#manageChildren")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          showToast("Now add your first real child profile.");
+        }, 250);
       }, 650);
+    }
+
+    async function installKiddoSproutApp(triggerButton = downloadKiddoSproutButton) {
+      const statusElement = triggerButton === downloadSignupButton ? signupStatus : passcodeStatus;
+      const originalButtonText = triggerButton?.textContent || "Install KiddoSprout App";
+      if (triggerButton) {
+        triggerButton.disabled = true;
+        triggerButton.textContent = "Opening installer...";
+      }
+
+      if (kiddoInstallPrompt) {
+        kiddoInstallPrompt.prompt();
+        const result = await kiddoInstallPrompt.userChoice;
+        kiddoInstallPrompt = null;
+        if (result?.outcome === "accepted") {
+          statusElement.textContent = "KiddoSprout is installing.";
+          statusElement.classList.add("success");
+          showToast("KiddoSprout app installing.");
+        } else {
+          statusElement.textContent = "Install cancelled.";
+          showToast("KiddoSprout install cancelled.");
+        }
+      } else if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone) {
+        statusElement.textContent = "KiddoSprout is already installed.";
+        statusElement.classList.add("success");
+        showToast("KiddoSprout is already installed.");
+      } else {
+        statusElement.textContent = "Use your browser menu to install KiddoSprout: Share or menu, then Add to Dock/Home Screen.";
+        showToast("Use browser install menu.");
+      }
+      window.setTimeout(() => statusElement.classList.remove("success"), 1800);
+      if (triggerButton) {
+        triggerButton.disabled = false;
+        triggerButton.textContent = originalButtonText;
+      }
     }
 
     async function sendRecoveryCode() {
@@ -891,6 +1186,12 @@
       state.wellbeingGoals ??= { water: 4, eyeBreaks: 3 };
       state.wellbeingGoals.water = Math.max(1, Number(state.wellbeingGoals.water || 4));
       state.wellbeingGoals.eyeBreaks = Math.max(1, Number(state.wellbeingGoals.eyeBreaks || 3));
+      state.schedule ??= {};
+      state.schedule.schoolStart ||= "08:45";
+      state.schedule.schoolEnd ||= "15:15";
+      state.schedule.bedtimeStart ||= "20:30";
+      state.schedule.bedtimeEnd ||= "07:00";
+      state.parentNote ??= "";
       state.problemReports ??= [];
       state.scanHistory ??= [];
       state.trustedContacts ??= ["Parent or guardian", "Teacher", "School office"];
@@ -1076,6 +1377,23 @@
 
     function renderChildEditor() {
       const child = currentChild();
+      if (!child) {
+        editChildName.value = "";
+        editChildDob.value = "";
+        editChildDevice.value = "Tablet";
+        editChildAvatarIcon.value = "star";
+        editChildAvatarColor.value = "#147d7f";
+        editChildSchoolYear.value = "";
+        editChildEmergencyContact.value = "";
+        editChildCareNote.value = "";
+        editChildWarning.textContent = "Add a child profile above before editing.";
+        document.querySelector("#saveChildProfile").disabled = true;
+        removeChildButton.disabled = true;
+        removeChildStatus.textContent = "No child profile selected.";
+        return;
+      }
+      document.querySelector("#saveChildProfile").disabled = false;
+      removeChildButton.disabled = false;
       const device = child.device || "Tablet";
       const normalizedDevice = device.charAt(0).toUpperCase() + device.slice(1);
       editChildName.value = child.name || "";
@@ -1095,6 +1413,11 @@
 
     function saveSelectedChildProfile() {
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        newChildName.focus();
+        return;
+      }
       const name = editChildName.value.trim();
       if (!name) {
         showToast("Child name cannot be empty.");
@@ -1153,6 +1476,11 @@
     function removeSelectedChild() {
       const childIds = Object.keys(state.children);
       const child = currentChild();
+      if (!child) {
+        removeChildStatus.textContent = "No child profile selected.";
+        showToast("Add a child profile first.");
+        return;
+      }
       if (childIds.length <= 1) {
         removeChildStatus.textContent = "You need at least one child profile.";
         showToast("Keep at least one child profile.");
@@ -1191,6 +1519,10 @@
 
     function addReportMinutes(label, minutes) {
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        return;
+      }
       child.report[label] = (child.report[label] || 0) + minutes;
       renderControls(child);
       queueSave();
@@ -1204,6 +1536,15 @@
         removeChildStatus.textContent = "";
       }
       renderChildEditor();
+      if (!hasChildProfiles()) {
+        strip.innerHTML = `
+          <div class="empty-profile-note">
+            <strong>No child profiles yet</strong>
+            <span>Add your first real child above. The child site stays locked until a profile exists.</span>
+          </div>
+        `;
+        return;
+      }
       strip.innerHTML = Object.entries(state.children).map(([id, child]) => `
         <button class="profile-btn ${id === state.activeChild ? "active" : ""}" data-child="${id}">
           <span class="avatar" style="background: ${safeAvatarColor(child.avatarColor)};">${escapeHtml(avatarSymbol(child.avatarIcon, child.name))}</span>
@@ -1342,8 +1683,62 @@
       document.querySelector("#focusClock").textContent = formatClock(focusSeconds);
     }
 
+    function timeToMinutes(value) {
+      const [hours, minutes] = String(value || "00:00").split(":").map(Number);
+      return (Number(hours) || 0) * 60 + (Number(minutes) || 0);
+    }
+
+    function isNowInsideRange(start, end) {
+      const now = new Date();
+      const current = now.getHours() * 60 + now.getMinutes();
+      const startMinutes = timeToMinutes(start);
+      const endMinutes = timeToMinutes(end);
+      if (startMinutes <= endMinutes) {
+        return current >= startMinutes && current < endMinutes;
+      }
+      return current >= startMinutes || current < endMinutes;
+    }
+
+    function renderParentNote() {
+      const note = (state.parentNote || "").trim();
+      document.querySelector("#parentNoteInput").value = note;
+      document.querySelector("#childParentNote").textContent = note || "No parent note yet.";
+    }
+
+    function renderFamilySchedule() {
+      state.schedule ??= {};
+      const schedule = state.schedule;
+      document.querySelector("#schoolStartInput").value = schedule.schoolStart || "08:45";
+      document.querySelector("#schoolEndInput").value = schedule.schoolEnd || "15:15";
+      document.querySelector("#bedtimeStartInput").value = schedule.bedtimeStart || "20:30";
+      document.querySelector("#bedtimeEndInput").value = schedule.bedtimeEnd || "07:00";
+
+      const schoolNow = isNowInsideRange(schedule.schoolStart, schedule.schoolEnd);
+      const bedtimeNow = isNowInsideRange(schedule.bedtimeStart, schedule.bedtimeEnd);
+      document.querySelector("#scheduleNow").textContent = bedtimeNow ? "Bedtime" : schoolNow ? "School time" : "Free time";
+      document.querySelector("#scheduleCards").innerHTML = `
+        <article class="mini-card schedule-item">
+          <span class="small">School</span>
+          <strong>${escapeHtml(schedule.schoolStart)} - ${escapeHtml(schedule.schoolEnd)}</strong>
+          <p class="small">${schoolNow ? "Focus and learning apps are best right now." : "School hours are saved."}</p>
+        </article>
+        <article class="mini-card schedule-item">
+          <span class="small">Bedtime</span>
+          <strong>${escapeHtml(schedule.bedtimeStart)} - ${escapeHtml(schedule.bedtimeEnd)}</strong>
+          <p class="small">${bedtimeNow ? "Screens should be winding down now." : "Bedtime lock follows parent settings."}</p>
+        </article>
+      `;
+    }
+
     function updateKidAvatarPreview() {
       const child = currentChild();
+      if (!child) {
+        kidAvatarPreview.textContent = "KS";
+        kidAvatarPreview.style.background = "#147d7f";
+        kidAvatarName.textContent = "Add a child profile";
+        kidCostumePreview.textContent = "Costume: not set";
+        return;
+      }
       const icon = kidAvatarIcon.value || child.avatarIcon || "star";
       const color = safeAvatarColor(kidAvatarColor.value || child.avatarColor);
       const costume = kidCostume.value || child.costume || "Explorer";
@@ -1366,6 +1761,10 @@
 
     function saveKidAvatar() {
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        return;
+      }
       child.avatarIcon = kidAvatarIcon.value;
       child.avatarColor = safeAvatarColor(colorTextToHex(kidAvatarColorText.value) || kidAvatarColor.value);
       kidAvatarColor.value = child.avatarColor;
@@ -1607,7 +2006,67 @@
       });
     }
 
+    function setChildControlsDisabled(disabled) {
+      [
+        "#approveBtn",
+        "#blockBtn",
+        "#childAskApp",
+        "#limitRange",
+        "#bedtimeToggle",
+        "#flyerAllowedToggle",
+        "#saveKidAvatar",
+        "#startFocus",
+        "#resetFocus",
+        "#completeFocus",
+        "#sendParentChat",
+        "#clearParentChat"
+      ].forEach((selector) => {
+        const element = document.querySelector(selector);
+        if (element) {
+          element.disabled = disabled;
+        }
+      });
+      document.querySelectorAll("[data-open-app], [data-open-app-link], [data-help-action], [data-mood]").forEach((element) => {
+        element.classList.toggle("blocked-app", disabled);
+        element.setAttribute("aria-disabled", disabled ? "true" : "false");
+      });
+    }
+
+    function renderNoChildState() {
+      setChildControlsDisabled(true);
+      document.querySelector("#childWelcome").textContent = "Add a child profile";
+      document.querySelector("#timeLeft").textContent = "0m";
+      document.querySelector("#pendingCount").textContent = "0";
+      document.querySelector("#blockedHits").textContent = "0";
+      document.querySelector("#limitRange").value = 30;
+      decorateRange(document.querySelector("#limitRange"));
+      document.querySelector("#bedtimeToggle").checked = false;
+      document.querySelector("#deviceState").textContent = "No child selected";
+      document.querySelector("#deviceSub").textContent = "Create a real child profile before using controls.";
+      document.querySelector("#appName").textContent = "No request yet";
+      document.querySelector("#appMeta").textContent = "Requests appear here after a real child profile exists.";
+      document.querySelector("#appInitial").textContent = "-";
+      document.querySelector("#reportRows").innerHTML = `
+        <div class="filter-item">
+          <span>Add a child profile to start reports.</span>
+          <strong>Waiting</strong>
+        </div>
+      `;
+      renderSafetyAlerts();
+      renderProblemReports();
+      renderScanHistory();
+      renderTrustedContacts();
+      renderMoodCheckins();
+      renderFamilyRules();
+      renderChores();
+      renderFocus();
+      renderParentNote();
+      renderFamilySchedule();
+      broadcastExtensionBlockRules();
+    }
+
     function renderControls(child) {
+      setChildControlsDisabled(false);
       ensureChildAppState(child);
       const left = Math.max(0, child.dailyLimit - child.usedToday);
       document.querySelector("#childWelcome").textContent = child.name + "'s Child Mode";
@@ -1654,6 +2113,8 @@
       renderFamilyRules();
       renderChores();
       renderFocus();
+      renderParentNote();
+      renderFamilySchedule();
       renderWellbeingSnapshot(child);
       broadcastExtensionBlockRules();
     }
@@ -1672,12 +2133,24 @@
       secondParentEmailSetting.value = state.secondParentEmail || "";
       document.querySelector("#waterGoalInput").value = Number(state.wellbeingGoals?.water || 4);
       document.querySelector("#eyeGoalInput").value = Number(state.wellbeingGoals?.eyeBreaks || 3);
+      renderParentNote();
+      renderFamilySchedule();
       renderProfiles();
-      renderControls(currentChild());
+      const child = currentChild();
+      if (child) {
+        renderControls(child);
+      } else {
+        renderNoChildState();
+      }
     }
 
     function openApp(app) {
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        setMode("parent", { unlocked: true });
+        return;
+      }
       ensureChildAppState(child);
       const rule = getAppRule(child, app);
       if (rule === "blocked") {
@@ -1692,12 +2165,22 @@
         requestAppAccess(child, app);
         return;
       }
+      const hubPages = {
+        studio: "creator-studio.html",
+        explore: "nature-explorer.html",
+        move: "move-breaks.html",
+        story: "story-theater.html"
+      };
+      if (hubPages[app]) {
+        window.location.href = hubPages[app];
+        return;
+      }
       window.clearTimeout(closeTimer);
       const titles = {
         studio: ["Creator Studio", "Safe prompts, pretend recording, and parent review queue."],
         explore: ["Explorer Lab", "Nature facts, map quests, and discovery minutes."],
         move: ["Move Breaks", "Short activity timers that count toward healthy movement."],
-        story: ["Story Theater", "Read-aloud pages, bookmarks, and calm story time."],
+        story: ["Story Theater", "Original books, bookmarks, and calm story time."],
         recipe: ["FlavorNest", "Connected recipes, safe steps, and family kitchen wins."],
         flyer: ["Sprout Flyer", "Tap, click, or press Space to fly through friendly clouds."]
       };
@@ -1716,6 +2199,12 @@
       const link = event.currentTarget;
       const appId = link.dataset.openAppLink;
       const child = currentChild();
+      if (!child) {
+        event.preventDefault();
+        showToast("Add a child profile first.");
+        setMode("parent", { unlocked: true });
+        return;
+      }
       ensureChildAppState(child);
       const rule = getAppRule(child, appId);
       if (rule === "allowed") {
@@ -1735,6 +2224,10 @@
 
     function completeTask(taskId) {
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        return;
+      }
       ensureChildAppState(child);
       if (child.completedTasks.includes(taskId)) {
         showToast("That task is already complete for " + child.name + ".");
@@ -1760,6 +2253,10 @@
 
     function resetTodayPlan() {
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        return;
+      }
       ensureChildAppState(child);
       child.completedTasks = [];
       renderControls(child);
@@ -1769,6 +2266,11 @@
 
     function toggleHomeworkMode() {
       const child = currentChild();
+      if (!child) {
+        parentHomeworkToggle.checked = false;
+        showToast("Add a child profile first.");
+        return;
+      }
       ensureChildAppState(child);
       child.homeworkMode = !child.homeworkMode;
       if (child.homeworkMode) {
@@ -1784,7 +2286,12 @@
         water: Math.max(1, Math.min(12, Number(document.querySelector("#waterGoalInput").value || 4))),
         eyeBreaks: Math.max(1, Math.min(12, Number(document.querySelector("#eyeGoalInput").value || 3)))
       };
-      renderControls(currentChild());
+      const child = currentChild();
+      if (child) {
+        renderControls(child);
+      } else {
+        renderNoChildState();
+      }
       queueSave();
       showToast("Wellbeing goals saved.");
     }
@@ -1801,6 +2308,10 @@
 
     function submitProblemReport() {
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        return;
+      }
       const typedProblem = document.querySelector("#problemType").value.trim();
       const type = typedProblem ? typedProblem.slice(0, 48) : "Problem";
       const urgency = document.querySelector("#problemUrgency").value;
@@ -1856,7 +2367,12 @@
         message: "Parent follow-up needed: " + report.type,
         time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
       });
-      renderControls(currentChild());
+      const child = currentChild();
+      if (child) {
+        renderControls(child);
+      } else {
+        renderNoChildState();
+      }
       queueSave();
       showToast("Follow-up added to safety alerts.");
     }
@@ -1944,6 +2460,10 @@
       const input = document.querySelector("#scanInput");
       const output = document.querySelector("#scanResult");
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        return;
+      }
       const scan = analyzeScanText(input.value);
       output.className = "scan-result " + scan.level;
       output.innerHTML = `<strong>${scan.result}</strong><span class="small">${escapeHtml(scan.detail)}</span>`;
@@ -1973,6 +2493,10 @@
 
     function completeDailyWin(goalId) {
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        return;
+      }
       ensureChildAppState(child);
       const goal = dailyGoalItems.find((item) => item.id === goalId);
       if (!goal) {
@@ -1999,6 +2523,10 @@
 
     function resetDailyWins() {
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        return;
+      }
       ensureChildAppState(child);
       child.dailyWins = {};
       child.waterCount = 0;
@@ -2010,6 +2538,10 @@
 
     function nextKindnessQuest() {
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        return;
+      }
       ensureChildAppState(child);
       child.kindnessPrompt = Number(child.kindnessPrompt || 0) + 1;
       renderKindnessQuest(child);
@@ -2019,6 +2551,10 @@
 
     function nextDailySpark() {
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        return;
+      }
       ensureChildAppState(child);
       child.sparkIndex = Number(child.sparkIndex || 0) + 1;
       renderDailySpark(child);
@@ -2029,6 +2565,10 @@
 
     function completeKindnessQuest() {
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        return;
+      }
       ensureChildAppState(child);
       child.kindnessPoints = Number(child.kindnessPoints || 0) + 5;
       child.dailyWins.kind = true;
@@ -2048,6 +2588,10 @@
 
     function addReadingLog() {
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        return;
+      }
       ensureChildAppState(child);
       const titleInput = document.querySelector("#readingTitle");
       const minutesInput = document.querySelector("#readingMinutes");
@@ -2068,6 +2612,10 @@
 
     function addWaterBreak() {
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        return;
+      }
       ensureChildAppState(child);
       child.waterCount = Number(child.waterCount || 0) + 1;
       renderControls(child);
@@ -2080,6 +2628,10 @@
 
     function addEyeBreak() {
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        return;
+      }
       ensureChildAppState(child);
       child.eyeBreaks = Number(child.eyeBreaks || 0) + 1;
       child.report.Movement = (child.report.Movement || 0) + 1;
@@ -2273,16 +2825,11 @@
 
       if (app === "recipe") {
         return `
-          <div class="mini-grid">
-            ${recipes.map((recipe, index) => `
-              <article class="mini-card recipe-card">
-                <span class="small">${recipe.time}</span>
-                <strong>${recipe.title}</strong>
-                <p class="small">${recipe.ingredients}</p>
-                <p>${recipe.steps}</p>
-                <button class="tiny" data-app-action="recipe${index}">Made it</button>
-              </article>
-            `).join("")}
+          <div class="mini-card recipe-card">
+            <span class="small">Separate page</span>
+            <strong>FlavorNest Recipes</strong>
+            <p class="small">Open the full recipe page for search, saved recipes, and adding family meals.</p>
+            <a class="mini-link" href="recipe.html">Open Recipe Page</a>
           </div>
           <div class="story-box">Kitchen safety: ask an adult before using knives, heat, blenders, or anything sharp.</div>
         `;
@@ -2669,6 +3216,11 @@
 
     function nextRequest() {
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        setMode("parent", { unlocked: true });
+        return;
+      }
       ensureChildAppState(child);
       requestIndex = (requestIndex + 1) % requestNames.length;
       const [name, initial, type] = requestNames[requestIndex];
@@ -2687,6 +3239,10 @@
 
     function sendSafetyAlert(message) {
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        return;
+      }
       state.safetyAlerts = state.safetyAlerts || [];
       state.safetyAlerts.unshift({
         child: child.name,
@@ -2703,6 +3259,10 @@
         sendSafetyAlert("Needs help now");
       } else if (action === "extraTime") {
         const child = currentChild();
+        if (!child) {
+          showToast("Add a child profile first.");
+          return;
+        }
         child.currentRequest = ["Extra Time", "Extra screen time requested from " + child.name + "'s profile", "+", "extraTime"];
         child.pending += 1;
         render();
@@ -2719,6 +3279,10 @@
 
     function sendMoodCheckin(mood) {
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        return;
+      }
       state.moodCheckins = state.moodCheckins || [];
       state.moodCheckins.unshift({
         child: child.name,
@@ -2764,6 +3328,73 @@
       showToast("Focus goal saved.");
     }
 
+    function saveParentNote() {
+      state.parentNote = document.querySelector("#parentNoteInput").value.trim();
+      renderParentNote();
+      queueSave();
+      showToast(state.parentNote ? "Parent note saved." : "Parent note cleared.");
+    }
+
+    function saveSchedule() {
+      state.schedule = {
+        schoolStart: document.querySelector("#schoolStartInput").value || "08:45",
+        schoolEnd: document.querySelector("#schoolEndInput").value || "15:15",
+        bedtimeStart: document.querySelector("#bedtimeStartInput").value || "20:30",
+        bedtimeEnd: document.querySelector("#bedtimeEndInput").value || "07:00"
+      };
+      renderFamilySchedule();
+      queueSave();
+      showToast("Family schedule saved.");
+    }
+
+    function exportWeeklySummary() {
+      const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        return;
+      }
+      ensureChildAppState(child);
+      const summary = {
+        app: "KiddoSprout",
+        exportedAt: new Date().toISOString(),
+        familyName: state.familyName,
+        child: {
+          name: child.name,
+          device: child.device,
+          schoolYear: child.schoolYear || "",
+          dailyLimit: child.dailyLimit,
+          usedToday: child.usedToday,
+          pendingRequests: child.pending,
+          blockedHits: child.blockedHits,
+          bedtimeLocked: Boolean(child.bedtime)
+        },
+        schedule: state.schedule,
+        wellbeing: {
+          dailyWins: child.dailyWins || {},
+          waterCount: child.waterCount || 0,
+          eyeBreaks: child.eyeBreaks || 0,
+          readingLog: child.readingLog || [],
+          kindnessPoints: child.kindnessPoints || 0
+        },
+        reports: {
+          appMinutes: child.report || {},
+          safetyAlerts: state.safetyAlerts || [],
+          moodCheckins: state.moodCheckins || [],
+          problemReports: state.problemReports || [],
+          scanHistory: state.scanHistory || []
+        }
+      };
+      const blob = new Blob([JSON.stringify(summary, null, 2)], { type: "application/json" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "kiddosprout-weekly-summary-" + child.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") + ".json";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(link.href);
+      showToast("Weekly summary downloaded.");
+    }
+
     function startFocusSession() {
       window.clearInterval(focusTimer);
       focusTimer = window.setInterval(() => {
@@ -2786,6 +3417,10 @@
 
     function completeFocusSession() {
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        return;
+      }
       ensureChildAppState(child);
       const message = "Please check my focus work: " + (state.focusGoal || "Focus session");
       child.currentRequest = ["Parent Chat", `${child.name}: ${message}`, "P", "parentChat", message];
@@ -2798,6 +3433,10 @@
 
     function sendParentChat() {
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        return;
+      }
       ensureChildAppState(child);
       const type = document.querySelector("#parentChatType").value;
       const note = document.querySelector("#parentChatMessage").value.trim();
@@ -2818,6 +3457,10 @@
 
     function submitChore(index) {
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        return;
+      }
       const chore = (state.chores || [])[index];
       if (!chore) {
         return;
@@ -2920,8 +3563,10 @@
     document.querySelector("#saveRules").addEventListener("click", saveFamilyRules);
     document.querySelector("#saveChores").addEventListener("click", saveChores);
     document.querySelector("#saveFocus").addEventListener("click", saveFocusGoal);
+    document.querySelector("#saveParentNote").addEventListener("click", saveParentNote);
     document.querySelector("#saveWellbeing").addEventListener("click", saveWellbeingGoals);
     document.querySelector("#saveTrustedContacts").addEventListener("click", saveTrustedContacts);
+    document.querySelector("#saveSchedule").addEventListener("click", saveSchedule);
     document.querySelector("#addChild").addEventListener("click", addChildProfile);
     removeChildButton.addEventListener("click", removeSelectedChild);
     document.querySelector("#saveKidAvatar").addEventListener("click", saveKidAvatar);
@@ -2956,6 +3601,13 @@
       }
     });
     document.querySelector("#createAccount").addEventListener("click", createAccount);
+    downloadSignupButton.addEventListener("click", () => installKiddoSproutApp(downloadSignupButton));
+    downloadKiddoSproutButton.addEventListener("click", () => installKiddoSproutApp(downloadKiddoSproutButton));
+    document.querySelector("#loginKiddoSprout").addEventListener("click", loginKiddoSprout);
+    document.querySelector("#loginToSignup").addEventListener("click", () => setMode("signup"));
+    document.querySelector("#signupToLogin").addEventListener("click", () => setMode("login"));
+    resendLoginEmailButton.addEventListener("click", () => resendKiddoSproutEmail("login"));
+    resendSignupEmailButton.addEventListener("click", () => resendKiddoSproutEmail("signup"));
     document.querySelector("#signupToChild").addEventListener("click", () => setMode("child"));
     document.querySelector("#forgotPassword").addEventListener("click", () => {
       forgotPanel.style.display = forgotPanel.style.display === "none" ? "grid" : "none";
@@ -2965,6 +3617,21 @@
     document.querySelector("#resetPasscode").addEventListener("click", resetPasscodeWithCode);
     viewPassword.addEventListener("change", () => {
       passcodeInput.type = viewPassword.checked ? "text" : "password";
+    });
+    viewLoginPassword.addEventListener("change", () => {
+      loginPassword.type = viewLoginPassword.checked ? "text" : "password";
+    });
+    loginPassword.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        loginKiddoSprout();
+      }
+    });
+    loginEmail.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        loginKiddoSprout();
+      }
     });
     viewSettingPassword.addEventListener("change", () => {
       passcodeSetting.type = viewSettingPassword.checked ? "text" : "password";
@@ -2985,8 +3652,8 @@
     });
     window.addEventListener("popstate", () => {
       parentUnlocked = window.sessionStorage.getItem("parentUnlocked") === "true";
-      const nextMode = (window.location.hash || "#parent").slice(1);
-      setMode(["child", "parent", "signup"].includes(nextMode) ? nextMode : "parent", { quiet: true });
+      const nextMode = (window.location.hash || "#login").slice(1);
+      setMode(["child", "parent", "signup", "login"].includes(nextMode) ? nextMode : "login", { quiet: true });
     });
     document.querySelector("#saveNow").addEventListener("click", () => saveState(true));
     document.querySelector("#resetPlan").addEventListener("click", resetTodayPlan);
@@ -3032,6 +3699,10 @@
 
     document.querySelector("#approveBtn").addEventListener("click", () => {
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        return;
+      }
       const requestName = child.currentRequest[0];
       approveCurrentRequest(child);
       render();
@@ -3041,6 +3712,10 @@
 
     document.querySelector("#blockBtn").addEventListener("click", () => {
       const child = currentChild();
+      if (!child) {
+        showToast("Add a child profile first.");
+        return;
+      }
       const requestName = child.currentRequest[0];
       const kind = child.currentRequest[3] || "appDownload";
       if (kind === "appAccess") {
@@ -3056,6 +3731,11 @@
 
     document.querySelector("#limitRange").addEventListener("input", (event) => {
       const child = currentChild();
+      if (!child) {
+        event.target.value = 30;
+        showToast("Add a child profile first.");
+        return;
+      }
       child.dailyLimit = Number(event.target.value);
       decorateRange(event.target);
       renderControls(child);
@@ -3064,6 +3744,11 @@
 
     document.querySelector("#bedtimeToggle").addEventListener("change", (event) => {
       const child = currentChild();
+      if (!child) {
+        event.target.checked = false;
+        showToast("Add a child profile first.");
+        return;
+      }
       child.bedtime = event.target.checked;
       renderControls(child);
       queueSave();
@@ -3071,6 +3756,11 @@
     });
     flyerAllowedToggle.addEventListener("change", (event) => {
       const child = currentChild();
+      if (!child) {
+        event.target.checked = false;
+        showToast("Add a child profile first.");
+        return;
+      }
       setAppRule(child, "flyer", event.target.checked ? "allowed" : "request");
       renderControls(child);
       queueSave();
@@ -3101,6 +3791,7 @@
       queueSave();
       showToast("Problem reports cleared.");
     });
+    document.querySelector("#exportWeeklySummary").addEventListener("click", exportWeeklySummary);
 
     try {
       state = JSON.parse(window.localStorage.getItem("kiddosproutState")) || JSON.parse(JSON.stringify(DEFAULT_STATE));
@@ -3108,6 +3799,39 @@
       state = JSON.parse(JSON.stringify(DEFAULT_STATE));
     }
     cleanSavedBranding(state);
+    removeDemoChildren(state);
+    const existingKiddoSession = getKiddoSession();
+    if (existingKiddoSession?.user?.email) {
+      state.parentEmail ||= existingKiddoSession.user.email;
+      state.parentName ||= existingKiddoSession.user.user_metadata?.name || "Parent";
+      state.familyName ||= "KiddoSprout Family";
+      state.parentAccountCreated = true;
+      parentUnlocked = true;
+      window.sessionStorage.setItem("parentUnlocked", "true");
+      if (viewMode === "login") {
+        viewMode = "parent";
+      }
+    }
+    window.addEventListener("beforeinstallprompt", (event) => {
+      event.preventDefault();
+      kiddoInstallPrompt = event;
+      [downloadSignupButton, downloadKiddoSproutButton].forEach((button) => {
+        if (!button) return;
+        button.disabled = false;
+        button.textContent = button === downloadSignupButton ? "Install App" : "Install KiddoSprout App";
+      });
+    });
+    window.addEventListener("appinstalled", () => {
+      kiddoInstallPrompt = null;
+      showToast("KiddoSprout installed.");
+    });
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("service-worker.js").catch(() => {
+          showToast("Offline install setup could not start.");
+        });
+      });
+    }
     state.parentAccountCreated ??= Boolean(state.parentEmail && state.parentName);
     if (!state.parentAccountCreated) {
       state.parentEmail = "";

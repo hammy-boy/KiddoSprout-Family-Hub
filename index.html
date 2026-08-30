@@ -6,6 +6,8 @@
   <title>KiddoSprout</title>
   <link rel="icon" type="image/png" href="kiddosprout_logo_128.png">
   <link rel="apple-touch-icon" href="kiddosprout_logo_128.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#3fa35b">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -37,7 +39,7 @@
             </select>
           </label>
           <button class="settings-link" id="quickParentSettings" type="button">Parent settings</button>
-          <a class="settings-link" href="app_6.html">FlavorNest recipes</a>
+          <a class="settings-link" href="recipe.html">FlavorNest recipes</a>
           <a class="settings-link" href="app_7.html">Smart Spending</a>
         </div>
       </div>
@@ -78,6 +80,8 @@
             <button data-jump="homework">Homework</button>
             <button data-jump="focusSession">Focus Session</button>
             <button data-jump="parentChat">Parent Chat</button>
+            <button data-jump="parentNote">Parent Note</button>
+            <button data-jump="dailySchedule">Schedule</button>
             <button data-jump="helpSafety">Help & Safety</button>
             <button data-jump="checkIn">Check-In</button>
             <button data-jump="reading">Reading Log</button>
@@ -97,9 +101,42 @@
             <button data-jump="manageChildren">Manage Children</button>
             <button data-jump="advancedSettings">Advanced Settings</button>
             <button data-jump="childContentSettings">Child Content</button>
+            <button data-jump="familyScheduleSettings">Schedule</button>
           </details>
         </aside>
         <div class="content-flow">
+      <section class="card login-only auth-card" aria-label="Log in" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2>Log In to KiddoSprout</h2>
+            <p class="small">Use your Supabase parent account to open KiddoSprout.</p>
+          </div>
+        </div>
+        <div class="signup-panel">
+          <div class="signup-form">
+            <p class="passcode-status" id="loginSupabaseStatus" aria-live="polite"></p>
+            <label class="small" for="loginEmail">Parent email</label>
+            <input id="loginEmail" type="email" autocomplete="email" placeholder="example@gmail.com">
+            <label class="small" for="loginPassword">Password</label>
+            <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Password">
+            <label class="view-password setting-view">
+              <input id="viewLoginPassword" type="checkbox">
+              <span>View password</span>
+            </label>
+            <div class="choice-row">
+              <button class="approve" id="loginKiddoSprout" type="button">Log In</button>
+              <button class="tiny" id="loginToSignup" type="button">Create Account</button>
+              <button class="tiny" id="resendLoginEmail" type="button">Resend Email</button>
+            </div>
+            <p class="passcode-status" id="loginStatus" aria-live="polite"></p>
+          </div>
+          <aside class="signup-note">
+            <h3>One Account</h3>
+            <p class="small">KiddoSprout and FlavorNest both use Supabase login. Keep your password private.</p>
+          </aside>
+        </div>
+      </section>
+
       <section class="card signup-only" aria-label="Sign up" style="margin-bottom: 18px;">
         <div class="card-head">
           <div>
@@ -127,6 +164,9 @@
             </label>
             <div class="choice-row">
               <button class="approve" id="createAccount">Create Account</button>
+              <button class="tiny" id="downloadSignup" type="button">Install App</button>
+              <button class="tiny" id="resendSignupEmail" type="button">Resend Email</button>
+              <button class="tiny" id="signupToLogin" type="button">Log In</button>
               <button class="tiny" id="signupToChild">Back to Child Site</button>
             </div>
             <p class="passcode-status" id="signupStatus" aria-live="polite"></p>
@@ -351,6 +391,27 @@
         <div class="choice-row" style="margin: 12px 0 16px;">
           <button class="tiny" id="saveWellbeing">Save Wellbeing</button>
         </div>
+        <div class="grid two" id="familyScheduleSettings">
+          <label>
+            <span class="small">School starts</span>
+            <input id="schoolStartInput" type="time" value="08:45">
+          </label>
+          <label>
+            <span class="small">School ends</span>
+            <input id="schoolEndInput" type="time" value="15:15">
+          </label>
+          <label>
+            <span class="small">Bedtime starts</span>
+            <input id="bedtimeStartInput" type="time" value="20:30">
+          </label>
+          <label>
+            <span class="small">Morning unlock</span>
+            <input id="bedtimeEndInput" type="time" value="07:00">
+          </label>
+        </div>
+        <div class="choice-row" style="margin: 12px 0 16px;">
+          <button class="tiny" id="saveSchedule">Save Schedule</button>
+        </div>
         <label>
           <span class="small">Trusted contacts</span>
           <textarea id="trustedContactsInput" placeholder="Mum&#10;Dad&#10;School office"></textarea>
@@ -383,6 +444,11 @@
           <button class="tiny" id="saveFocus">Save Focus</button>
         </div>
         <input id="focusInput" type="text" placeholder="Read or learn for 15 minutes">
+        <div class="card-head compact-head">
+          <h3>Parent Note</h3>
+          <button class="tiny" id="saveParentNote">Save Note</button>
+        </div>
+        <textarea id="parentNoteInput" placeholder="A short message the child sees today"></textarea>
       </details>
 
       <section class="status-strip parent-only" id="parentStatus" aria-label="Family status">
@@ -439,7 +505,7 @@
             <span class="small" data-app-status-label="recipe">Connected app</span>
             <strong>FlavorNest</strong>
             <p class="small">Open recipes, saved meals, and kitchen wins.</p>
-            <a class="mini-link" href="app_6.html" data-open-app-link="recipe">Open FlavorNest</a>
+            <a class="mini-link" href="recipe.html" data-open-app-link="recipe">Open FlavorNest</a>
           </article>
         </div>
       </section>
@@ -448,7 +514,7 @@
         <div class="card-head">
           <div>
             <h2>Kid Hubs</h2>
-            <p class="small">Original spaces inspired by creator learning, nature media, movement breaks, and read-aloud stories.</p>
+            <p class="small">Separate spaces for creator learning, nature quests, movement breaks, original books, and safe play.</p>
           </div>
         </div>
         <div class="tabs" role="tablist" aria-label="Hub filters">
@@ -459,27 +525,27 @@
         </div>
         <div class="hub-grid">
           <article class="hub-card studio" data-kind="create">
-            <span class="hub-label">Coverstar-inspired</span>
+            <span class="hub-label">Creator Studio</span>
             <strong>Creator Studio</strong>
             <p>Record short clips, pick safe prompts, and queue uploads for review.</p>
             <button data-open-app="studio">Launch</button>
           </article>
           <article class="hub-card explore" data-kind="learn">
-            <span class="hub-label">National Geographic Kids-inspired</span>
+            <span class="hub-label">Nature Explorer</span>
             <strong>Explorer Lab</strong>
             <p>Animal facts, map quests, mini documentaries, and photo challenges.</p>
             <button data-open-app="explore">Launch</button>
           </article>
           <article class="hub-card move" data-kind="move">
-            <span class="hub-label">GoNoodle-inspired</span>
+            <span class="hub-label">Movement Breaks</span>
             <strong>Move Breaks</strong>
             <p>Dance timers, stretch streaks, classroom games, and energy resets.</p>
             <button data-open-app="move">Launch</button>
           </article>
           <article class="hub-card story" data-kind="learn">
-            <span class="hub-label">Storyline-inspired</span>
+            <span class="hub-label">Original Books</span>
             <strong>Story Theater</strong>
-            <p>Read-aloud shelves, character voices, family bookmarks, and calm mode.</p>
+            <p>Original KiddoSprout books, character voices, family bookmarks, and calm mode.</p>
             <button data-open-app="story">Launch</button>
           </article>
           <article class="hub-card flyer" data-kind="move">
@@ -621,6 +687,27 @@
           <button class="approve" id="startFocus">Start</button>
           <button class="tiny" id="resetFocus">Reset</button>
         </div>
+      </section>
+
+      <section class="card child-only note-card" id="parentNote" aria-label="Parent note" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2>Parent Note</h2>
+            <p class="small">A real message from the parent dashboard.</p>
+          </div>
+        </div>
+        <div class="story-box" id="childParentNote">No parent note yet.</div>
+      </section>
+
+      <section class="card child-only schedule-card" id="dailySchedule" aria-label="Daily schedule" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2>Daily Schedule</h2>
+            <p class="small">School hours and bedtime from the parent dashboard.</p>
+          </div>
+          <strong id="scheduleNow">Ready</strong>
+        </div>
+        <div class="mini-grid" id="scheduleCards"></div>
       </section>
 
       <section class="card child-only lively-panel" id="parentChat" aria-label="Parent chat" style="margin-bottom: 18px;">
@@ -904,6 +991,7 @@
               <p class="small">Detailed reports sent from the child site.</p>
             </div>
             <button class="tiny" id="clearProblemReports">Clear</button>
+            <button class="tiny" id="exportWeeklySummary">Export Summary</button>
           </div>
           <div class="filter-list" id="problemReports"></div>
         </article>
@@ -976,6 +1064,7 @@
         <button class="secondary" id="backToChild">Back to Child Site</button>
         <button class="secondary" id="openSignup">Sign Up</button>
       </div>
+      <button class="download-project" id="downloadKiddoSprout" type="button">Install KiddoSprout App</button>
       <button class="tiny" id="forgotPassword" style="margin-top: 12px;">Forgot password?</button>
       <div class="signup-form" id="forgotPanel" style="display: none; margin-top: 14px;">
         <label class="small" for="recoveryEmail">Recovery email</label>
@@ -998,6 +1087,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="burst-layer" id="burstLayer" aria-hidden="true"></div>
 
+  <script src="supabase-config.js"></script>
   <script src="js.js"></script>
 </body>
 </html>

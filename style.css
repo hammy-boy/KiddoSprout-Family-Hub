@@ -232,11 +232,17 @@
     }
 
     .child-only,
+    .login-only,
     .signup-only {
       display: none;
     }
 
     body.mode-child .parent-only,
+    body.mode-login .parent-only,
+    body.mode-login .child-only,
+    body.mode-login .signup-only,
+    body.mode-login .status-strip,
+    body.mode-login .grid,
     body.mode-signup .parent-only,
     body.mode-signup .child-only,
     body.mode-signup .status-strip,
@@ -252,6 +258,10 @@
       display: block;
     }
 
+    body.mode-login .login-only {
+      display: block;
+    }
+
     body.mode-child .child-only.grid,
     body.mode-child .child-only.status-strip,
     body.mode-child .child-only.plan-grid,
@@ -263,14 +273,17 @@
       grid-template-columns: 1fr;
     }
 
+    body.mode-login .feature-sidebar,
     body.mode-signup .feature-sidebar {
       display: none;
     }
 
+    body.mode-login .app-layout,
     body.mode-signup .app-layout {
       grid-template-columns: 1fr;
     }
 
+    body.mode-login main,
     body.mode-signup main {
       width: min(760px, calc(100% - 32px));
     }
@@ -444,6 +457,23 @@
 
     .passcode-status.success {
       color: #bbf7d0;
+    }
+
+    .download-project {
+      width: 100%;
+      min-height: 44px;
+      margin-top: 12px;
+      border: 1px solid #bfe0d7;
+      border-radius: 8px;
+      color: #0d605f;
+      background: #e9f7f3;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .download-project:disabled {
+      opacity: 0.58;
+      cursor: not-allowed;
     }
 
     .lock-box input:disabled,
@@ -1046,6 +1076,22 @@
       background: #e8f4f1;
       box-shadow: inset 0 0 0 1px var(--teal);
       animation: gentlePop 260ms ease both;
+    }
+
+    .empty-profile-note {
+      display: grid;
+      gap: 6px;
+      min-height: 72px;
+      align-content: center;
+      border: 1px dashed rgba(20, 125, 127, 0.42);
+      border-radius: 8px;
+      padding: 14px 16px;
+      color: var(--muted);
+      background: linear-gradient(135deg, #f2fbf7, #eef7ff);
+    }
+
+    .empty-profile-note strong {
+      color: var(--ink);
     }
 
     .avatar {
@@ -1894,6 +1940,25 @@
       display: block;
       margin-bottom: 8px;
       font-size: 20px;
+    }
+
+    .note-card {
+      border-color: rgba(140, 90, 168, 0.22);
+      background:
+        radial-gradient(circle at 88% 18%, rgba(140, 90, 168, 0.18), transparent 24%),
+        linear-gradient(135deg, #ffffff, #f6f0ff 54%, #effaf5);
+    }
+
+    .schedule-card {
+      border-color: rgba(20, 125, 127, 0.22);
+      background:
+        radial-gradient(circle at 12% 12%, rgba(241, 180, 63, 0.2), transparent 24%),
+        linear-gradient(135deg, #ffffff, #eef8f5 52%, #fff7df);
+    }
+
+    .schedule-item {
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.76);
     }
 
     .recipe-card {

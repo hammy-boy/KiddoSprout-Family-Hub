@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Creator Studio | KiddoSprout</title>
+  <link rel="icon" type="image/png" href="kiddosprout_logo_128.png">
+  <link rel="stylesheet" href="kid-hubs.css">
+</head>
+<body>
+  <main class="hub-shell hidden" data-hub-page>
+    <nav class="topbar"><a class="back-link" href="index.html#child">Back to Child Site</a></nav>
+    <section class="hero"><h1>Creator Studio</h1><p>Plan a safe short clip, write a tiny script, and send the idea to a parent before anything is shared.</p></section>
+    <section class="record-studio" aria-label="Record a safe clip">
+      <div class="record-stage">
+        <video id="camera-preview" autoplay muted playsinline></video>
+        <video id="clip-playback" controls playsinline class="hidden"></video>
+        <div class="record-placeholder" id="record-placeholder">
+          <strong>Camera is off</strong>
+          <span>Ask a parent before recording. Nothing uploads from this page.</span>
+        </div>
+        <span class="record-badge hidden" id="record-badge">Recording</span>
+      </div>
+      <div class="record-controls">
+        <label>
+          <span class="small">Clip title</span>
+          <input id="clip-title" type="text" maxlength="48" placeholder="My safe fact clip">
+        </label>
+        <label>
+          <span class="small">Tiny script</span>
+          <textarea id="clip-script" rows="4" placeholder="Write what you will say. No school name, address, password, or private family details."></textarea>
+        </label>
+        <div class="source-choice" aria-label="Recording source">
+          <button class="source-option active" id="camera-source" type="button">Camera</button>
+          <button class="source-option" id="screen-source" type="button">Screen Share</button>
+        </div>
+        <div class="record-actions">
+          <button class="kid-link" id="camera-btn" type="button">Turn Camera On</button>
+          <button class="primary-action" id="record-btn" type="button" disabled>Start Recording</button>
+          <button class="kid-link" id="download-clip" type="button" disabled>Save Clip</button>
+        </div>
+        <button class="kid-link full-width" id="send-review" type="button" disabled>Send to Parent Review</button>
+        <p class="record-status" id="record-status">Ready when a parent says it is okay.</p>
+      </div>
+    </section>
+    <section class="grid">
+      <article class="panel"><strong>Clip Idea</strong><p>Pick one thing you know well and explain it in 20 seconds.</p></article>
+      <article class="panel"><strong>Safety Check</strong><p>No school name, address, passwords, uniforms, or private family details.</p></article>
+      <article class="panel"><strong>Parent Review</strong><p>Use Parent Chat on the child site to ask before uploading anywhere.</p></article>
+    </section>
+  </main>
+  <section class="lock-card hidden" data-hub-lock><div><h1 data-lock-title>Parent approval needed</h1><p data-lock-message>A request was sent to the parent dashboard.</p><a class="primary-action" href="index.html#child">Back to Child Site</a></div></section>
+  <script src="kid-hub-gate.js"></script>
+  <script>
+    KiddoHubGate.protect("studio", "Creator Studio");
+
+    const stateKey = "kiddosproutState";
+    const preview = document.getElementById("camera-preview");
+    const playback = document.getElementById("clip-playback");
+    const placeholder = document.getElementById("record-placeholder");
+    const cameraButton = document.getElementById("camera-btn");
+    const cameraSourceButton = document.getElementById("camera-source");
+    const screenSourceButton = document.getElementById("screen-source");
+    const recordButton = document.getElementById("record-btn");
+    const downloadButton = document.getElementById("download-clip");
+    const reviewButton = document.getElementById("send-review");
+    const statusText = document.getElementById("record-status");
+    const recordBadge = document.getElementById("record-badge");
+    const titleInput = document.getElementById("clip-title");
+    const scriptInput = document.getElementById("clip-script");
+    let cameraStream = null;
+    let recorder = null;
+    let recordedChunks = [];
+    let recordedBlob = null;
+    let clipUrl = "";
+    let recordingSource = "camera";
+
+    function setStatus(message) {
+      statusText.textContent = message;
+    }
+
+    function stopActiveStream() {
+      if (!cameraStream) return;
+      cameraStream.getTracks().forEach((track) => track.stop());
+      cameraStream = null;
+      preview.srcObject = null;
+      cameraButton.textContent = recordingSource === "screen" ? "Start Screen Share" : "Turn Camera On";
+      recordButton.disabled = true;
+      placeholder.classList.remove("hidden");
+    }
+
+    function setRecordingSource(source) {
+      if (recorder && recorder.state === "recording") {
+        setStatus("Stop recording before changing source.");
+        return;
+      }
+      stopActiveStream();
+      recordingSource = source;
+      cameraSourceButton.classList.toggle("active", source === "camera");
+      screenSourceButton.classList.toggle("active", source === "screen");
+      cameraButton.textContent = source === "screen" ? "Start Screen Share" : "Turn Camera On";
+      placeholder.querySelector("strong").textContent = source === "screen" ? "Screen share is off" : "Camera is off";
+      placeholder.querySelector("span").textContent = source === "screen"
+        ? "Choose a screen, window, or tab. Nothing uploads from this page."
+        : "Ask a parent before recording. Nothing uploads from this page.";
+      setStatus(source === "screen" ? "Screen share selected." : "Camera selected.");
+    }
+
+    async function startCapture() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setStatus("This browser does not support recording.");
+        return;
+      }
+      try {
+        if (recordingSource === "screen") {
+          if (!navigator.mediaDevices.getDisplayMedia) {
+            setStatus("This browser does not support screen sharing.");
+            return;
+          }
+          const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+          let mixedTracks = [...screenStream.getVideoTracks(), ...screenStream.getAudioTracks()];
+          try {
+            const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            mixedTracks = [...screenStream.getVideoTracks(), ...screenStream.getAudioTracks(), ...micStream.getAudioTracks()];
+          } catch (error) {
+            setStatus("Screen share ready without microphone.");
+          }
+          cameraStream = new MediaStream(mixedTracks);
+          screenStream.getVideoTracks()[0]?.addEventListener("ended", () => {
+            if (recorder && recorder.state === "recording") stopRecording();
+            stopActiveStream();
+            setStatus("Screen sharing stopped.");
+          });
+        } else {
+          cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        }
+        preview.srcObject = cameraStream;
+        preview.classList.remove("hidden");
+        playback.classList.add("hidden");
+        placeholder.classList.add("hidden");
+        cameraButton.textContent = recordingSource === "screen" ? "Stop Screen Share" : "Turn Camera Off";
+        recordButton.disabled = false;
+        setStatus(recordingSource === "screen" ? "Screen share ready. Keep private tabs closed." : "Camera ready. Keep the clip short and safe.");
+      } catch (error) {
+        setStatus(recordingSource === "screen" ? "Screen sharing was cancelled or blocked." : "Camera permission was not allowed, or no camera was found.");
+      }
+    }
+
+    function startRecording() {
+      if (!cameraStream) {
+        setStatus("Turn the camera on first.");
+        return;
+      }
+      recordedChunks = [];
+      recordedBlob = null;
+      if (clipUrl) URL.revokeObjectURL(clipUrl);
+      clipUrl = "";
+      const options = MediaRecorder.isTypeSupported("video/webm;codecs=vp9,opus")
+        ? { mimeType: "video/webm;codecs=vp9,opus" }
+        : {};
+      recorder = new MediaRecorder(cameraStream, options);
+      recorder.addEventListener("dataavailable", (event) => {
+        if (event.data && event.data.size > 0) recordedChunks.push(event.data);
+      });
+      recorder.addEventListener("stop", () => {
+        recordedBlob = new Blob(recordedChunks, { type: recorder.mimeType || "video/webm" });
+        clipUrl = URL.createObjectURL(recordedBlob);
+        playback.src = clipUrl;
+        playback.classList.remove("hidden");
+        preview.classList.add("hidden");
+        recordBadge.classList.add("hidden");
+        downloadButton.disabled = false;
+        reviewButton.disabled = false;
+        recordButton.textContent = "Record Again";
+        setStatus("Clip recorded. Watch it back before sharing with a parent.");
+      });
+      recorder.start();
+      recordBadge.classList.remove("hidden");
+      recordButton.textContent = "Stop Recording";
+      downloadButton.disabled = true;
+      reviewButton.disabled = true;
+      setStatus("Recording now. Stop when you finish your sentence.");
+    }
+
+    function stopRecording() {
+      if (recorder && recorder.state === "recording") {
+        recorder.stop();
+      }
+    }
+
+    function safeFileName(value) {
+      return String(value || "kiddosprout-clip")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 48) || "kiddosprout-clip";
+    }
+
+    async function saveClip() {
+      if (!recordedBlob || !clipUrl) {
+        setStatus("Record a clip first.");
+        return;
+      }
+      const fileName = safeFileName(titleInput.value) + ".webm";
+      if (window.showSaveFilePicker) {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: fileName,
+            types: [{
+              description: "WebM video",
+              accept: { "video/webm": [".webm"] }
+            }]
+          });
+          const writable = await handle.createWritable();
+          await writable.write(recordedBlob);
+          await writable.close();
+          setStatus("Clip saved using Finder/File Explorer. A parent should review it before it is shared.");
+          return;
+        } catch (error) {
+          if (error.name === "AbortError") {
+            setStatus("Save cancelled.");
+            return;
+          }
+        }
+      }
+      const link = document.createElement("a");
+      link.href = clipUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setStatus("Clip saved to the browser downloads folder. A parent should review it before it is shared.");
+    }
+
+    function sendParentReview() {
+      try {
+        const family = JSON.parse(localStorage.getItem(stateKey) || "null");
+        const child = family && family.children && family.children[family.activeChild];
+        if (!child) {
+          setStatus("Open KiddoSprout and add a child profile first.");
+          return;
+        }
+        const title = titleInput.value.trim() || "Untitled clip";
+        const script = scriptInput.value.trim();
+        child.pending = Number(child.pending || 0) + 1;
+        child.creatorQueue = child.creatorQueue || [];
+        child.creatorQueue.unshift(title);
+        child.currentRequest = [
+          "Creator Clip",
+          `${child.name} recorded "${title}" for parent review${script ? ": " + script.slice(0, 90) : "."}`,
+          "C",
+          "creatorReview",
+          title
+        ];
+        localStorage.setItem(stateKey, JSON.stringify(family));
+        setStatus("Review request sent to the parent dashboard. Keep the clip private until approved.");
+      } catch (error) {
+        setStatus("Could not send the review request. Try again from the child site.");
+      }
+    }
+
+    cameraButton.addEventListener("click", () => {
+      if (cameraStream) stopActiveStream();
+      else startCapture();
+    });
+
+    cameraSourceButton.addEventListener("click", () => setRecordingSource("camera"));
+    screenSourceButton.addEventListener("click", () => setRecordingSource("screen"));
+
+    recordButton.addEventListener("click", () => {
+      if (recorder && recorder.state === "recording") stopRecording();
+      else startRecording();
+    });
+
+    downloadButton.addEventListener("click", saveClip);
+    reviewButton.addEventListener("click", sendParentReview);
+    window.addEventListener("beforeunload", stopActiveStream);
+  </script>
+</body>
+</html>

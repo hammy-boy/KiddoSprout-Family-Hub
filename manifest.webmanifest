@@ -1,0 +1,45 @@
+{
+  "name": "KiddoSprout",
+  "short_name": "KiddoSprout",
+  "description": "A family hub for child profiles, parent approvals, learning, recipes, spending, stories, movement, reports, and safe app access.",
+  "start_url": "/#login",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4faf7",
+  "theme_color": "#3fa35b",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "kiddosprout_logo_128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "kiddosprout_logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Parent Dashboard",
+      "short_name": "Parent",
+      "url": "/#parent",
+      "icons": [{ "src": "kiddosprout_logo_128.png", "sizes": "128x128" }]
+    },
+    {
+      "name": "Child Site",
+      "short_name": "Child",
+      "url": "/#child",
+      "icons": [{ "src": "kiddosprout_logo_128.png", "sizes": "128x128" }]
+    },
+    {
+      "name": "FlavorNest",
+      "short_name": "Recipes",
+      "url": "/recipe.html",
+      "icons": [{ "src": "kiddosprout_logo_128.png", "sizes": "128x128" }]
+    }
+  ]
+}

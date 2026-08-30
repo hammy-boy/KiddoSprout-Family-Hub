@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Story Theater | KiddoSprout</title>
+  <link rel="icon" type="image/png" href="kiddosprout_logo_128.png">
+  <link rel="stylesheet" href="kid-hubs.css">
+</head>
+<body>
+  <main class="hub-shell hidden" data-hub-page>
+    <nav class="topbar"><a class="back-link" href="index.html#child">Back to Child Site</a><button class="primary-action" id="save-bookmark" type="button">Save Bookmark</button></nav>
+    <section class="hero story-hero"><h1>Story Theater</h1><p>Original KiddoSprout books made for quiet reading, parent read-aloud time, and tiny confidence wins.</p></section>
+    <section class="book-layout" aria-label="Original KiddoSprout book">
+      <aside class="book-shelf">
+        <span class="shelf-label">Original book</span>
+        <h2>The Lantern List</h2>
+        <p>A short story about two children who turn small helpful actions into a brighter evening at home.</p>
+        <div class="chapter-list" id="chapter-list"></div>
+      </aside>
+      <article class="book-reader">
+        <div class="book-page-meta">
+          <span id="page-count">Page 1 of 6</span>
+          <span id="bookmark-note">Bookmark ready</span>
+        </div>
+        <h2 id="book-title">The Lantern List</h2>
+        <div class="book-page" id="book-page"></div>
+        <div class="reader-actions">
+          <button class="kid-link" id="prev-page" type="button">Previous</button>
+          <button class="primary-action" id="next-page" type="button">Next Page</button>
+        </div>
+      </article>
+    </section>
+    <section class="grid">
+      <article class="panel"><strong>Read-Aloud Challenge</strong><p>Read one page slowly, then tell a parent the kindest thing a character did.</p></article>
+      <article class="panel"><strong>Word Finder</strong><p>Find one word that feels bright, one word that feels quiet, and one word you want to use tomorrow.</p></article>
+      <article class="panel"><strong>Family Question</strong><p>What is one small helpful action that could go on your own lantern list?</p></article>
+    </section>
+  </main>
+  <section class="lock-card hidden" data-hub-lock><div><h1 data-lock-title>Parent approval needed</h1><p data-lock-message>A request was sent to the parent dashboard.</p><a class="primary-action" href="index.html#child">Back to Child Site</a></div></section>
+  <script src="kid-hub-gate.js"></script>
+  <script>
+    KiddoHubGate.protect("story", "Story Theater");
+
+    const storyPages = [
+      {
+        chapter: "The Blank List",
+        text: "Maya found a folded card on the kitchen table. At the top, in neat green letters, it said: The Lantern List. Underneath were five empty lines. Her little brother Eli tapped the card and whispered, \"Is it a treasure map?\" Maya shook her head. \"Better. It looks like a list waiting for good ideas.\""
+      },
+      {
+        chapter: "One Small Light",
+        text: "The first idea came when Dad dropped a basket of clean socks. White socks rolled under chairs. Blue socks hid beside the fridge. Eli picked up three pairs, then four, then six. Maya wrote: Help before being asked. The first line glowed in their minds like a tiny lamp."
+      },
+      {
+        chapter: "The Quiet Fix",
+        text: "After dinner, Maya noticed crumbs on the floor and a cup left on the table. She almost walked past them. Then she remembered the list. She wiped the table, Eli swept the crumbs into a careful pile, and the kitchen looked ready for morning. Maya wrote: Leave a room better than you found it."
+      },
+      {
+        chapter: "The Brave Sorry",
+        text: "The third light was harder. Eli had snapped at Maya when his tower fell. Maya had rolled her eyes. Both of them felt prickly and quiet. At last Eli said, \"I was upset, but I should not shout.\" Maya answered, \"I should not roll my eyes.\" They wrote: Make peace while the day is still young."
+      },
+      {
+        chapter: "A Note Under the Door",
+        text: "Before bedtime, they slipped a note under Mum's door. It said: Thank you for making our home feel safe. They heard Mum laugh softly on the other side. The fourth line did not need fancy words. It only needed true ones. Maya wrote: Say the kind thing out loud, or write it down."
+      },
+      {
+        chapter: "Enough Light",
+        text: "Only one line was left. Maya wanted the final idea to be enormous. Eli yawned and pointed to the window, where their reflections looked sleepy and proud. \"Maybe the last one is rest,\" he said. Maya smiled and wrote: Stop when your body says stop. The Lantern List was full, and the room felt bright enough."
+      }
+    ];
+
+    const bookmarkKey = "kiddosproutStoryTheaterBookmark";
+    let currentPage = Number(localStorage.getItem(bookmarkKey) || 0);
+    if (!Number.isFinite(currentPage) || currentPage < 0 || currentPage >= storyPages.length) currentPage = 0;
+
+    function renderStoryPage() {
+      const page = storyPages[currentPage];
+      document.getElementById("page-count").textContent = `Page ${currentPage + 1} of ${storyPages.length}`;
+      document.getElementById("book-title").textContent = page.chapter;
+      document.getElementById("book-page").textContent = page.text;
+      document.getElementById("prev-page").disabled = currentPage === 0;
+      document.getElementById("next-page").textContent = currentPage === storyPages.length - 1 ? "Start Again" : "Next Page";
+      document.getElementById("chapter-list").innerHTML = storyPages.map((item, index) => `
+        <button class="${index === currentPage ? "active" : ""}" type="button" data-page="${index}">
+          <span>Page ${index + 1}</span>
+          <strong>${item.chapter}</strong>
+        </button>
+      `).join("");
+      document.querySelectorAll("[data-page]").forEach((button) => {
+        button.addEventListener("click", () => {
+          currentPage = Number(button.dataset.page);
+          renderStoryPage();
+        });
+      });
+    }
+
+    document.getElementById("prev-page").addEventListener("click", () => {
+      currentPage = Math.max(0, currentPage - 1);
+      renderStoryPage();
+    });
+
+    document.getElementById("next-page").addEventListener("click", () => {
+      currentPage = currentPage === storyPages.length - 1 ? 0 : currentPage + 1;
+      renderStoryPage();
+    });
+
+    document.getElementById("save-bookmark").addEventListener("click", () => {
+      localStorage.setItem(bookmarkKey, String(currentPage));
+      document.getElementById("bookmark-note").textContent = `Saved page ${currentPage + 1}`;
+    });
+
+    renderStoryPage();
+  </script>
+</body>
+</html>
