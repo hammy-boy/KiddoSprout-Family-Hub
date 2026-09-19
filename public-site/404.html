@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#147d7f">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    (function () {
+      "use strict";
+      function readState(storage, key) {
+        try {
+          const value = JSON.parse(storage.getItem(key) || "null");
+          return value && typeof value === "object" && !Array.isArray(value) ? value : null;
+        } catch (error) {
+          return null;
+        }
+      }
+      function readActiveState() {
+        let demoState = null;
+        let safePreferences = null;
+        let demoActive = false;
+        try {
+          demoState = readState(window.sessionStorage, "kiddosprout.demo.v1.family");
+          demoActive = Boolean(demoState) || window.sessionStorage.getItem("kiddosprout.demo.v1.active") === "1";
+        } catch (error) {
+          // Storage can be unavailable in restricted browser contexts.
+        }
+        try {
+          safePreferences = readState(window.localStorage, "kiddosproutPreferences");
+        } catch (error) {
+          // Fall back to automatic day/night mode.
+        }
+        return demoActive ? demoState : safePreferences;
+      }
+      function applyTheme() {
+        const state = readActiveState();
+        const selectedTheme = ["auto", "day", "night"].includes(state?.themeMode) ? state.themeMode : "auto";
+        const selectedLanguage = state?.languageMode === "es" ? "es" : "en-GB";
+        const hour = new Date().getHours();
+        const resolvedTheme = selectedTheme === "auto" ? (hour >= 19 || hour < 7 ? "night" : "day") : selectedTheme;
+        document.documentElement.classList.toggle("theme-night", resolvedTheme === "night");
+        document.documentElement.classList.toggle("theme-day", resolvedTheme === "day");
+        document.documentElement.dataset.themeMode = selectedTheme;
+        document.documentElement.lang = selectedLanguage;
+        const copy = selectedLanguage === "es" ? {
+          title: "Página no encontrada · KiddoSprout",
+          skip: "Saltar al contenido principal",
+          heading: "Esta página no brotó",
+          message: "Puede que la dirección esté mal escrita o que esta página de KiddoSprout se haya movido.",
+          home: "Volver a KiddoSprout"
+        } : {
+          title: "Page not found · KiddoSprout",
+          skip: "Skip to main content",
+          heading: "That page didn’t sprout",
+          message: "The address may be mistyped, or this KiddoSprout page may have moved.",
+          home: "Back to KiddoSprout"
+        };
+        document.title = copy.title;
+        const skip = document.getElementById("not-found-skip");
+        const heading = document.getElementById("not-found-heading");
+        const message = document.getElementById("not-found-message");
+        const home = document.getElementById("not-found-home");
+        if (skip) skip.textContent = copy.skip;
+        if (heading) heading.textContent = copy.heading;
+        if (message) message.textContent = copy.message;
+        if (home) home.textContent = copy.home;
+      }
+      applyTheme();
+      document.addEventListener?.("DOMContentLoaded", applyTheme);
+      if (typeof window.setInterval === "function") window.setInterval(applyTheme, 60000);
+      window.addEventListener?.("pageshow", applyTheme);
+      document.addEventListener?.("visibilitychange", () => {
+        if (document.visibilityState === "visible") applyTheme();
+      });
+      window.addEventListener?.("storage", (event) => {
+        if (event?.key === "kiddosproutPreferences") applyTheme();
+      });
+    }());
+  </script>
+  <title>Page not found · KiddoSprout</title>
+  <link id="not-found-icon" rel="icon" type="image/png" href="kiddosprout_logo_128.png">
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #effaf7;
+      color: #142131;
+    }
+    * { box-sizing: border-box; }
+    .skip-link {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 2;
+      min-height: 44px;
+      transform: translateY(-160%);
+    }
+    .skip-link:focus { transform: translateY(0); }
+    body {
+      min-height: 100vh;
+      min-height: 100svh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 14% 18%, rgba(255, 198, 84, .32), transparent 29%),
+        radial-gradient(circle at 86% 80%, rgba(83, 216, 204, .27), transparent 33%),
+        #effaf7;
+    }
+    main {
+      width: min(100%, 620px);
+      padding: clamp(28px, 7vw, 56px);
+      border: 2px solid #b9d8d3;
+      border-radius: 28px;
+      background: rgba(255, 255, 255, .94);
+      box-shadow: 0 24px 70px rgba(20, 53, 62, .14);
+      text-align: center;
+    }
+    img {
+      width: 88px;
+      height: 88px;
+      border-radius: 22px;
+      box-shadow: 0 10px 28px rgba(20, 125, 127, .2);
+    }
+    h1 {
+      margin: 22px 0 10px;
+      font-size: clamp(2rem, 7vw, 3.25rem);
+      line-height: 1.05;
+    }
+    p {
+      margin: 0 auto;
+      max-width: 44ch;
+      color: #53667a;
+      font-size: 1.1rem;
+      line-height: 1.55;
+    }
+    a {
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 28px;
+      padding: 12px 20px;
+      border: 2px solid #147d7f;
+      border-radius: 14px;
+      color: #fff;
+      background: #147d7f;
+      font-weight: 800;
+      text-decoration: none;
+    }
+    a:focus-visible {
+      outline: 4px solid #ffc654;
+      outline-offset: 3px;
+    }
+    html.theme-night { background: #061d27; color: #f4fbff; }
+    html.theme-night body {
+      background:
+        radial-gradient(circle at 14% 18%, rgba(255, 198, 84, .2), transparent 29%),
+        radial-gradient(circle at 86% 80%, rgba(83, 216, 204, .18), transparent 33%),
+        #061d27;
+    }
+    html.theme-night main { border-color: #346574; background: rgba(10, 48, 60, .96); }
+    html.theme-night p { color: #c8dce5; }
+    html.theme-night a { color: #06262e; background: #55d9cd; border-color: #55d9cd; }
+    @media (prefers-color-scheme: dark) {
+      html:not(.theme-day):not(.theme-night) { background: #061d27; color: #f4fbff; }
+      html:not(.theme-day):not(.theme-night) body {
+        background:
+          radial-gradient(circle at 14% 18%, rgba(255, 198, 84, .2), transparent 29%),
+          radial-gradient(circle at 86% 80%, rgba(83, 216, 204, .18), transparent 33%),
+          #061d27;
+      }
+      html:not(.theme-day):not(.theme-night) main { border-color: #346574; background: rgba(10, 48, 60, .96); }
+      html:not(.theme-day):not(.theme-night) p { color: #c8dce5; }
+      html:not(.theme-day):not(.theme-night) a { color: #06262e; background: #55d9cd; border-color: #55d9cd; }
+    }
+    @media (prefers-contrast: more) {
+      main { border-width: 3px; }
+      p { color: #293f53; }
+      a:focus-visible { outline-width: 5px; }
+      html.theme-night p,
+      html:not(.theme-day):not(.theme-night) p { color: #e4f2f7; }
+    }
+    @media (forced-colors: active) {
+      :root,
+      body,
+      main {
+        color: CanvasText;
+        background: Canvas;
+        background-image: none;
+        box-shadow: none;
+      }
+      main { border-color: CanvasText; }
+      p { color: CanvasText; }
+      a {
+        border-color: LinkText;
+        color: LinkText;
+        background: Canvas;
+      }
+      a:focus-visible {
+        outline: 3px solid Highlight;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a id="not-found-skip" class="skip-link" href="#not-found-content">Skip to main content</a>
+  <main id="not-found-content" tabindex="-1">
+    <img id="not-found-logo" src="kiddosprout_logo_128.png" width="88" height="88" alt="">
+    <h1 id="not-found-heading">That page didn’t sprout</h1>
+    <p id="not-found-message">The address may be mistyped, or this KiddoSprout page may have moved.</p>
+    <a id="not-found-home" href="./">Back to KiddoSprout</a>
+  </main>
+  <script>
+    function kiddoSproutDeploymentRoot() {
+      const workerUrl = navigator.serviceWorker?.controller?.scriptURL;
+      if (workerUrl) return new URL("./", workerUrl);
+      const pathParts = window.location.pathname.split("/").filter(Boolean);
+      if (window.location.hostname.endsWith(".github.io") && pathParts.length) {
+        return new URL(`/${pathParts[0]}/`, window.location.origin);
+      }
+      return new URL("/", window.location.origin);
+    }
+    const kiddoRoot = kiddoSproutDeploymentRoot();
+    document.getElementById("not-found-home").href = kiddoRoot.href;
+    document.getElementById("not-found-logo").src = new URL("kiddosprout_logo_128.png", kiddoRoot).href;
+    document.getElementById("not-found-icon").href = new URL("kiddosprout_logo_128.png", kiddoRoot).href;
+  </script>
+</body>
+</html>

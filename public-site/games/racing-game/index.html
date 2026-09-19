@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#101320">
+<title>Sunset Sprint — Racing Arcade</title>
+<link rel="icon" href="../../kiddosprout_logo_128.png" type="image/png">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../arcade-shell.css">
+<style>.hidden{display:none!important}.arcade-lock{padding:50px 24px;text-align:center;min-height:60vh}.arcade-lock a{color:inherit;text-decoration:underline}</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<main class="arcade hidden" id="main-content" tabindex="-1" data-hub-page>
+<header>
+<a class="wordmark" href="../index.html">
+<span class="logo">↗</span> SUNSET<span>SPRINT</span>
+</a>
+<a class="edition" style="text-decoration:none" href="../platformer-game/index.html">NEXT GAME: CLOUDBOUND ↗</a>
+<button id="sound" class="quiet" aria-pressed="false">Sound off</button>
+</header>
+<section class="intro">
+<div>
+<p class="eyebrow">THE CITY IS YOUR CIRCUIT</p>
+<h1>Chase the <em>sunset.</em>
+</h1>
+</div>
+<p>Dodge the traffic. Grab the gold.<br>See how far the night takes you.</p>
+</section>
+<div class="game-layout">
+<section class="game-frame" aria-label="Racing game">
+<div class="hud">
+<div>
+<span>DISTANCE</span>
+<strong>
+<b id="distance">0</b>
+<small> m</small>
+</strong>
+</div>
+<div>
+<span>COINS</span>
+<strong class="gold">◈ <b id="coins">0</b>
+</strong>
+</div>
+<div>
+<span>CAR HEALTH</span>
+<strong id="health" aria-label="3 lives">● ● ●</strong>
+</div>
+<button id="pause" class="quiet" aria-label="Pause race" disabled>Ⅱ</button>
+</div>
+<canvas id="track" width="720" height="900" tabindex="0" aria-label="Three-lane racing track. Use left and right arrow keys to steer, Space to boost, and P to pause.">
+</canvas>
+<div class="road-label">
+<span>COAST HIGHWAY / WESTBOUND</span>
+<span id="speed">0 KM/H</span>
+</div>
+<div id="overlay" class="overlay">
+<div class="start-card">
+<div class="flag">▰ ▱ ▰ ▱</div>
+<p id="overlay-tag" class="eyebrow">ONE ROAD. YOUR RECORD.</p>
+<h2 id="overlay-title">Ready to roll?</h2>
+<p id="overlay-copy">Three lanes. Endless possibilities.<br>Your next personal best starts here.</p>
+<button id="start" class="primary">Start your engine <span>→</span>
+</button>
+<p class="small" id="overlay-tip">← → steer &nbsp; · &nbsp; SPACE boost &nbsp; · &nbsp; P pause</p>
+</div>
+</div>
+<div class="touch-controls">
+<button id="left" aria-label="Steer left">←</button>
+<button id="boost" aria-label="Hold to boost">↟ BOOST</button>
+<button id="right" aria-label="Steer right">→</button>
+</div>
+</section>
+<aside>
+<div class="record-card">
+<p class="eyebrow">YOUR PERSONAL BEST</p>
+<strong>
+<span id="best">0</span>
+<small> m</small>
+</strong>
+<p id="best-note">Every great run starts at zero.</p>
+<div class="record-line">
+</div>
+<div class="session-stat">
+<span>Best coin haul</span>
+<b id="best-coins">0</b>
+</div>
+</div>
+<div class="boost-card">
+<div>
+<span class="eyebrow">NITRO TANK</span>
+<b id="nitro-value">100%</b>
+</div>
+<div class="tank">
+<i id="nitro-fill">
+</i>
+</div>
+<p>Hold Space or BOOST for extra speed. Ease off to recharge.</p>
+</div>
+<div class="guide">
+<p class="eyebrow">THE DRIVER’S HANDBOOK</p>
+<div>
+<span>01</span>
+<p>
+<strong>Find your gap.</strong>Tap an arrow to switch lanes. The traffic gets faster the farther you go.</p>
+</div>
+<div>
+<span>02</span>
+<p>
+<strong>Make it golden.</strong>Collect coins along the way and beat your best coin haul.</p>
+</div>
+<div>
+<span>03</span>
+<p>
+<strong>Keep it together.</strong>You have three lives. After a bump, your car gets a brief shield.</p>
+</div>
+</div>
+<div class="garage">
+<span class="eyebrow">PICK YOUR PAINT</span>
+<div id="paints">
+<button style="--paint:#65efd3" data-color="#65efd3" aria-label="Mint car" aria-pressed="true">
+</button>
+<button style="--paint:#ff738c" data-color="#ff738c" aria-label="Coral car" aria-pressed="false">
+</button>
+<button style="--paint:#ffd36c" data-color="#ffd36c" aria-label="Gold car" aria-pressed="false">
+</button>
+<button style="--paint:#b49aff" data-color="#b49aff" aria-label="Lilac car" aria-pressed="false">
+</button>
+</div>
+</div>
+</aside>
+</div>
+<footer>
+<span>A LITTLE SPEED. A LOT OF STYLE.</span>
+<a href="../platformer-game/index.html" style="color:var(--mint);text-decoration:none">Play Cloudbound, the next game ↗</a>
+<a href="../index.html" style="color:inherit">All games ↗</a>
+</footer>
+<p id="announcer" class="sr-only" role="status" aria-live="polite">
+</p>
+</main>
+<section class="arcade-lock hidden" data-hub-lock role="main">
+<h1 data-lock-title>Parent approval needed</h1>
+<p data-lock-message>Open the child dashboard to request arcade access.</p>
+<a href="../../index.html#child">Back to KiddoSprout</a>
+</section>
+<script src="../arcade-access.js?v=2" data-root="../../" data-files="game.js">
+</script>
+</body>
+</html>

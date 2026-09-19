@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    (function () {
+      "use strict";
+      function readState(storage, key) {
+        try {
+          const value = JSON.parse(storage.getItem(key) || "null");
+          return value && typeof value === "object" && !Array.isArray(value) ? value : null;
+        } catch (error) {
+          return null;
+        }
+      }
+      function readActiveState() {
+        let demoState = null;
+        let safePreferences = null;
+        let demoActive = false;
+        try {
+          demoState = readState(window.sessionStorage, "kiddosprout.demo.v1.family");
+          demoActive = Boolean(demoState) || window.sessionStorage.getItem("kiddosprout.demo.v1.active") === "1";
+        } catch (error) {
+          // Storage can be unavailable in restricted browser contexts.
+        }
+        try {
+          safePreferences = readState(window.localStorage, "kiddosproutPreferences");
+        } catch (error) {
+          // Fall back to automatic day/night mode.
+        }
+        return demoActive ? demoState : safePreferences;
+      }
+      function applyTheme() {
+        const state = readActiveState();
+        const selectedTheme = ["auto", "day", "night"].includes(state?.themeMode) ? state.themeMode : "auto";
+        const hour = new Date().getHours();
+        const resolvedTheme = selectedTheme === "auto" ? (hour >= 19 || hour < 7 ? "night" : "day") : selectedTheme;
+        document.documentElement.classList.toggle("theme-night", resolvedTheme === "night");
+        document.documentElement.classList.toggle("theme-day", resolvedTheme === "day");
+        document.documentElement.dataset.themeMode = selectedTheme;
+      }
+      applyTheme();
+      if (typeof window.setInterval === "function") window.setInterval(applyTheme, 60000);
+      window.addEventListener?.("pageshow", applyTheme);
+      document.addEventListener?.("visibilitychange", () => {
+        if (document.visibilityState === "visible") applyTheme();
+      });
+      window.addEventListener?.("storage", (event) => {
+        if (event?.key === "kiddosproutPreferences") applyTheme();
+      });
+    }());
+  </script>
+  <title>Game Blocker Downloads | KiddoSprout</title>
+  <link rel="icon" type="image/png" href="kiddosprout_logo_128.png">
+  <link rel="stylesheet" href="blocker-setup.css?v=9">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <main class="blocker-shell" id="main-content" tabindex="-1">
+    <nav class="blocker-topbar" aria-label="Blocker setup navigation">
+      <a href="index.html#parent">← Back to Parent Dashboard</a>
+      <span>Mac + Windows test companions</span>
+    </nav>
+
+    <section class="blocker-hero">
+      <div class="blocker-mark" aria-hidden="true">🛡️</div>
+      <div>
+        <span class="eyebrow">KiddoSprout Device Protection</span>
+        <h1>Game Blocker Downloads</h1>
+        <p>Choose your computer. Each protection pack closes detected games and includes the browser add-on that shows “Blocked by KiddoSprout” on game websites.</p>
+      </div>
+    </section>
+
+    <div class="blocker-layout">
+      <section class="download-card" aria-labelledby="download-title">
+        <span class="step-label" id="blocker-build-label">Protected download</span>
+        <h2 id="download-title">Choose Mac or Windows</h2>
+        <p id="download-intro">Checking whether you already have a Blocker PIN…</p>
+
+        <div class="blocker-preview-note" id="blocker-preview-note" role="note" hidden>
+          <strong>Preview only — no installer is available here.</strong>
+          <span>Choose Mac or Windows to explore the setup steps. A verified parent account is required to create a Blocker PIN and download the real companion.</span>
+        </div>
+
+        <div class="platform-picker" role="group" aria-label="Choose a computer">
+          <button class="platform-button selected" type="button" data-blocker-platform="mac" aria-pressed="true">
+            <span class="platform-icon" aria-hidden="true"></span>
+            <span><strong>Mac</strong><small>macOS 13 or newer</small></span>
+          </button>
+          <button class="platform-button" type="button" data-blocker-platform="windows" aria-pressed="false">
+            <span class="platform-icon windows-icon" aria-hidden="true">⊞</span>
+            <span><strong>Windows</strong><small>Windows 10 or 11</small></span>
+          </button>
+        </div>
+
+        <div class="architecture-field" id="windows-architecture-field" hidden>
+          <label for="windows-architecture">Windows computer type</label>
+          <select id="windows-architecture">
+            <option value="windows">x64 — most Windows computers</option>
+            <option value="windows-arm64">ARM64 — Snapdragon/Copilot+ PCs</option>
+          </select>
+        </div>
+
+        <form id="blocker-download-form" novalidate>
+          <label for="blocker-pin">Blocker PIN</label>
+          <div class="pin-row">
+            <input id="blocker-pin" type="password" inputmode="numeric" autocomplete="new-password" minlength="4" pattern="[0-9]{4,8}" placeholder="4–8 digits" aria-describedby="download-intro blocker-download-status" required>
+            <button class="view-pin" id="view-blocker-pin" type="button" aria-pressed="false">Show</button>
+          </div>
+
+          <div id="confirm-pin-field">
+            <label for="blocker-pin-confirm">Confirm PIN</label>
+            <input id="blocker-pin-confirm" type="password" inputmode="numeric" autocomplete="new-password" minlength="4" pattern="[0-9]{4,8}" placeholder="Enter it again" aria-describedby="blocker-download-status">
+          </div>
+
+          <section class="blocker-enrollment" id="blocker-enrollment-fields" aria-labelledby="blocker-enrollment-title" hidden>
+            <h3 id="blocker-enrollment-title">Verify the parent account</h3>
+            <p>For first-time setup only. Your KiddoSprout account password is checked securely and is never saved by the blocker service.</p>
+            <label for="blocker-account-password">Parent account password</label>
+            <input id="blocker-account-password" type="password" autocomplete="current-password" maxlength="256" aria-describedby="blocker-download-status blocker-human-check-status">
+            <div class="blocker-safety-check" role="group" aria-labelledby="blocker-safety-label">
+              <strong id="blocker-safety-label">Safety check</strong>
+              <div class="blocker-human-check" id="blocker-human-check"></div>
+              <p class="human-check-status" id="blocker-human-check-status" role="status" aria-live="polite" aria-atomic="true">The safety check will appear here.</p>
+            </div>
+          </section>
+
+          <p class="download-status" id="blocker-download-status" role="status" aria-live="polite" aria-atomic="true">Checking your parent account…</p>
+          <button class="retry-check-button" id="retry-blocker-check" type="button" aria-controls="blocker-download-status" hidden>Check download again</button>
+          <button class="download-button" id="download-blocker" type="submit" disabled>
+            <span id="download-platform-icon" aria-hidden="true"></span>
+            <span id="download-platform-label">Download for Mac</span>
+          </button>
+        </form>
+      </section>
+
+      <aside class="setup-guide" aria-labelledby="setup-guide-title">
+        <span class="step-label">After downloading</span>
+        <h2 id="setup-guide-title">Set it up in five steps</h2>
+        <ol data-setup-platform="mac">
+          <li><strong>Replace the old copy</strong><span>Quit any blocker opened from Downloads, unzip the new version, and move it into Applications before opening it.</span></li>
+          <li><strong>Switch to the child’s Mac user</strong><span>Use a Standard account while the parent stays the only administrator.</span></li>
+          <li><strong>Open it with the parent present</strong><span>Set the same PIN, then start protection. Detected games are blocked automatically.</span></li>
+          <li><strong>Start protection at login</strong><span>Approve it in Login Items if macOS asks.</span></li>
+          <li><strong>Add website protection to Chrome</strong><span>Open START HERE in the download and load the included KiddoSprout Browser Blocker folder in Chrome.</span></li>
+        </ol>
+        <p class="unsigned-note" data-setup-platform="mac"><strong>Colleague test build:</strong> this Mac app has an ad-hoc test signature and has not been notarized by Apple, so Gatekeeper may refuse its first launch. Never disable Gatekeeper. After the SHA-256 checksums pass, try opening the app once, then use System Settings → Privacy &amp; Security → Open Anyway for KiddoSprout Blocker and confirm the one-time warning. Test it only on a computer whose owner agrees. <a data-live-blocker-resource aria-disabled="true" tabindex="-1">public checksum file loading</a>.</p>
+        <div data-setup-platform="windows" hidden>
+          <ol>
+            <li><strong>Unzip the Windows pack</strong><span>Open the ZIP and read START HERE before launching the app.</span></li>
+            <li><strong>Run the KiddoSprout app</strong><span>Double-click KiddoSproutBlocker.exe with a parent present.</span></li>
+            <li><strong>Create the same PIN</strong><span>Use 4–8 digits. Protection then starts and watches known launchers, games, and common game-library paths.</span></li>
+            <li><strong>Protection starts with Windows</strong><span>The companion adds itself to start-at-login for this signed-in Windows user.</span></li>
+            <li><strong>Add the browser blocker</strong><span>Follow START HERE to load the included extension in Chrome or Edge.</span></li>
+          </ol>
+          <p class="unsigned-note"><strong>Colleague test build:</strong> this first Windows download is unsigned. Windows may show an “unrecognized app” warning. Never turn off Windows Security; test it only on a computer whose owner agrees. Blocking may force-close a game, so save progress first. <a data-live-blocker-resource aria-disabled="true" tabindex="-1">public checksum file loading</a>.</p>
+        </div>
+      </aside>
+    </div>
+
+    <section class="scope-note">
+      <div aria-hidden="true">👤</div>
+      <div><strong>Protects the signed-in computer user</strong><p>Detected games close with “Blocked this app.” Chrome or Edge game sites show “Blocked by KiddoSprout.” These are transparent test companions: an administrator always keeps the final ability to remove them.</p></div>
+    </section>
+  </main>
+
+  <script src="supabase-config.js?v=7"></script>
+  <script src="auth-session.js?v=7"></script>
+  <script src="human-check.js?v=4"></script>
+  <script src="blocker-setup.js?v=18"></script>
+</body>
+</html>

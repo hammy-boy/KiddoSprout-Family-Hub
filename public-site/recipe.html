@@ -1,0 +1,4541 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#fff8ec" />
+<script>
+  (function () {
+    "use strict";
+    function readState(storage, key) {
+      try {
+        const value = JSON.parse(storage?.getItem(key) || "null");
+        return value && typeof value === "object" && !Array.isArray(value) ? value : null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function applySavedTheme() {
+      let demoState = null;
+      let safePreferences = null;
+      let demoActive = false;
+      try {
+        demoState = readState(window.sessionStorage, "kiddosprout.demo.v1.family");
+        demoActive = Boolean(demoState)
+          || window.sessionStorage.getItem("kiddosprout.demo.v1.active") === "1";
+      } catch (error) {
+        // Restricted storage falls back to the operating-system preference.
+      }
+      try {
+        safePreferences = readState(window.localStorage, "kiddosproutPreferences");
+      } catch (error) {
+        // Restricted storage falls back to the operating-system preference.
+      }
+      const state = demoActive ? demoState : safePreferences;
+      const choice = ["auto", "day", "night"].includes(state?.themeMode) ? state.themeMode : "auto";
+      const hour = new Date().getHours();
+      const resolved = choice === "auto" ? (hour >= 19 || hour < 7 ? "night" : "day") : choice;
+      document.documentElement.classList.toggle("theme-night", resolved === "night");
+      document.documentElement.classList.toggle("theme-day", resolved === "day");
+      document.documentElement.dataset.themeMode = choice;
+      document.querySelector('meta[name="theme-color"]')?.setAttribute(
+        "content",
+        resolved === "night" ? "#13001f" : "#fff8ec"
+      );
+    }
+
+    applySavedTheme();
+    if (typeof window.setInterval === "function") {
+      window.setInterval(() => {
+        if (document.documentElement.dataset.themeMode === "auto") applySavedTheme();
+      }, 60000);
+    }
+    window.addEventListener?.("pageshow", applySavedTheme);
+    document.addEventListener?.("visibilitychange", () => {
+      if (document.visibilityState === "visible") applySavedTheme();
+    });
+    window.addEventListener("storage", (event) => {
+      if (event.key === "kiddosproutPreferences") applySavedTheme();
+    });
+  }());
+</script>
+<title>FlavorNest Recipes | KiddoSprout</title>
+<link rel="icon" type="image/png" href="kiddosprout_logo_128.png">
+<link rel="apple-touch-icon" href="kiddosprout_logo_128.png">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    --accent: #7440b8;
+    --accent-dark: #5f2fac;
+    --accent-soft: rgba(164, 108, 255, 0.14);
+    --accent-border: rgba(116, 64, 184, 0.42);
+    --surface: #fffdf9;
+    --surface-soft: #f7faf9;
+    --line: #d8e2df;
+    /* Keep the keyboard indicator independently visible from the surface. */
+    --focus-ring: #5f2fac;
+    color-scheme: light;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #1b1f1c;
+    min-height: 100vh;
+    padding: 0 14px;
+    background:
+      radial-gradient(circle at 12% 10%, rgba(255, 191, 92, 0.36), transparent 28%),
+      radial-gradient(circle at 87% 18%, rgba(151, 112, 231, 0.25), transparent 30%),
+      linear-gradient(145deg, #fff9e9, #f6efff 54%, #eaf9f4);
+    background-attachment: fixed;
+  }
+  .skip-link {
+    position: fixed; top: max(8px, env(safe-area-inset-top)); left: max(8px, env(safe-area-inset-left)); z-index: 1000;
+    display: inline-flex; min-height: 44px; align-items: center; justify-content: center;
+    padding: 8px 14px; border: 2px solid #173148; border-radius: 10px;
+    color: #12202b; background: #fff; box-shadow: 0 8px 24px rgba(7, 28, 36, .28);
+    font-weight: 750; text-decoration: none; transform: translateY(calc(-100% - 20px));
+  }
+  .skip-link:focus,
+  .skip-link:focus-visible {
+    transform: translateY(0);
+    box-shadow: 0 0 0 6px #5b3a82, 0 8px 24px rgba(7, 28, 36, .28);
+  }
+  body.auth-page {
+    --accent: #7440b8;
+    --accent-dark: #dccbff;
+    --accent-soft: rgba(164, 108, 255, 0.18);
+    --accent-border: rgba(218, 194, 255, 0.62);
+    color: #f7efff;
+    background:
+      linear-gradient(118deg, transparent 0 17%, rgba(185, 119, 255, 0.34) 18% 19%, transparent 20% 100%),
+      linear-gradient(58deg, transparent 0 64%, rgba(159, 99, 255, 0.36) 65% 67%, transparent 68% 100%),
+      linear-gradient(155deg, #13001f 0%, #290048 38%, #080012 100%);
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: -18% -10% auto auto;
+    width: min(820px, 76vw);
+    height: min(760px, 72vw);
+    border-radius: 42% 58% 48% 52%;
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.16), rgba(146, 72, 255, 0.08) 34%, rgba(72, 25, 128, 0.42)),
+      linear-gradient(45deg, transparent 0 28%, rgba(223, 194, 255, 0.34) 29% 31%, transparent 32% 100%);
+    filter: blur(0.2px);
+    transform: rotate(-14deg);
+    pointer-events: none;
+  }
+  body::after {
+    content: "";
+    position: fixed;
+    inset: auto auto -18% -14%;
+    width: min(780px, 78vw);
+    height: min(720px, 72vw);
+    border-radius: 50% 42% 58% 44%;
+    background:
+      linear-gradient(28deg, rgba(174, 101, 255, 0.28), transparent 48%),
+      linear-gradient(118deg, transparent 0 37%, rgba(218, 194, 255, 0.42) 38% 39%, transparent 40% 100%);
+    transform: rotate(13deg);
+    pointer-events: none;
+  }
+  #app {
+    position: relative;
+    z-index: 1;
+    max-width: 1120px;
+    margin: 72px auto 50px;
+    padding: 24px 20px 40px;
+    background: color-mix(in srgb, var(--surface) 96%, var(--accent) 4%);
+    border-radius: 22px;
+    box-shadow: 0 30px 70px rgba(0,0,0,0.4);
+    border: 1px solid rgb(255 255 255 / .55);
+    transition: background-color .25s ease, box-shadow .25s ease;
+  }
+  body.auth-page #app {
+    position: relative;
+    max-width: 470px;
+    margin: 34px auto 44px;
+    padding: 42px 34px 38px;
+    color: #f8efff;
+    background:
+      linear-gradient(145deg, rgba(43, 10, 72, 0.78), rgba(21, 2, 38, 0.74)),
+      rgba(36, 8, 61, 0.78);
+    border: 1px solid rgba(230, 206, 255, 0.34);
+    border-radius: 34px;
+    box-shadow: 0 34px 90px rgba(0, 0, 0, 0.52), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(18px);
+    overflow: hidden;
+  }
+  body.auth-page #app::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(116deg, transparent 0 28%, rgba(217, 196, 255, 0.2) 29% 30%, transparent 31% 100%),
+      linear-gradient(28deg, transparent 0 58%, rgba(161, 92, 255, 0.16) 59% 62%, transparent 63% 100%);
+    pointer-events: none;
+  }
+  .auth-wrap {
+    max-width: 360px;
+    margin: 20px auto;
+    padding: 0 4px;
+  }
+  body.auth-page .auth-wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0;
+  }
+  .logo-row { display: flex; align-items: center; gap: 8px; }
+  body.auth-page .logo-row {
+    justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .logo-icon { width: 26px; height: 26px; flex-shrink: 0; }
+  body.auth-page .logo-icon {
+    width: 54px;
+    height: 54px;
+    filter: drop-shadow(0 12px 24px rgba(164, 108, 255, 0.38));
+  }
+  .logo-icon-sm { width: 20px; height: 20px; flex-shrink: 0; }
+  .eyebrow {
+    font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--accent); font-weight: 600; margin: 0;
+  }
+  body.auth-page .eyebrow {
+    color: #d9c7ff;
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    text-align: center;
+  }
+  h1 { font-size: 26px; font-weight: 600; margin: 0; }
+  .auth-wrap h1 { font-size: 22px; margin: 0 0 20px; }
+  body.auth-page .auth-wrap h1 {
+    margin: 0 0 28px;
+    color: #f8efff;
+    font-size: 28px;
+    font-weight: 650;
+    text-align: center;
+  }
+  header.app-header {
+    margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-start;
+  }
+  .header-actions { display: flex; gap: 8px; }
+  .email-tag { font-size: 12px; color: #6b6f6c; margin: 4px 0 0; }
+  .music-credit { display: block; font-size: 12px; color: #777; margin-top: 3px; text-decoration: none; }
+  label.field { display: block; font-size: 13px; }
+  label.field span.label-text { display: block; margin-bottom: 5px; color: #4a4d49; }
+  body.auth-page label.field span.label-text {
+    margin: 0 0 8px 12px;
+    color: #d8c7ef;
+    font-size: 14px;
+  }
+  input, select, textarea {
+    width: 100%; height: 44px; min-height: 44px; border-radius: 8px; border: 1px solid var(--line);
+    padding: 0 10px; font-size: 16px; background: #fff; font-family: inherit;
+  }
+  body.auth-page input {
+    height: 52px;
+    border: 2px solid rgba(230, 206, 255, 0.72);
+    border-radius: 13px;
+    color: #ffffff;
+    background: rgba(10, 0, 24, 0.24);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  }
+  body.auth-page input::placeholder {
+    color: rgba(255, 255, 255, 0.42);
+  }
+  textarea { height: auto; padding: 8px 10px; resize: vertical; }
+  input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible {
+    outline: 3px solid var(--focus-ring); outline-offset: 2px; border-color: var(--accent);
+  }
+  .btn-primary {
+    width: 100%; min-height: 44px; border-radius: 8px; border: none; background: var(--accent);
+    color: #fff; font-size: 16px; font-weight: 600; cursor: pointer;
+  }
+  body.auth-page .btn-primary {
+    height: 54px;
+    border: 1px solid rgba(238, 222, 255, 0.72);
+    border-radius: 13px;
+    color: white;
+    background: linear-gradient(180deg, #8849c9, #6b3ba8);
+    box-shadow: 0 16px 32px rgba(127, 64, 210, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.38);
+    font-size: 20px;
+    letter-spacing: 0.02em;
+  }
+  body.auth-page .btn-primary:disabled {
+    border-color: rgba(238, 222, 255, .34);
+    color: #e1d8e7;
+    background: #51455b;
+    box-shadow: none;
+  }
+  .btn-primary:disabled {
+    color: #f4f0f7;
+    background: #766b7e;
+    cursor: not-allowed;
+    opacity: 1;
+    box-shadow: none;
+  }
+  .btn-secondary {
+    width: 100%; min-height: 44px; border-radius: 8px; border: 1px solid var(--accent); background: none;
+    color: var(--accent); font-size: 16px; font-weight: 600; cursor: pointer;
+  }
+  .btn-ghost {
+    border: 1px solid var(--line); background: none; border-radius: 8px; padding: 6px 12px;
+    min-height: 44px; font-size: 16px; cursor: pointer; color: #4a4d49;
+  }
+  body.auth-page .btn-ghost {
+    min-height: 44px;
+    border: 0;
+    color: #e7d9ff;
+    background: transparent;
+    font-size: 16px;
+  }
+  body.auth-page .btn-ghost:hover:not(:disabled) {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .btn-ghost:disabled,
+  body.auth-page .btn-ghost:disabled {
+    border-color: #716779;
+    color: #ddd5e2;
+    background: #514b56;
+    cursor: not-allowed;
+    opacity: 1;
+  }
+  .btn-ghost:hover:not(:disabled) { background: var(--accent-soft); border-color: var(--accent-border); }
+  .music-btn.active {
+    color: var(--accent-dark); border-color: var(--accent-border); background: var(--accent-soft);
+  }
+  .youtube-music-panel {
+    display: none; margin: -8px 0 18px; padding: 14px; border: 1px solid var(--accent-border);
+    border-radius: 12px; background: color-mix(in srgb, white 92%, var(--accent) 8%); box-shadow: 0 8px 24px rgba(45,48,43,.08);
+  }
+  .youtube-music-panel.open { display: block; }
+  .youtube-music-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .youtube-music-head h2 { margin: 0; font-size: 16px; }
+  .youtube-music-grid { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 8px; }
+  .youtube-music-grid input { min-width: 0; }
+  .youtube-player-wrap { display: none; margin-top: 12px; }
+  .youtube-player-wrap.active { display: block; }
+  .youtube-player-wrap iframe { width: 100%; aspect-ratio: 16 / 9; min-height: 200px; border: 0; border-radius: 10px; background: #171717; }
+  .youtube-help { margin: 8px 0 0; color: #6b6f6c; font-size: 12px; }
+  .youtube-error { min-height: 18px; margin: 6px 0 0; color: #a33f36; font-size: 12px; }
+  .youtube-search-results { display: none; max-height: 250px; overflow-y: auto; margin-top: 10px; padding: 4px; border: 1px solid var(--line); border-radius: 10px; }
+  .youtube-search-results.active { display: block; }
+  .youtube-result { width: 100%; display: flex; align-items: center; gap: 10px; padding: 8px; border: 0; border-radius: 9px; background: transparent; color: inherit; text-align: left; cursor: pointer; }
+  .youtube-result:hover { background: var(--accent-soft); }
+  .youtube-result img { width: 72px; height: 54px; flex: 0 0 auto; object-fit: cover; border-radius: 7px; background: #ddd; }
+  .youtube-result-title { display: block; font-size: 12.5px; font-weight: 700; line-height: 1.3; }
+  .youtube-result-channel { display: block; margin-top: 3px; color: #6b6f6c; font-size: 12px; }
+  .youtube-api-box { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .youtube-api-actions { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 7px; }
+  .youtube-api-help { display: none; margin: 8px 0 0; padding: 9px; border-radius: 8px; background: var(--accent-soft); font-size: 12px; line-height: 1.45; }
+  .youtube-api-help.open { display: block; }
+  @media (max-width: 620px) { .youtube-music-grid { grid-template-columns: 1fr; } }
+  .btn-icon {
+    border: none; background: none; cursor: pointer; color: #9a9a94; font-size: 13px;
+  }
+  .error-banner {
+    font-size: 12px; color: #a3352d; background: #fbeceb; border: 1px solid #f0c9c6;
+    border-radius: 8px; padding: 8px 12px; margin-bottom: 16px;
+  }
+  .recipe-status {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    margin: 0 0 16px; padding: 11px 13px; border: 1px solid #c9ddd7; border-radius: 11px;
+    color: #24433b; background: #eef8f5;
+  }
+  .recipe-status[data-mode="built-in"] { border-color: #ead7a7; color: #634f1d; background: #fff8df; }
+  .recipe-status[data-mode="demo"] { border-color: #d9c6f1; color: #4f3374; background: #f7efff; }
+  .recipe-status-copy { min-width: 0; }
+  .recipe-status strong { display: block; font-size: 13px; }
+  .recipe-status span { display: block; margin-top: 2px; font-size: 12px; line-height: 1.4; }
+  .recipe-status .btn-ghost { flex: 0 0 auto; background: rgb(255 255 255 / .65); }
+  .info-text { font-size: 12px; color: #0f6e56; margin: 0; }
+  .error-text { font-size: 12px; color: #a3352d; margin: 0; }
+  body.auth-page .info-text,
+  body.auth-page .error-text {
+    border-radius: 10px;
+    padding: 9px 11px;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  body.auth-page .info-text { color: #e7d9ff; }
+  body.auth-page .error-text { color: #ffb7c8; }
+  .human-check-field {
+    min-width: 0;
+    margin: 2px 0;
+    padding: 12px;
+    border: 1px solid rgba(230, 206, 255, 0.4);
+    border-radius: 13px;
+    background: rgba(10, 0, 24, 0.2);
+  }
+  .human-check-field legend {
+    padding: 0 6px;
+    color: #e7d9ff;
+    font-size: 13px;
+    font-weight: 650;
+  }
+  .auth-human-check-start {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    gap: 11px;
+    align-items: center;
+    width: 100%;
+    min-height: 64px;
+    padding: 11px 13px;
+    border: 2px solid rgba(230, 206, 255, 0.56);
+    border-radius: 13px;
+    color: #f8efff;
+    text-align: left;
+    background: linear-gradient(135deg, rgba(70, 27, 102, .88), rgba(34, 10, 57, .94));
+    box-shadow: 0 10px 24px rgba(8, 0, 20, .24);
+    cursor: pointer;
+  }
+  .auth-human-check-start:hover:not(:disabled) {
+    border-color: #dab8ff;
+    background: linear-gradient(135deg, rgba(84, 34, 120, .92), rgba(42, 13, 69, .96));
+  }
+  .auth-human-check-start:disabled { cursor: default; opacity: 1; }
+  .auth-human-check-box {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border: 3px solid #d4b9ed;
+    border-radius: 7px;
+    background: #fff;
+  }
+  .auth-human-check-label { font-size: 16px; font-weight: 750; line-height: 1.2; }
+  .auth-human-check-shield { font-size: 22px; }
+  .auth-human-check-start[data-state="checking"] .auth-human-check-box::after {
+    content: "";
+    width: 12px;
+    height: 12px;
+    border: 3px solid rgba(126, 74, 173, .22);
+    border-top-color: #7e4aad;
+    border-radius: 50%;
+    animation: authHumanCheckSpin 700ms linear infinite;
+  }
+  .auth-human-check-start[data-state="verified"] {
+    color: #dbffef;
+    border-color: rgba(107, 231, 176, .66);
+    background: linear-gradient(135deg, rgba(23, 98, 78, .9), rgba(19, 60, 60, .96));
+  }
+  .auth-human-check-start[data-state="verified"] .auth-human-check-box {
+    color: #103f35;
+    border-color: #71e2b3;
+    background: #a8f1cf;
+  }
+  .auth-human-check-start[data-state="verified"] .auth-human-check-box::after {
+    content: "✓";
+    font-size: 19px;
+    font-weight: 900;
+    line-height: 1;
+  }
+  @keyframes authHumanCheckSpin { to { transform: rotate(360deg); } }
+  #auth-human-check {
+    width: 100%;
+    min-height: 65px;
+    margin-top: 10px;
+  }
+  #auth-human-check[hidden] { display: none; }
+  #auth-human-check iframe { max-width: 100%; }
+  body.auth-page .human-check-status {
+    margin: 8px 0 0;
+    color: #ffb7c8;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+  body.auth-page .human-check-status[data-state="notice"] { color: #e7d9ff; }
+  body.auth-page .human-check-status[data-state="success"] { color: #baf7d0; }
+  .search-bar { position: relative; margin-bottom: 16px; }
+  .search-bar input { height: 44px; padding: 0 76px 0 36px; font-size: 16px; }
+  .search-icon {
+    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+    color: #9a9a94; font-size: 15px; pointer-events: none;
+  }
+  .search-clear {
+    position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
+    min-width: 58px; min-height: 36px; border: 0; border-radius: 7px; padding: 0 8px;
+    color: var(--accent-dark); background: var(--accent-soft); font: inherit; font-size: 16px;
+    font-weight: 700; cursor: pointer;
+  }
+  .search-clear[hidden] { display: none; }
+  .category-filter { margin-bottom: 16px; }
+  .category-filter-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    margin: 0 2px 7px;
+  }
+  .category-filter-title { color: #3f4b46; font-size: 14px; font-weight: 750; }
+  .category-filter-help { color: #66716c; font-size: 12px; text-align: right; }
+  .category-filter-controls {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: start;
+  }
+  .category-scroll {
+    display: flex; gap: 8px; min-width: 0; max-width: 100%; overflow-x: auto; padding: 3px 2px 12px; margin: 0;
+    scrollbar-gutter: stable;
+    scrollbar-width: auto;
+    scrollbar-color: var(--accent-border) var(--surface-soft);
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .category-scroll::-webkit-scrollbar { height: 10px; }
+  .category-scroll::-webkit-scrollbar-track { background: var(--surface-soft); border-radius: 999px; }
+  .category-scroll::-webkit-scrollbar-thumb {
+    min-width: 48px; border: 2px solid var(--surface-soft); border-radius: 999px; background: var(--accent-border);
+  }
+  .category-more-button { white-space: nowrap; }
+  .category-chip {
+    flex-shrink: 0; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line);
+    min-height: 44px;
+    background: #fff; font-size: 16px; font-weight: 500; cursor: pointer; color: #4a4d49;
+    white-space: nowrap;
+  }
+  .category-chip:hover { border-color: var(--accent-border); background: var(--accent-soft); }
+  .category-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .recipe-results-summary {
+    margin: 0 0 12px; color: #66716c; font-size: 12px; font-weight: 600;
+  }
+  .recipe-action-notice {
+    margin: 0 0 14px; padding: 9px 12px; border: 1px solid #b9ddd0; border-radius: 9px;
+    color: #155d49; background: #ecfaf5; font-size: 12px; font-weight: 650;
+  }
+  .recipe-card {
+    width: 100%; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px;
+    color: inherit; background: transparent; font: inherit; text-align: left;
+    cursor: pointer; display: flex; align-items: center; gap: 12px; transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+  }
+  .recipe-icon-circle {
+    flex-shrink: 0; width: 46px; height: 46px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 22px;
+  }
+  .recipe-card-body { flex: 1; display: flex; justify-content: space-between; align-items: center; }
+  .recipe-card-body,
+  .recipe-card-body > span:first-child { min-width: 0; }
+  .recipe-card:hover { background: var(--surface-soft); border-color: var(--accent-border); transform: translateY(-1px); box-shadow: 0 7px 18px rgb(0 0 0 / .07); }
+  .recipe-card:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+  .recipe-title { display: block; overflow-wrap: anywhere; font-size: 16px; font-weight: 600; margin: 0 0 4px; }
+  .recipe-cat-tag {
+    display: inline-block; font-size: 12px; color: var(--accent-dark); background: var(--accent-soft);
+    padding: 2px 8px; border-radius: 999px; font-weight: 600;
+  }
+  .empty-note { font-size: 13px; color: #6b6f6c; text-align: center; padding: 30px 10px; }
+  .empty-note p { margin: 0 0 12px; }
+  .empty-note .btn-ghost { width: auto; min-width: 160px; }
+  .recipe-pagination { display: flex; justify-content: center; padding: 8px 0 28px; }
+  .recipe-pagination:empty { display: none; }
+  .load-more-recipes { min-width: min(100%, 240px); }
+  .loading-screen { padding: 40px; text-align: center; color: #6b6f6c; }
+  form { display: flex; flex-direction: column; gap: 12px; }
+  .back-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+  .back-btn {
+    border: none; background: none; cursor: pointer; font-size: 20px; color: #4a4d49;
+    width: 44px; min-width: 44px; height: 44px; padding: 0; border-radius: 10px; line-height: 1;
+  }
+  .back-btn:disabled,
+  .add-row-btn:disabled,
+  .remove-row-btn:disabled {
+    cursor: not-allowed;
+    border: 1px solid #aebeb8;
+    color: #40565e;
+    background: #e2eae7;
+    opacity: 1;
+    filter: none;
+    box-shadow: none;
+  }
+  .detail-title { overflow-wrap: anywhere; font-size: 22px; font-weight: 700; margin: 0 0 6px; }
+  .detail-icon-circle {
+    width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: 38px; margin-bottom: 14px;
+  }
+  .detail-section-title { font-size: 15px; font-weight: 600; margin: 20px 0 10px; }
+  .detail-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 4px; }
+  .detail-actions .btn-ghost { min-height: 44px; }
+  .cooking-safety-note {
+    margin: 18px 0 4px; padding: 14px 16px; border: 1px solid #e8c77b; border-radius: 12px;
+    color: #59451b; background: #fff8df;
+  }
+  .cooking-safety-note h2 { margin: 0 0 6px; font-size: 16px; }
+  .cooking-safety-note p { margin: 0; font-size: 14px; line-height: 1.5; }
+  .recipe-photo-sources {
+    margin: 16px 0 4px; color: #66716c; font-size: 12px; line-height: 1.5; text-align: center;
+  }
+  .recipe-photo-sources a { color: var(--accent-dark); font-weight: 650; text-underline-offset: 2px; }
+  .btn-danger { border-color: #e7b8b3; color: #8f3028; background: #fff4f2; }
+  .btn-danger:hover { border-color: #d98f87; background: #ffe8e4; }
+  .recipe-delete-dialog {
+    width: min(460px, calc(100vw - 28px));
+    max-width: 460px;
+    max-height: calc(100vh - 28px);
+    max-height: calc(100dvh - 28px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0;
+    color: #1b1f1c;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    box-shadow: 0 24px 70px rgb(20 12 28 / .34);
+  }
+  .recipe-delete-dialog::backdrop {
+    background: rgb(10 16 24 / .64);
+    backdrop-filter: blur(3px);
+  }
+  .recipe-delete-dialog__body { padding: 24px; }
+  .recipe-delete-dialog h2 { margin: 0 0 10px; font-size: 22px; line-height: 1.2; }
+  .recipe-delete-dialog p { margin: 0; color: #5d6863; line-height: 1.55; }
+  .recipe-delete-dialog strong { overflow-wrap: anywhere; color: #1b1f1c; }
+  .recipe-delete-dialog__actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+  }
+  .recipe-delete-dialog__actions button { min-height: 44px; }
+  .recipe-delete-dialog__actions .btn-primary { width: auto; padding: 8px 16px; }
+  .recipe-delete-dialog__error {
+    margin-top: 14px !important;
+    padding: 10px 12px;
+    color: #8f3028 !important;
+    background: #fff4f2;
+    border: 1px solid #e7b8b3;
+    border-radius: 9px;
+    font-weight: 650;
+  }
+  .recipe-delete-dialog__error[hidden] { display: none; }
+  .ingredient-item, .step-item {
+    padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 6px; font-size: 14px;
+    white-space: pre-line;
+  }
+  .ingredient-list, .step-list { margin: 0; padding: 0; list-style: none; }
+  .step-item { display: flex; gap: 10px; }
+  .step-num {
+    flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--accent);
+    color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center;
+    justify-content: center;
+  }
+  .dynamic-list-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+  .dynamic-list-row input { flex: 1; }
+  .dynamic-fieldset { min-width: 0; margin: 4px 0 0; padding: 0; border: 0; }
+  .dynamic-fieldset legend { width: 100%; padding: 0; }
+  .remove-row-btn {
+    flex-shrink: 0; border: none; background: none; color: #a3352d; cursor: pointer;
+    width: 44px; min-width: 44px; height: 44px; border-radius: 10px; font-size: 18px; padding: 0 6px;
+  }
+  .add-row-btn {
+    border: 1px dashed var(--accent-border); background: var(--accent-soft); border-radius: 8px; padding: 8px;
+    min-height: 44px; font-size: 16px; color: #4a4d49; cursor: pointer; width: 100%;
+  }
+  .fab {
+    position: fixed; bottom: max(24px, env(safe-area-inset-bottom)); right: max(24px, env(safe-area-inset-right)); width: 56px; height: 56px; border-radius: 50%;
+    background: var(--accent); color: #fff; border: none; font-size: 28px; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center;
+    line-height: 1;
+  }
+  .global-tools {
+    position: fixed; inset: 0 0 auto; z-index: 500; display: flex; justify-content: center; gap: 10px;
+    padding: 12px 14px 20px; pointer-events: none; background: linear-gradient(to bottom, rgb(0 0 0 / .34), transparent);
+  }
+  .global-home-link {
+    pointer-events: auto; display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgb(255 255 255 / .22);
+    min-height: 44px;
+    border-radius: 999px; padding: 9px 15px; color: white; background: rgb(18 29 27 / .84); backdrop-filter: blur(10px);
+    box-shadow: 0 8px 22px rgb(0 0 0 / .28); font-size: 16px; font-weight: 700; cursor: pointer; text-decoration: none;
+  }
+  .global-home-link:hover { background: color-mix(in srgb, var(--accent) 82%, black 18%); }
+
+  @media (min-width: 860px) {
+    #recipe-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 12px;
+    }
+    #recipe-list .recipe-card { height: 100%; margin-bottom: 0; }
+    #recipe-list .empty-note { grid-column: 1 / -1; }
+  }
+
+  html.theme-night {
+    color-scheme: dark;
+  }
+
+  html.theme-night body:not(.auth-page) {
+    --accent-dark: #eadfff;
+    --accent-soft: rgba(185, 145, 240, 0.17);
+    --accent-border: rgba(205, 174, 247, 0.52);
+    --surface: #10252e;
+    --surface-soft: #17343e;
+    --line: #3a606c;
+    --focus-ring: #ffe08a;
+    color: #f5fbff;
+    background:
+      radial-gradient(circle at 12% 11%, rgba(255, 190, 92, 0.16), transparent 27%),
+      radial-gradient(circle at 86% 18%, rgba(185, 145, 240, 0.2), transparent 30%),
+      linear-gradient(155deg, #10021b 0%, #271044 42%, #061923 100%);
+  }
+
+  html.theme-night .cooking-safety-note {
+    border-color: #9a7b36; color: #fff2c7; background: #3a3019;
+  }
+  html.theme-night .recipe-photo-sources { color: #c7d8dd; }
+
+  html.theme-night body:not(.auth-page)::before {
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(146, 72, 255, 0.08) 34%, rgba(58, 150, 148, 0.2)),
+      linear-gradient(45deg, transparent 0 28%, rgba(223, 194, 255, 0.25) 29% 31%, transparent 32% 100%);
+  }
+
+  html.theme-night body:not(.auth-page) #app {
+    border-color: rgba(205, 174, 247, 0.34);
+    background: rgba(14, 38, 47, 0.96);
+    box-shadow: 0 30px 72px rgba(0, 0, 0, 0.5);
+  }
+
+  html.theme-night body:not(.auth-page) :is(input, select, textarea) {
+    border-color: #49707c;
+    color: #f5fbff;
+    background: #081f28;
+  }
+
+  html.theme-night body:not(.auth-page) :is(input, textarea)::placeholder {
+    color: #9fb4be;
+    opacity: 1;
+  }
+
+  html.theme-night body:not(.auth-page) :is(.email-tag, .music-credit, .youtube-help, .youtube-result-channel, .recipe-results-summary, .empty-note, .loading-screen),
+  html.theme-night body:not(.auth-page) label.field span.label-text {
+    color: #bdd0d8;
+  }
+
+  html.theme-night body:not(.auth-page) :is(.category-filter-title, .category-filter-help) {
+    color: #bdd0d8;
+  }
+
+  html.theme-night body:not(.auth-page) :is(.btn-ghost, .back-btn, .add-row-btn) {
+    border-color: #49707c;
+    color: #f5fbff;
+    background: #17343e;
+  }
+
+  html.theme-night body:not(.auth-page) :is(.btn-ghost, .back-btn, .add-row-btn, .remove-row-btn):disabled {
+    border-color: #4f707a;
+    color: #d8e5e8;
+    background: #38515a;
+  }
+
+  html.theme-night body:not(.auth-page) .btn-ghost:hover:not(:disabled),
+  html.theme-night body:not(.auth-page) .recipe-card:hover {
+    background: #20434e;
+  }
+
+  html.theme-night body:not(.auth-page) .youtube-music-panel {
+    border-color: var(--accent-border);
+    background: #132e38;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.32);
+  }
+
+  html.theme-night body:not(.auth-page) .recipe-status {
+    border-color: #397669;
+    color: #c8f6e8;
+    background: #123a35;
+  }
+
+  html.theme-night body:not(.auth-page) .recipe-status[data-mode="built-in"] {
+    border-color: #80692f;
+    color: #ffe8a9;
+    background: #3b331b;
+  }
+
+  html.theme-night body:not(.auth-page) .recipe-status[data-mode="demo"] {
+    border-color: #715394;
+    color: #eadfff;
+    background: #302343;
+  }
+
+  html.theme-night body:not(.auth-page) .recipe-status .btn-ghost {
+    background: rgba(8, 31, 40, 0.72);
+  }
+
+  html.theme-night body:not(.auth-page) .recipe-action-notice {
+    border-color: #3b806f;
+    color: #bdf6e3;
+    background: #123c34;
+  }
+
+  html.theme-night body:not(.auth-page) .error-banner {
+    border-color: #98584f;
+    color: #ffc1b8;
+    background: #48251f;
+  }
+
+  html.theme-night body:not(.auth-page) .youtube-error,
+  html.theme-night body:not(.auth-page) .error-text,
+  html.theme-night body:not(.auth-page) .remove-row-btn {
+    color: #ffaaa0;
+  }
+
+  html.theme-night body:not(.auth-page) .info-text {
+    color: #9aefd5;
+  }
+
+  html.theme-night body:not(.auth-page) .btn-danger {
+    border-color: #98584f;
+    color: #ffc1b8;
+    background: #48251f;
+  }
+
+  html.theme-night .recipe-delete-dialog {
+    color: #f5fbff;
+    background: #102c36;
+    border-color: #356473;
+  }
+
+  html.theme-night .recipe-delete-dialog p { color: #c7d8de; }
+  html.theme-night .recipe-delete-dialog strong { color: #fff; }
+  html.theme-night .recipe-delete-dialog__error {
+    color: #ffc1b8 !important;
+    background: #48251f;
+    border-color: #98584f;
+  }
+
+  html.theme-night body:not(.auth-page) .search-icon {
+    color: #b9cbd2;
+  }
+
+  html.theme-night .skip-link {
+    color: #071c24;
+    background: #ffedaa;
+    border-color: #fff8db;
+  }
+
+  @media (max-width: 620px) {
+    #app { margin-top: 66px; padding: 20px 14px 34px; }
+    header.app-header { flex-direction: column; gap: 12px; }
+    .header-actions { width: 100%; flex-wrap: wrap; justify-content: flex-start; }
+    .recipe-status { align-items: stretch; flex-direction: column; }
+    .recipe-status .btn-ghost { width: 100%; }
+    .youtube-api-actions { grid-template-columns: 1fr; }
+    .fab { right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); }
+    input, select, textarea, .search-bar input { font-size: 16px; }
+    .category-filter-head { align-items: flex-start; flex-direction: column; gap: 2px; }
+    .category-filter-help { text-align: left; }
+    .category-filter-controls { grid-template-columns: minmax(0, 1fr); }
+    .category-more-button { width: 100%; }
+  }
+
+  @media (max-width: 380px) {
+    body { padding: 0 8px; }
+    #app { padding-inline: 12px; }
+    body.auth-page #app { padding: 30px 20px 28px; }
+    .header-actions > * { flex: 1 1 100%; }
+    .detail-actions > * { width: 100%; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
+
+  @media (prefers-contrast: more) {
+    body {
+      --line: #82938c;
+      --accent-border: #553083;
+      --focus-ring: #4a197b;
+    }
+    html.theme-night body {
+      --line: #83a2ad;
+      --accent-border: #d8b8ff;
+      --focus-ring: #ffe08a;
+    }
+    :is(button, input, select, textarea, a):focus-visible { outline-width: 4px; }
+    :is(.recipe-card, .recipe-status, .auth-card, .recipe-delete-dialog) { border-width: 2px; }
+  }
+
+  @media (forced-colors: active) {
+    body,
+    body.auth-page,
+    html.theme-night body,
+    :is(.recipe-card, .recipe-status, .auth-card, .recipe-delete-dialog) {
+      color: CanvasText;
+      background: Canvas;
+      background-image: none;
+      box-shadow: none;
+    }
+    :is(.recipe-card, .recipe-status, .auth-card, .recipe-delete-dialog) { border-color: CanvasText; }
+    :is(button, input, select, textarea) { border: 2px solid ButtonText; }
+    :is(button, input, select, textarea):disabled {
+      border-color: GrayText;
+      color: GrayText;
+      background: Canvas;
+      opacity: 1;
+      -webkit-text-fill-color: GrayText;
+    }
+    :is(button, input, select, textarea, a):focus-visible {
+      outline: 3px solid Highlight !important;
+      box-shadow: none !important;
+    }
+    :is([aria-selected="true"], [aria-pressed="true"], .active, .selected) {
+      outline: 2px solid Highlight;
+      outline-offset: 2px;
+    }
+    a { color: LinkText; }
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#app">Skip to main content</a>
+<nav class="global-tools" aria-label="FlavorNest navigation">
+  <a class="global-home-link" href="index.html#child" aria-label="Back to KiddoSprout child site">KiddoSprout</a>
+</nav>
+<main id="app" tabindex="-1"><div class="loading-screen" role="status" aria-live="polite">Loading…</div></main>
+<dialog id="recipe-delete-dialog" class="recipe-delete-dialog" aria-labelledby="recipe-delete-title" aria-describedby="recipe-delete-description">
+  <div class="recipe-delete-dialog__body">
+    <h2 id="recipe-delete-title">Remove this recipe?</h2>
+    <p id="recipe-delete-description">This will remove <strong id="recipe-delete-name">this recipe</strong> from your family account.</p>
+    <p id="recipe-delete-error" class="recipe-delete-dialog__error" role="alert" tabindex="-1" hidden></p>
+    <div class="recipe-delete-dialog__actions">
+      <button id="recipe-delete-cancel" class="btn-ghost" type="button">Keep recipe</button>
+      <button id="recipe-delete-confirm" class="btn-primary btn-danger" type="button">Remove recipe</button>
+    </div>
+  </div>
+</dialog>
+
+<script src="supabase-config.js?v=7"></script>
+<script src="demo-mode.js?v=2"></script>
+<script src="auth-session.js?v=7"></script>
+<script src="family-state-cloud.js?v=2"></script>
+<script src="human-check.js?v=4"></script>
+<script src="recipe-cloud.js?v=3"></script>
+<script src="recipe-catalog-v5342473ad68b.js" integrity="sha384-jIRxzu0+IHh7fxwCEOuSa5VKVOUbDoq9WKmPH9mNvZoSquT4dM5Xz6xckyUadk88"></script>
+<script>
+// ---- Config ----
+const SUPABASE_CONFIG = window.KIDDO_SPROUT_SUPABASE || {};
+const APP_NAME = "FlavorNest";
+const DEFAULT_SUPABASE_URL = "";
+const DEFAULT_SUPABASE_PUBLISHABLE_KEY = "";
+const PUBLIC_DEMO_ONLY = SUPABASE_CONFIG.publicDemoOnly === true;
+function cleanSupabaseUrl(value) {
+  const url = String(value || "").trim().replace(/\/rest\/v1\/?$/i, "").replace(/\/+$/, "");
+  const isManagedUrl = /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url);
+  const isLocalUrl = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(url);
+  if (!isManagedUrl && !isLocalUrl) return "";
+  if (url.includes("your_supabase")) return "";
+  return url;
+}
+function cleanSupabaseKey(value) {
+  const key = String(value || "").trim();
+  if (!key || key.includes("your_supabase")) return "";
+  return window.KiddoSproutRecipeCloud?.isBrowserSafePublishableKey?.(key) === true ? key : "";
+}
+const SUPABASE_URL = cleanSupabaseUrl(SUPABASE_CONFIG.url) || DEFAULT_SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY = cleanSupabaseKey(SUPABASE_CONFIG.publishableKey || SUPABASE_CONFIG.anonKey) || DEFAULT_SUPABASE_PUBLISHABLE_KEY;
+const SUPABASE_CONNECTED = Boolean(!PUBLIC_DEMO_ONLY && SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY);
+const AUTH_EMAIL_DELIVERY_READY = Boolean(!PUBLIC_DEMO_ONLY && SUPABASE_CONFIG.emailDeliveryReady === true);
+const EMAIL_DELIVERY_UNAVAILABLE_MESSAGE = "Email sign-up and password recovery are not available on this KiddoSprout setup yet.";
+const KIDDO_CHILD_SITE_URL = "index.html#child";
+const KIDDO_DEMO_ACTIVE_KEY = "kiddosprout.demo.v1.active";
+const RECIPE_PAGE_SIZE = 30;
+const RECIPE_CATEGORY_INITIAL_LIMIT = 24;
+const RECIPE_CLOUD_MAX_ROWS = 500;
+const RECIPE_BROWSE_STATE_KEY = "flavornest.browse.v1";
+const RECIPE_SYNC_SIGNAL_KEY = "flavornest.recipes.changed.v1";
+const AUTH_REQUEST_TIMEOUT_MS = 15000;
+const RECIPE_PASSWORD_RECOVERY_TRANSACTION_KEY = "flavornest.password-recovery.v1";
+const RECIPE_PASSWORD_RECOVERY_TRANSACTION_PARAM = "fn_recovery";
+const RECIPE_PASSWORD_RECOVERY_TRANSACTION_TTL_MS = 60 * 60 * 1000;
+const AUTH_REQUEST_GENERIC_SIGNUP_MESSAGE = "If this email can be used for FlavorNest, a confirmation link will arrive. Check the inbox and spam folder before logging in.";
+const AUTH_REQUEST_GENERIC_RECOVERY_MESSAGE = "If a KiddoSprout account matches that email, a password reset link will arrive. Check the inbox and spam folder.";
+let kiddoSproutGate = null;
+
+function isKiddoSproutDemoMode() {
+  if (PUBLIC_DEMO_ONLY) return true;
+  try {
+    return window.sessionStorage.getItem(KIDDO_DEMO_ACTIVE_KEY) === "1";
+  } catch (error) {
+    return false;
+  }
+}
+
+let recipeCloudClient = null;
+function getRecipeCloudClient() {
+  if (PUBLIC_DEMO_ONLY || !SUPABASE_CONNECTED) {
+    throw new Error("Family recipe storage is unavailable on this setup.");
+  }
+  if (!window.KiddoSproutRecipeCloud) {
+    throw new Error("Family recipe storage could not start in this browser.");
+  }
+  if (!recipeCloudClient) {
+    recipeCloudClient = window.KiddoSproutRecipeCloud.createClient({
+      baseUrl: SUPABASE_URL,
+      publishableKey: SUPABASE_PUBLISHABLE_KEY
+    });
+  }
+  return recipeCloudClient;
+}
+
+function returnToKiddoSproutChild() {
+  window.location.href = KIDDO_CHILD_SITE_URL;
+}
+
+function escapeKiddoSproutText(value) {
+  return String(value || "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;",
+    "'": "&#039;"
+  }[char]));
+}
+
+function showKiddoSproutGate(title, message, { retry = false } = {}) {
+  kiddoSproutGate = {
+    title: String(title || "KiddoSprout access needed").slice(0, 160),
+    message: String(message || "Return to KiddoSprout and try again.").slice(0, 500),
+    retry: retry === true
+  };
+  document.body.classList.add("auth-page");
+  document.getElementById("app").innerHTML = `
+    <div class="auth-wrap">
+      <div class="logo-row">
+        <span class="logo-icon">FN</span>
+        <span class="eyebrow">KiddoSprout Access</span>
+      </div>
+      <h1>${escapeKiddoSproutText(kiddoSproutGate.title)}</h1>
+      <p class="info-text">${escapeKiddoSproutText(kiddoSproutGate.message)}</p>
+      ${kiddoSproutGate.retry ? `<button class="btn-primary" id="kiddo-gate-retry" type="button">Try again</button>` : ""}
+      <a class="btn-primary" href="${KIDDO_CHILD_SITE_URL}" style="display:flex;align-items:center;justify-content:center;text-decoration:none;${kiddoSproutGate.retry ? "margin-top:10px;" : ""}">Back to KiddoSprout</a>
+    </div>
+  `;
+  document.getElementById("kiddo-gate-retry")?.addEventListener("click", () => {
+    void retryKiddoSproutGate();
+  });
+}
+
+function recipeSessionError(kind, message, cause) {
+  const error = new Error(message);
+  error.kind = kind;
+  if (cause) error.cause = cause;
+  return error;
+}
+
+function sharedRecipeSession() {
+  const sessionApi = window.KiddoSproutSession;
+  if (!sessionApi || typeof sessionApi.validate !== "function"
+      || typeof sessionApi.getAccessToken !== "function"
+      || typeof sessionApi.getSession !== "function") {
+    throw recipeSessionError("auth", "A verified KiddoSprout parent login is required.");
+  }
+  return sessionApi;
+}
+
+function recipeSessionFailure(error) {
+  const sessionApi = window.KiddoSproutSession;
+  if (sessionApi?.isTemporaryError?.(error) || error?.kind === "session_refresh_unavailable") {
+    return recipeSessionError(
+      "session_refresh_unavailable",
+      "The account service cannot be reached right now. Your saved sign-in and recipe draft are safe.",
+      error
+    );
+  }
+  return error?.kind
+    ? error
+    : recipeSessionError("auth", "A verified KiddoSprout parent login is required.", error);
+}
+
+async function freshSharedRecipeToken(expectedOwnerId) {
+  const sessionApi = sharedRecipeSession();
+  let accessToken;
+  try {
+    accessToken = await sessionApi.getAccessToken();
+  } catch (error) {
+    throw recipeSessionFailure(error);
+  }
+  const current = sessionApi.getSession();
+  const currentOwner = String(current?.user?.id || "").trim().toLowerCase();
+  const expectedOwner = String(expectedOwnerId || "").trim().toLowerCase();
+  if (!accessToken || !currentOwner || (expectedOwner && currentOwner !== expectedOwner)
+      || String(current?.access_token || "") !== String(accessToken)) {
+    throw recipeSessionError("auth", "The KiddoSprout parent session changed. Log in again before continuing.");
+  }
+  return String(accessToken);
+}
+
+async function validatedRecipeAccess(expectedOwnerId = "") {
+  const sessionApi = sharedRecipeSession();
+  let validated;
+  try {
+    validated = await sessionApi.validate();
+  } catch (error) {
+    throw recipeSessionFailure(error);
+  }
+  const ownerId = String(validated?.user?.id || "").trim().toLowerCase();
+  const expectedOwner = String(expectedOwnerId || "").trim().toLowerCase();
+  if (!ownerId || (expectedOwner && ownerId !== expectedOwner)) {
+    throw recipeSessionError("auth", "A verified KiddoSprout parent login is required.");
+  }
+  const accessToken = await freshSharedRecipeToken(ownerId);
+  const current = sessionApi.getSession();
+  if (!current || String(current.user?.id || "").trim().toLowerCase() !== ownerId) {
+    throw recipeSessionError("auth", "The KiddoSprout parent session changed. Log in again before continuing.");
+  }
+  return {
+    ownerId,
+    accessToken,
+    session: { ...current, access_token: accessToken, user: validated.user }
+  };
+}
+
+function ownerBoundFamilyCloud(ownerId) {
+  if (!window.KiddoSproutFamilyState?.createClient) {
+    throw recipeSessionError("configuration", "Private KiddoSprout family storage is unavailable.");
+  }
+  const expectedOwner = String(ownerId || "").trim().toLowerCase();
+  const shared = sharedRecipeSession();
+  const sessionApi = Object.freeze({
+    validate: async () => (await validatedRecipeAccess(expectedOwner)).session,
+    getAccessToken: async () => freshSharedRecipeToken(expectedOwner),
+    isTemporaryError: (error) => Boolean(
+      shared.isTemporaryError?.(error) || error?.kind === "session_refresh_unavailable"
+    )
+  });
+  return window.KiddoSproutFamilyState.createClient({
+    baseUrl: SUPABASE_URL,
+    publishableKey: SUPABASE_PUBLISHABLE_KEY,
+    sessionApi
+  });
+}
+
+function normalizeKiddoSproutRequest(request) {
+  if (!Array.isArray(request)) return null;
+  const title = String(request[0] || "").trim().slice(0, 100);
+  if (!title || /^(?:no request|no request yet)$/i.test(title)) return null;
+  return [
+    title,
+    String(request[1] || "Request from FlavorNest").trim().slice(0, 240),
+    String(request[2] || title.charAt(0)).trim().slice(0, 3),
+    String(request[3] || "appAccess").trim().slice(0, 40),
+    ...request.slice(4, 8).map((value) => String(value || "").trim().slice(0, 100))
+  ];
+}
+
+function getKiddoSproutActiveChild(family) {
+  if (!family || typeof family !== "object" || Array.isArray(family)) return null;
+  const activeChild = String(family.activeChild || "").trim();
+  const children = family.children;
+  if (!activeChild || !children || typeof children !== "object" || Array.isArray(children)) return null;
+  if (!Object.prototype.hasOwnProperty.call(children, activeChild)) return null;
+  const child = children[activeChild];
+  return child && typeof child === "object" && !Array.isArray(child) ? child : null;
+}
+
+function queueKiddoSproutRequest(family, appId, appTitle) {
+  const child = getKiddoSproutActiveChild(family);
+  if (!child) return "unavailable";
+  const request = normalizeKiddoSproutRequest([
+    appTitle,
+    `${appTitle} requested from a connected app page`,
+    appTitle.charAt(0),
+    "appAccess",
+    appId
+  ]);
+  if (!request) return "unavailable";
+
+  const requests = Array.isArray(child.requests)
+    ? child.requests.map(normalizeKiddoSproutRequest).filter(Boolean).slice(0, 100)
+    : [];
+  const legacyRequest = normalizeKiddoSproutRequest(child.currentRequest);
+  if (legacyRequest && Number(child.pending || 0) > requests.length
+      && !requests.some((queued) => JSON.stringify(queued) === JSON.stringify(legacyRequest))) {
+    requests.push(legacyRequest);
+  }
+  const requestKey = JSON.stringify(request);
+  if (requests.some((queued) => JSON.stringify(queued) === requestKey)) return "duplicate";
+  if (requests.length >= 100) return "full";
+
+  requests.push(request);
+  child.requests = requests;
+  child.pending = requests.length;
+  child.currentRequest = [...requests[0]];
+  return "sent";
+}
+
+async function requestKiddoSproutAccess(appId, appTitle, family, familyCloud) {
+  const result = queueKiddoSproutRequest(family, appId, appTitle);
+  if (result !== "sent") return result;
+  try {
+    await familyCloud.save(family);
+    return "sent";
+  } catch (error) {
+    return "unavailable";
+  }
+}
+
+function kiddoSproutRequestMessage(result) {
+  if (result === "sent") return "A request was sent to the parent dashboard for approval.";
+  if (result === "duplicate") return "That request is already waiting on the parent dashboard.";
+  if (result === "full") return "The parent request list is full. Ask a parent to review it first.";
+  return "The parent dashboard could not save this request. Return to KiddoSprout and try again.";
+}
+
+async function canOpenKiddoSproutApp(appId, appTitle, expectedOwnerId = "") {
+  try {
+    if (!SUPABASE_CONNECTED) {
+      showKiddoSproutGate("Parent account unavailable", "This KiddoSprout setup is not connected to its account service.");
+      return false;
+    }
+    const initialAccess = await validatedRecipeAccess(expectedOwnerId);
+    const familyCloud = ownerBoundFamilyCloud(initialAccess.ownerId);
+    const family = await familyCloud.load();
+    const currentAccess = await validatedRecipeAccess(initialAccess.ownerId);
+    if (!family || typeof family !== "object" || Array.isArray(family) || family.parentAccountCreated !== true) {
+      showKiddoSproutGate("Parent account needed", "Create or log in to the parent account before opening connected child apps.");
+      return false;
+    }
+    const child = getKiddoSproutActiveChild(family);
+    if (!child) {
+      showKiddoSproutGate("Child profile needed", "Choose a valid child profile in KiddoSprout before opening connected child apps.");
+      return false;
+    }
+    const appRules = child.appRules && typeof child.appRules === "object" && !Array.isArray(child.appRules)
+      ? child.appRules
+      : null;
+    const rule = appRules && Object.prototype.hasOwnProperty.call(appRules, appId)
+      ? appRules[appId]
+      : (appId === "recipe" ? "allowed" : "request");
+    if (rule === "allowed") {
+      kiddoSproutGate = null;
+      state.authorizedOwnerId = currentAccess.ownerId;
+      state.session = currentAccess.session;
+      return true;
+    }
+    if (rule === "blocked") {
+      showKiddoSproutGate(appTitle + " is blocked", "A parent has blocked this app for the current child profile.");
+      return false;
+    }
+    const requestResult = await requestKiddoSproutAccess(appId, appTitle, family, familyCloud);
+    showKiddoSproutGate("Ask a parent first", kiddoSproutRequestMessage(requestResult));
+    return false;
+  } catch (err) {
+    state.authorizedOwnerId = "";
+    const temporary = window.KiddoSproutSession?.isTemporaryError?.(err)
+      || window.KiddoSproutFamilyState?.isTemporaryError?.(err)
+      || err?.kind === "session_refresh_unavailable";
+    showKiddoSproutGate(
+      temporary ? "Parent check temporarily unavailable" : "KiddoSprout check failed",
+      temporary
+        ? "KiddoSprout could not safely verify the parent account. Your sign-in is safe; try again when the connection returns."
+        : "Open KiddoSprout again so this app can verify the parent account and child settings.",
+      { retry: temporary }
+    );
+    return false;
+  }
+}
+
+// ---- Built-in focus music ----
+let youtubeMusicOpen = false;
+let youtubeMusicPlaying = false;
+let youtubeMusicVideoId = "";
+let focusAudio = null;
+
+function setYouTubePanel(open) {
+  youtubeMusicOpen = open;
+  const panel = document.getElementById("youtube-music-panel");
+  const button = document.getElementById("music-btn");
+  if (panel) {
+    panel.classList.toggle("open", open);
+    panel.hidden = !open;
+  }
+  if (button) {
+    button.classList.toggle("active", open || youtubeMusicPlaying);
+    button.setAttribute("aria-expanded", String(open));
+  }
+}
+
+function playYouTubeLink() {
+  const select = document.getElementById("youtube-link-input");
+  const error = document.getElementById("youtube-music-error");
+  const wrap = document.getElementById("youtube-player-wrap");
+  const label = document.getElementById("focus-sound-label");
+  const sound = String(select && select.value || "rain");
+  if (error) error.textContent = "";
+  stopYouTubeMusic(false);
+  try {
+    focusAudio = createFocusSound(sound);
+    if (label) label.textContent = focusAudio.label;
+    if (wrap) wrap.classList.add("active");
+    youtubeMusicVideoId = sound;
+    youtubeMusicPlaying = true;
+    setYouTubePanel(true);
+    refreshYouTubeApiUi();
+  } catch (err) {
+    if (error) error.textContent = err.message || "Could not play music.";
+  }
+}
+
+function stopYouTubeMusic(showClosed = true) {
+  const wrap = document.getElementById("youtube-player-wrap");
+  if (focusAudio) {
+    focusAudio.stop();
+    focusAudio = null;
+  }
+  if (wrap) wrap.classList.remove("active");
+  youtubeMusicVideoId = "";
+  youtubeMusicPlaying = false;
+  if (showClosed) setYouTubePanel(youtubeMusicOpen);
+}
+
+async function searchYouTubeMusic() {
+  playYouTubeLink();
+}
+
+function createFocusSound(kind) {
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) {
+    throw new Error("This browser cannot play built-in focus music.");
+  }
+  const ctx = new AudioContext();
+  if (ctx.state === "suspended") {
+    void ctx.resume().catch(() => {});
+  }
+  const master = ctx.createGain();
+  const delay = ctx.createDelay(1.2);
+  const delayGain = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  master.gain.value = 0.0001;
+  filter.type = "lowpass";
+  filter.frequency.value = 7600;
+  delay.delayTime.value = 0.28;
+  delayGain.gain.value = 0.16;
+  master.connect(filter);
+  filter.connect(ctx.destination);
+  master.connect(delay);
+  delay.connect(delayGain);
+  delayGain.connect(filter);
+  master.gain.setTargetAtTime(0.13, ctx.currentTime + 0.02, 0.45);
+  const nodes = [master, filter, delay, delayGain];
+  const settings = {
+    rain: {
+      label: "Soft piano loop",
+      tempo: 74,
+      root: 57,
+      wave: "sine",
+      chords: [[0, 3, 7, 10], [5, 8, 12, 15], [3, 7, 10, 14], [7, 10, 14, 17]],
+      melody: [12, null, 15, 14, 10, null, 7, 10, 12, 15, 17, null, 15, 12, 10, null],
+      bass: [0, 5, 3, 7],
+      percussion: false
+    },
+    waves: {
+      label: "Ocean lofi groove",
+      tempo: 82,
+      root: 50,
+      wave: "triangle",
+      chords: [[0, 4, 7, 11], [-2, 2, 5, 9], [3, 7, 10, 14], [5, 9, 12, 16]],
+      melody: [12, 11, null, 9, 7, null, 9, 11, 12, null, 16, 14, 11, 9, null, 7],
+      bass: [0, -2, 3, 5],
+      percussion: true
+    },
+    kitchen: {
+      label: "Kitchen jazz loop",
+      tempo: 96,
+      root: 53,
+      wave: "sine",
+      chords: [[0, 4, 7, 10], [2, 5, 9, 12], [4, 7, 11, 14], [5, 9, 12, 16]],
+      melody: [12, null, 14, 16, 17, 16, 14, null, 12, 9, 7, null, 9, 12, 14, null],
+      bass: [0, 2, 4, 5],
+      percussion: true
+    },
+    chimes: {
+      label: "Dream chime song",
+      tempo: 68,
+      root: 60,
+      wave: "triangle",
+      chords: [[0, 5, 7, 12], [-3, 0, 4, 9], [-5, -1, 2, 7], [2, 5, 9, 14]],
+      melody: [12, 19, null, 17, 14, null, 12, 9, 7, null, 12, 14, 17, null, 19, null],
+      bass: [0, -3, -5, 2],
+      percussion: false
+    }
+  }[kind] || null;
+  const track = settings || {
+    label: "Soft piano loop",
+    tempo: 74,
+    root: 57,
+    wave: "sine",
+    chords: [[0, 3, 7, 10], [5, 8, 12, 15], [3, 7, 10, 14], [7, 10, 14, 17]],
+    melody: [12, null, 15, 14, 10, null, 7, 10, 12, 15, 17, null, 15, 12, 10, null],
+    bass: [0, 5, 3, 7],
+    percussion: false
+  };
+
+  function midiToFrequency(note) {
+    return 440 * Math.pow(2, (note - 69) / 12);
+  }
+
+  function playNote(note, when, length, volume, type = track.wave) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = midiToFrequency(note);
+    gain.gain.setValueAtTime(0.0001, when);
+    gain.gain.exponentialRampToValueAtTime(volume, when + 0.025);
+    gain.gain.setTargetAtTime(0.0001, when + length, 0.16);
+    osc.connect(gain);
+    gain.connect(master);
+    osc.addEventListener("ended", () => {
+      try { osc.disconnect(); } catch (_) {}
+      try { gain.disconnect(); } catch (_) {}
+    }, { once: true });
+    osc.start(when);
+    osc.stop(when + length + 0.5);
+  }
+
+  function playSoftPercussion(when) {
+    const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let index = 0; index < data.length; index += 1) {
+      data[index] = (Math.random() * 2 - 1) * Math.pow(1 - index / data.length, 3);
+    }
+    const source = ctx.createBufferSource();
+    const gain = ctx.createGain();
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = "highpass";
+    noiseFilter.frequency.value = 2600;
+    gain.gain.value = 0.028;
+    source.buffer = buffer;
+    source.connect(noiseFilter);
+    noiseFilter.connect(gain);
+    gain.connect(master);
+    source.addEventListener("ended", () => {
+      try { source.disconnect(); } catch (_) {}
+      try { noiseFilter.disconnect(); } catch (_) {}
+      try { gain.disconnect(); } catch (_) {}
+    }, { once: true });
+    source.start(when);
+  }
+
+  const stepTime = 60 / track.tempo / 2;
+  let step = 0;
+  let nextTime = ctx.currentTime + 0.08;
+
+  function scheduleMusic() {
+    while (nextTime < ctx.currentTime + 1.1) {
+      const barStep = step % 16;
+      const chordIndex = Math.floor((step % 64) / 16);
+      const chord = track.chords[chordIndex % track.chords.length];
+
+      if (barStep === 0) {
+        playNote(track.root + track.bass[chordIndex % track.bass.length] - 12, nextTime, stepTime * 7.5, 0.14, "sine");
+      }
+
+      if (barStep % 4 === 0) {
+        chord.forEach((offset, index) => {
+          playNote(track.root + offset, nextTime + index * 0.035, stepTime * 6.2, 0.055, index % 2 ? "triangle" : track.wave);
+        });
+      }
+
+      if (barStep % 2 === 0) {
+        const melodyNote = track.melody[barStep];
+        if (melodyNote !== null && melodyNote !== undefined) {
+          playNote(track.root + melodyNote, nextTime, stepTime * 1.55, 0.08, track.wave);
+        }
+      }
+
+      if (track.percussion && (barStep === 4 || barStep === 12)) {
+        playSoftPercussion(nextTime);
+      }
+
+      step += 1;
+      nextTime += stepTime;
+    }
+  }
+
+  scheduleMusic();
+  const timer = window.setInterval(scheduleMusic, 180);
+
+  return {
+    label: track.label,
+    stop() {
+      window.clearInterval(timer);
+      master.gain.setTargetAtTime(0, ctx.currentTime, 0.08);
+      window.setTimeout(() => {
+        nodes.forEach((node) => {
+          try { if (typeof node.stop === "function") node.stop(); } catch (_) {}
+          try { if (typeof node.disconnect === "function") node.disconnect(); } catch (_) {}
+        });
+        try { ctx.close(); } catch (_) {}
+      }, 220);
+    }
+  };
+}
+
+function refreshYouTubeApiUi() {
+  const status = document.getElementById("youtube-api-status");
+  if (status) {
+    status.textContent = youtubeMusicPlaying
+      ? "Playing in-browser music. No sign-in needed."
+      : "Choose a track and press Play.";
+  }
+}
+
+function savedThemeColor() {
+  return "#7440b8";
+}
+
+// Embedded recipe snapshot for standalone/offline use (463 recipes).
+// The live Supabase collection replaces this snapshot whenever it is reachable.
+const RECIPE_CATALOG = window.KiddoSproutRecipeCatalog;
+if (!RECIPE_CATALOG
+    || RECIPE_CATALOG.version !== 1
+    || !Array.isArray(RECIPE_CATALOG.embedded)
+    || !Array.isArray(RECIPE_CATALOG.custom)) {
+  throw new Error("The built-in recipe catalogue could not be loaded safely.");
+}
+const EMBEDDED_RECIPES = RECIPE_CATALOG.embedded;
+const CUSTOM_RECIPES = RECIPE_CATALOG.custom;
+
+// Recipes added directly to this edition of the book.
+function recipeIdentityText(value) {
+  return String(value || "")
+    .normalize("NFKC")
+    .trim()
+    .toLocaleLowerCase("en-GB")
+    .replace(/\s+/g, " ");
+}
+
+function dedupeBuiltInRecipes(recipes) {
+  const seenIds = new Set();
+  const seenTitles = new Set();
+  const unique = [];
+  for (let index = recipes.length - 1; index >= 0; index -= 1) {
+    const recipe = recipes[index];
+    const id = recipeIdentityText(recipe?.id);
+    const title = recipeIdentityText(recipe?.title);
+    if (!id || !title || seenIds.has(id) || seenTitles.has(title)) continue;
+    seenIds.add(id);
+    seenTitles.add(title);
+    unique.push(recipe);
+  }
+  return unique.reverse();
+}
+
+function mergeCustomRecipes(recipes) {
+  const uniqueCustomRecipes = dedupeBuiltInRecipes(CUSTOM_RECIPES);
+  const customTitles = new Set(uniqueCustomRecipes.map((recipe) => recipeIdentityText(recipe.title)));
+  const customIds = new Set(uniqueCustomRecipes.map((recipe) => recipeIdentityText(recipe.id)));
+  return dedupeBuiltInRecipes(Array.isArray(recipes) ? recipes : [])
+    .filter((recipe) => !customTitles.has(recipeIdentityText(recipe.title)) && !customIds.has(recipeIdentityText(recipe.id)))
+    .concat(uniqueCustomRecipes.map((recipe) => ({ ...recipe })))
+    .sort((a, b) => a.title.localeCompare(b.title));
+}
+
+function builtInRecipeCollection() {
+  return mergeCustomRecipes(EMBEDDED_RECIPES.map((recipe) => ({ ...recipe })))
+    .map((recipe) => ({ ...recipe, _source: "built-in" }));
+}
+
+function mergeFamilyRecipes(cloudRecipes) {
+  const familyRecipes = cloudRecipes.map((recipe) => ({ ...recipe, _source: "cloud" }));
+  const familyTitles = new Set(familyRecipes.map((recipe) => recipeIdentityText(recipe.title)));
+  const familyIds = new Set(familyRecipes.map((recipe) => recipeIdentityText(recipe.id)));
+  return builtInRecipeCollection()
+    .filter((recipe) => !familyTitles.has(recipeIdentityText(recipe.title)) && !familyIds.has(recipeIdentityText(recipe.id)))
+    .concat(familyRecipes)
+    .sort((a, b) => a.title.localeCompare(b.title));
+}
+
+// ---- App state ----
+let state = {
+  authChecked: false,
+  session: null,
+  authorizedOwnerId: "",
+  authMode: "login",
+  authEmail: "",
+  authError: "",
+  authInfo: "",
+  authSubmitting: false,
+  authCaptchaToken: "",
+  recoveryMode: false,
+  recoveryAccessToken: "",
+  recoveryEmailFingerprint: "",
+  recoveryNonce: "",
+  recoveryError: "",
+  recoveryInfo: "",
+  recoverySubmitting: false,
+
+  recipesLoaded: false,
+  loadError: "",
+  recipeMode: "loading", // "loading" | "cloud" | "stale" | "built-in" | "demo"
+  recipeNotice: "",
+  recipeActionNotice: "",
+  cloudErrorKind: "",
+  cloudChecking: false,
+  readOnlyBrowse: false,
+  cloudRecipes: [],
+  recipes: [],
+  searchQuery: "",
+  selectedCategory: "All",
+  visibleRecipeLimit: RECIPE_PAGE_SIZE,
+
+  screen: "browse", // "browse" | "detail" | "add"
+  selectedRecipeId: null,
+  editingRecipeId: null,
+  detailError: "",
+  detailSubmitting: false,
+
+  addForm: {
+    title: "",
+    category: "",
+    ingredients: [""],
+    steps: [""],
+  },
+  addSubmitting: false,
+  addError: "",
+};
+
+let authHumanCheckController = null;
+let authHumanCheckMountId = 0;
+let authHumanCheckStarting = false;
+let authOperationRevision = 0;
+let recoveryOperationRevision = 0;
+let recipeLoadRevision = 0;
+let recipeMutationRevision = 0;
+let browseReturnRecipeId = "";
+let showAllRecipeCategories = false;
+let recipeDeleteReturnFocus = null;
+let recipeDeleteReturnFocusId = "";
+let recipeAccessRefreshInFlight = null;
+let recipeGateRetryInFlight = null;
+let recipeAccessChecking = false;
+let nextAuthFocusId = "";
+let editingRecipeBaseline = "";
+let externalRecipeRefreshPending = false;
+let externalRecipeRefreshTimer = null;
+
+function normalizedRecipePageLimit(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return RECIPE_PAGE_SIZE;
+  const wholePages = Math.max(1, Math.ceil(Math.floor(parsed) / RECIPE_PAGE_SIZE));
+  return Math.min(RECIPE_CLOUD_MAX_ROWS + RECIPE_PAGE_SIZE, wholePages * RECIPE_PAGE_SIZE);
+}
+
+function restoreRecipeBrowseState() {
+  try {
+    const raw = window.sessionStorage.getItem(RECIPE_BROWSE_STATE_KEY) || "";
+    if (!raw) return;
+    if (raw.length > 800) throw new Error("browse-state-too-large");
+    const saved = JSON.parse(raw);
+    if (!saved || saved.version !== 1 || typeof saved !== "object" || Array.isArray(saved)) {
+      throw new Error("invalid-browse-state");
+    }
+    state.searchQuery = typeof saved.searchQuery === "string" ? saved.searchQuery.slice(0, 200) : "";
+    state.selectedCategory = typeof saved.selectedCategory === "string"
+      ? saved.selectedCategory.trim().slice(0, 80) || "All"
+      : "All";
+    state.visibleRecipeLimit = normalizedRecipePageLimit(saved.visibleRecipeLimit);
+    showAllRecipeCategories = saved.showAllRecipeCategories === true;
+  } catch (error) {
+    try { window.sessionStorage.removeItem(RECIPE_BROWSE_STATE_KEY); } catch (storageError) {}
+  }
+}
+
+function persistRecipeBrowseState() {
+  try {
+    window.sessionStorage.setItem(RECIPE_BROWSE_STATE_KEY, JSON.stringify({
+      version: 1,
+      searchQuery: String(state.searchQuery || "").slice(0, 200),
+      selectedCategory: String(state.selectedCategory || "All").slice(0, 80),
+      visibleRecipeLimit: normalizedRecipePageLimit(state.visibleRecipeLimit),
+      showAllRecipeCategories
+    }));
+  } catch (error) {
+    // Browsing still works when private storage is unavailable.
+  }
+}
+
+function recipeContentFingerprint(recipe) {
+  const value = recipe && typeof recipe === "object" ? recipe : {};
+  const normalItems = (items) => (Array.isArray(items) ? items : [])
+    .map((item) => recipeIdentityText(item))
+    .filter(Boolean);
+  return JSON.stringify({
+    title: recipeIdentityText(value.title),
+    category: recipeIdentityText(value.category || "Other"),
+    ingredients: normalItems(value.ingredients),
+    steps: normalItems(value.steps)
+  });
+}
+
+function recipeOperationError(kind, message) {
+  const error = new Error(message);
+  error.kind = kind;
+  return error;
+}
+
+async function withRecipeMutationLock(ownerId, operation) {
+  const lockManager = window.navigator?.locks;
+  if (!lockManager || typeof lockManager.request !== "function") return operation();
+  return lockManager.request(`kiddosprout-recipe-${ownerId}`, { mode: "exclusive" }, operation);
+}
+
+function recipeMutationIsBusy() {
+  const deleteDialog = document.getElementById("recipe-delete-dialog");
+  return Boolean(
+    state.addSubmitting
+    || state.detailSubmitting
+    || state.cloudChecking
+    || recipeAccessChecking
+    || state.screen === "add"
+    || deleteDialog?.open
+  );
+}
+
+function captureRecipeFocus() {
+  const active = document.activeElement;
+  if (!active || !document.getElementById("app")?.contains(active)) return null;
+  if (active.id) {
+    const snapshot = { type: "id", value: active.id };
+    if (typeof active.selectionStart === "number" && typeof active.selectionEnd === "number") {
+      snapshot.selectionStart = active.selectionStart;
+      snapshot.selectionEnd = active.selectionEnd;
+    }
+    return snapshot;
+  }
+  if (active.matches?.(".recipe-card[data-recipe-id]")) {
+    return { type: "recipe", value: String(active.getAttribute("data-recipe-id") || "") };
+  }
+  if (active.matches?.(".category-chip[data-category-index]")) {
+    return { type: "category", value: String(active.getAttribute("data-category-index") || "") };
+  }
+  return null;
+}
+
+function restoreRecipeFocus(snapshot) {
+  if (!snapshot) return;
+  window.requestAnimationFrame(() => {
+    let target = null;
+    if (snapshot.type === "id") target = document.getElementById(snapshot.value);
+    if (snapshot.type === "recipe") {
+      target = Array.from(document.querySelectorAll(".recipe-card[data-recipe-id]"))
+        .find((card) => card.getAttribute("data-recipe-id") === snapshot.value);
+    }
+    if (snapshot.type === "category") {
+      target = Array.from(document.querySelectorAll(".category-chip[data-category-index]"))
+        .find((chip) => chip.getAttribute("data-category-index") === snapshot.value);
+    }
+    const focusTarget = target || document.querySelector(".detail-title") || document.getElementById("recipe-results-summary");
+    focusTarget?.focus?.();
+    if (target && Number.isInteger(snapshot.selectionStart) && typeof target.setSelectionRange === "function") {
+      const valueLength = String(target.value || "").length;
+      target.setSelectionRange(
+        Math.min(snapshot.selectionStart, valueLength),
+        Math.min(Number.isInteger(snapshot.selectionEnd) ? snapshot.selectionEnd : snapshot.selectionStart, valueLength)
+      );
+    }
+  });
+}
+
+function announceRecipeCloudChange(ownerId) {
+  if (PUBLIC_DEMO_ONLY || !ownerId) return;
+  try {
+    window.localStorage.setItem(RECIPE_SYNC_SIGNAL_KEY, JSON.stringify({
+      version: 1,
+      ownerId,
+      changedAt: Date.now(),
+      nonce: window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`
+    }));
+  } catch (error) {
+    // Other tabs also refresh when they become visible, so storage is optional.
+  }
+}
+
+function scheduleExternalRecipeRefresh() {
+  if (PUBLIC_DEMO_ONLY || state.readOnlyBrowse || !["cloud", "stale"].includes(state.recipeMode) || !state.authorizedOwnerId) return;
+  if (recipeMutationIsBusy()) {
+    externalRecipeRefreshPending = true;
+    return;
+  }
+  externalRecipeRefreshPending = false;
+  if (externalRecipeRefreshTimer) window.clearTimeout(externalRecipeRefreshTimer);
+  externalRecipeRefreshTimer = window.setTimeout(() => {
+    externalRecipeRefreshTimer = null;
+    if (recipeMutationIsBusy()) {
+      externalRecipeRefreshPending = true;
+      return;
+    }
+    void loadRecipes({ silent: true, preserveFocus: true, keepExistingOnFailure: true });
+  }, 180);
+}
+
+function flushExternalRecipeRefresh() {
+  if (externalRecipeRefreshPending) scheduleExternalRecipeRefresh();
+}
+
+function handleRecipeSyncStorage(event) {
+  if (event?.key !== RECIPE_SYNC_SIGNAL_KEY || typeof event.newValue !== "string" || event.newValue.length > 500) return;
+  try {
+    const signal = JSON.parse(event.newValue);
+    if (signal?.version !== 1 || String(signal.ownerId || "").toLowerCase() !== state.authorizedOwnerId) return;
+    scheduleExternalRecipeRefresh();
+  } catch (error) {
+    // Ignore damaged or unrelated same-origin storage signals.
+  }
+}
+
+restoreRecipeBrowseState();
+
+function esc(str) {
+  const div = document.createElement("div");
+  div.textContent = str == null ? "" : String(str);
+  return div.innerHTML;
+}
+
+function cleanRecipeText(str) {
+  return String(str == null ? "" : str)
+    .replace(/\\n/g, "\n")
+    .replace(/\/n/g, "\n");
+}
+
+function authErrorDisclosesAccountExistence(error) {
+  const message = String(error?.message || error || "").toLowerCase();
+  const code = String(error?.code || "").toLowerCase();
+  return code.includes("user_already_exists")
+    || code.includes("email_exists")
+    || code.includes("user_not_found")
+    || message.includes("already registered")
+    || message.includes("already been registered")
+    || message.includes("user not found");
+}
+
+function friendlyAuthError(error) {
+  const message = String(error?.message || error || "Something went wrong");
+  const lower = message.toLowerCase();
+  const code = String(error?.code || "").toLowerCase();
+  if (lower.includes("invalid login")) return "Email or password is incorrect.";
+  if (lower.includes("email not confirmed")) return "That email and password could not be used. If you recently signed up, check your inbox for a confirmation link.";
+  if (code.includes("user_already_exists") || code.includes("email_exists") || code.includes("user_not_found")
+      || lower.includes("already registered") || lower.includes("already been registered") || lower.includes("user not found")) {
+    return "FlavorNest could not complete that account request. Check the details or use password recovery.";
+  }
+  if (code.includes("captcha") || lower.includes("captcha")) return "Human verification was not accepted. Please try again.";
+  if (code.includes("email_address_not_authorized") || lower.includes("email address not authorized")) return "KiddoSprout email delivery is not ready for that address yet. Please ask the app owner to finish custom email setup.";
+  if (code.includes("over_email_send_rate_limit") || lower.includes("rate limit")) return "Too many email requests. Wait a moment, then try again.";
+  if (lower.includes("error sending") || lower.includes("smtp") || lower.includes("mailer")) return "KiddoSprout could not send that email right now. Please try again later.";
+  if (lower.includes("expired") || lower.includes("invalid token") || lower.includes("invalid otp")) return "That email link or code has expired. Please request a new one.";
+  if (lower.includes("account service is unavailable")) return message;
+  if (error?.name === "AbortError" || error?.name === "TimeoutError" || lower.includes("timed out") || lower.includes("timeout") || lower.includes("<!doctype") || lower.includes("not valid json") || lower.includes("failed to fetch") || lower.includes("networkerror")) return "Account service is temporarily unavailable.";
+  return "FlavorNest could not complete that account request. Please try again.";
+}
+
+function requestNextAuthFocus(id) {
+  nextAuthFocusId = String(id || "");
+}
+
+function focusRenderedAuthTarget(fallbackId) {
+  const targetId = nextAuthFocusId || fallbackId;
+  nextAuthFocusId = "";
+  const target = targetId ? document.getElementById(targetId) : null;
+  if (!target || typeof target.focus !== "function") return;
+  target.focus();
+}
+
+function syncAuthFeedback(focusTargetId = "") {
+  const error = document.getElementById("auth-error");
+  const info = document.getElementById("auth-info");
+  if (error) {
+    error.textContent = state.authError;
+    error.hidden = !state.authError;
+  }
+  if (info) {
+    info.textContent = state.authInfo;
+    info.hidden = !state.authInfo;
+  }
+  if (focusTargetId) focusRenderedAuthTarget(focusTargetId);
+}
+
+function syncRecipeRecoveryFeedback(focusTargetId = "") {
+  const error = document.getElementById("recipe-reset-error");
+  const info = document.getElementById("recipe-reset-info");
+  if (error) {
+    error.textContent = state.recoveryError;
+    error.hidden = !state.recoveryError;
+  }
+  if (info) {
+    info.textContent = state.recoveryInfo;
+    info.hidden = !state.recoveryInfo;
+  }
+  if (focusTargetId) focusRenderedAuthTarget(focusTargetId);
+}
+
+function updateRecipeRecoveryControls() {
+  const form = document.getElementById("recipe-reset-form");
+  const submitButton = document.getElementById("recipe-reset-submit");
+  const cancelButton = document.getElementById("recipe-reset-cancel");
+  if (form) form.setAttribute("aria-busy", state.recoverySubmitting ? "true" : "false");
+  if (submitButton) {
+    submitButton.disabled = state.recoverySubmitting;
+    submitButton.textContent = state.recoverySubmitting ? "Saving..." : "Update password";
+  }
+  if (cancelButton) cancelButton.disabled = state.recoverySubmitting;
+}
+
+function updateAuthControls() {
+  const submitButton = document.getElementById("auth-submit");
+  const recoveryButton = document.getElementById("auth-recover");
+  const resendButton = document.getElementById("auth-resend-confirmation");
+  const toggleButton = document.getElementById("auth-toggle");
+  const form = document.getElementById("auth-form");
+
+  if (form) form.setAttribute("aria-busy", state.authSubmitting ? "true" : "false");
+
+  if (submitButton) {
+    submitButton.disabled = state.authSubmitting || !SUPABASE_CONNECTED || (state.authMode === "signup" && !AUTH_EMAIL_DELIVERY_READY);
+    submitButton.textContent = state.authSubmitting
+      ? "Please wait..."
+      : (state.authMode === "login" ? "Login" : "Sign up");
+  }
+  if (recoveryButton) {
+    recoveryButton.disabled = state.authSubmitting || !SUPABASE_CONNECTED || !AUTH_EMAIL_DELIVERY_READY;
+  }
+  if (resendButton) {
+    resendButton.disabled = state.authSubmitting || !SUPABASE_CONNECTED || !AUTH_EMAIL_DELIVERY_READY;
+  }
+  if (toggleButton) toggleButton.disabled = state.authSubmitting;
+}
+
+function disposeAuthHumanCheck() {
+  authHumanCheckMountId += 1;
+  authHumanCheckStarting = false;
+  state.authCaptchaToken = "";
+  const controller = authHumanCheckController;
+  authHumanCheckController = null;
+  if (controller) controller.remove();
+}
+
+function authHumanCheckElements() {
+  return {
+    container: document.getElementById("auth-human-check"),
+    start: document.getElementById("auth-human-check-start"),
+    status: document.getElementById("auth-human-check-status")
+  };
+}
+
+function setAuthHumanCheckStartState(nextState = "idle") {
+  const { container, start } = authHumanCheckElements();
+  if (container) container.hidden = nextState === "idle";
+  if (!start) return;
+  const label = start.querySelector(".auth-human-check-label");
+  const verified = nextState === "verified";
+  const checking = nextState === "checking";
+  start.dataset.state = nextState;
+  start.disabled = checking || verified;
+  start.setAttribute("aria-disabled", String(checking || verified));
+  start.setAttribute("aria-pressed", String(verified));
+  if (label) label.textContent = verified ? "Human confirmed" : checking ? "Checking…" : "I’m not a robot";
+}
+
+function setAuthHumanCheckStatus(message, stateName = "notice") {
+  const status = document.getElementById("auth-human-check-status");
+  if (!status) return;
+  status.hidden = false;
+  status.textContent = message;
+  status.dataset.state = stateName;
+}
+
+function rearmAuthHumanCheck(message = "Tick the box to confirm you’re human.") {
+  disposeAuthHumanCheck();
+  const { container } = authHumanCheckElements();
+  if (container) container.replaceChildren();
+  setAuthHumanCheckStartState("idle");
+  setAuthHumanCheckStatus(message);
+  updateAuthControls();
+}
+
+function resetAuthHumanCheck() {
+  rearmAuthHumanCheck("Tick the box again for another account request.");
+}
+
+function mountAuthHumanCheck() {
+  const { container, start } = authHumanCheckElements();
+  if (!container || !start || authHumanCheckController || authHumanCheckStarting) return;
+
+  authHumanCheckStarting = true;
+  state.authCaptchaToken = "";
+  updateAuthControls();
+  setAuthHumanCheckStartState("checking");
+  setAuthHumanCheckStatus("Starting the safety check…");
+  const helper = window.KiddoSproutHumanCheck;
+  if (!helper?.render) {
+    rearmAuthHumanCheck("Safety check could not start. Tick the box to try again.");
+    return;
+  }
+
+  const mountId = ++authHumanCheckMountId;
+  helper.render(container, {
+    statusElement: document.getElementById("auth-human-check-status"),
+    widgetOptions: {
+      action: "recipe_auth",
+      appearance: "always",
+      "response-field": false,
+      retry: "never",
+      "refresh-expired": "never",
+      "refresh-timeout": "never",
+      size: "flexible",
+      theme: document.documentElement.classList.contains("theme-night") ? "dark" : "light"
+    },
+    onToken(token) {
+      if (mountId !== authHumanCheckMountId) return;
+      state.authCaptchaToken = token;
+      setAuthHumanCheckStartState("verified");
+      setAuthHumanCheckStatus("Safety check complete.", "success");
+      updateAuthControls();
+    },
+    onError() {
+      if (mountId !== authHumanCheckMountId) return;
+      rearmAuthHumanCheck("Safety check failed. Tick the box to try again.");
+    },
+    onExpired() {
+      if (mountId !== authHumanCheckMountId) return;
+      rearmAuthHumanCheck("Safety check expired. Tick the box again.");
+    },
+    onTimeout() {
+      if (mountId !== authHumanCheckMountId) return;
+      rearmAuthHumanCheck("Safety check timed out. Tick the box to try again.");
+    },
+    onUnsupported() {
+      if (mountId !== authHumanCheckMountId) return;
+      rearmAuthHumanCheck("This browser needs an update before the safety check can run.");
+    }
+  }).then((controller) => {
+    if (mountId !== authHumanCheckMountId || !container.isConnected) {
+      controller.remove();
+      return;
+    }
+    authHumanCheckController = controller;
+    authHumanCheckStarting = false;
+    if (!state.authCaptchaToken) setAuthHumanCheckStatus("Finish the Cloudflare check below.");
+  }).catch(() => {
+    if (mountId !== authHumanCheckMountId) return;
+    rearmAuthHumanCheck("Safety check could not start. Tick the box to try again.");
+  });
+}
+
+// ---- Colorful food icons ----
+const CATEGORY_COLORS = {
+  "Family Favourites": "#e07a45",
+  "English Counties": "#b47a4f",
+  "Northern Irish Regional": "#4f8b70",
+  "Scottish Regional": "#667f9a",
+  "Rice": "#f5c164", "Soup": "#e8735c", "Snacks": "#f2a950", "Pasta": "#e8b74c",
+  "Italian": "#7fb069", "Chinese": "#e05252", "Indian": "#e08e45", "Mexican": "#5fae7a",
+  "American": "#5a9bd4", "Asian": "#d47a5a", "Greek": "#5aa9d4", "Vietnamese": "#6cbf84",
+  "Japanese": "#d45a7e", "Korean": "#d45a5a", "French": "#8c7ae0", "Spanish": "#e0a25a",
+  "Middle Eastern": "#c98a4b", "English": "#8c6f56", "British": "#7b6d8d",
+  "Welsh": "#4f8a66", "Scottish": "#526a91", "Northern Irish": "#4c8b78",
+  "Channel Islands": "#4b91a8", "Manx": "#b06d55", "British Vegetarian": "#659b58",
+  "British Seafood": "#478aa4", "British Drinks": "#9a659d", "British Baking": "#b98252",
+  "British Desserts": "#c26f8e", "British Curry House": "#d27c42", "British Pub": "#876744",
+  "British Festive": "#a84e52", "British Confectionery": "#d48b9d", "British Regional": "#a86f45", "British Preserves": "#8b6f3d", "British Soups": "#b56b45", "British Sandwiches": "#d3a64b", "British Breakfast": "#e3a33c", "British Sauces": "#9f7850", "British Salads": "#6e9b52", "British Game": "#7f593f", "British Cheese": "#d7b34a", "British Breads": "#b9834d", "British Steamed Puddings": "#a96c54", "British Offal": "#8f5448", "British Picnic": "#7d9b4f", "British Afternoon Tea": "#c78398", "British Lamb": "#9b684c", "British Pork": "#b36a63", "British Poultry": "#b47b43", "British Beef": "#8e5a45", "British Shellfish": "#4e8c91", "British Spring": "#78a85a", "British Summer": "#e0a84f", "British Autumn": "#b56f3f", "British Winter": "#66849a", "British Supper": "#8a6d57", "British Biscuits": "#c59762", "British Frozen Desserts": "#7da8b8", "British Celebration Cakes": "#c8738f", "British Pub Snacks": "#9c7048", "British School Dinners": "#d18c68", "British One-Pot": "#8b7655", "British Roast Sides": "#9a7b46", "British Savoury Tarts": "#b47762", "British Chilled Desserts": "#a6799a", "British Pasta": "#c78655", "British Sweet Tarts": "#c97988", "British Lighter Meals": "#6f9b78", "British Baked Fruit": "#b87763", "British Family Bakes": "#a66f55", "Welsh Regional": "#b05d66", "Other": "#a3a396"
+};
+function getCategoryColor(category) {
+  return CATEGORY_COLORS[category] || savedThemeColor();
+}
+function safeRecipeImageUrl(value) {
+  try {
+    const url = new URL(String(value || ""), window.location.href);
+    const allowedHosts = new Set(["www.themealdb.com", "themealdb.com", "upload.wikimedia.org"]);
+    return url.protocol === "https:"
+      && !url.username
+      && !url.password
+      && !url.port
+      && allowedHosts.has(url.hostname.toLowerCase())
+      ? url.href
+      : "";
+  } catch (error) {
+    return "";
+  }
+}
+function foodMediaHtml(r, sizePx) {
+  const color = getCategoryColor(r.category);
+  const key = recipeIdentityText(r.title);
+  const intrinsicSize = Math.max(1, Math.round(Number(sizePx) || 1));
+  const cachedUrl = isKiddoSproutDemoMode() || r._source === "cloud"
+    ? ""
+    : safeRecipeImageUrl(exactPhotoCache[key]);
+  const initials = recipeTitleInitials(r.title);
+  return `
+    <img src="${esc(cachedUrl || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==")}" width="${intrinsicSize}" height="${intrinsicSize}" alt="" aria-hidden="true" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-recipe-img="${esc(r.id)}" data-recipe-photo-key="${esc(key)}"
+      style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:none;" />
+    <span aria-hidden="true" data-recipe-placeholder="${esc(r.id)}" style="display:flex;width:100%;height:100%;align-items:center;justify-content:center;text-align:center;color:${color};font-size:${Math.max(12, Math.round(sizePx*0.24))}px;font-weight:800;line-height:1.05;background:linear-gradient(135deg, ${color}22, rgba(255,255,255,.86));border:1px solid ${color}55;border-radius:50%;">${esc(initials || "FOOD")}</span>
+  `;
+}
+
+function recipeTitleInitials(value) {
+  const words = String(value || "").match(/[\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*/gu) || [];
+  const pickedWords = words.length > 1 ? [words[0], words[words.length - 1]] : words;
+  return pickedWords.map((word) => word[0]).join("").toLocaleUpperCase("en-GB") || "FOOD";
+}
+
+function handleRecipePhotoError(event) {
+  const image = event?.target;
+  if (!image || String(image.tagName || "").toUpperCase() !== "IMG"
+      || !image.hasAttribute?.("data-recipe-photo-key")) return;
+  forgetRecipePhoto(image.dataset.recipePhotoKey, image.currentSrc || image.src);
+  image.style.display = "none";
+  if (image.nextElementSibling) image.nextElementSibling.style.display = "flex";
+}
+
+function handleRecipePhotoLoad(event) {
+  const image = event?.target;
+  if (!image || String(image.tagName || "").toUpperCase() !== "IMG"
+      || !image.hasAttribute?.("data-recipe-photo-key")
+      || !safeRecipeImageUrl(image.currentSrc || image.src)
+      || Number(image.naturalWidth || 0) < 1) return;
+  image.style.display = "block";
+  if (image.nextElementSibling) image.nextElementSibling.style.display = "none";
+}
+
+// Error events from images do not bubble, so use one capture listener for all
+// present and future recipe cards. Keeping behavior in JavaScript also lets the
+// site reject HTML event-handler attributes through Content Security Policy.
+document.addEventListener("error", handleRecipePhotoError, true);
+document.addEventListener("load", handleRecipePhotoLoad, true);
+
+// ---- Exact-dish photo lookup ----
+// Tier 1: TheMealDB (curated real food photography, exact-name match)
+// Tier 2: Wikipedia (real encyclopedia photo, covers most named world dishes)
+//
+// Successful lookups are saved to localStorage so the same dish always shows the same
+// photo on every future visit, instead of re-querying (and sometimes failing) on every reload.
+const PHOTO_CACHE_KEY = "recipeBoxPhotoCache_v1";
+const PHOTO_LOOKUP_CONCURRENCY = 4;
+const PHOTO_LOOKUP_QUEUE_MAX = 60;
+const PHOTO_CACHE_MAX_ENTRIES = 300;
+const PHOTO_CACHE_MAX_CHARACTERS = 500000;
+const PHOTO_RESPONSE_MAX_BYTES = 1024 * 1024;
+const PHOTO_REQUEST_TIMEOUT_MS = 8000;
+
+function loadPhotoCache() {
+  const cache = Object.create(null);
+  try {
+    const raw = localStorage.getItem(PHOTO_CACHE_KEY) || "";
+    if (!raw) return cache;
+    if (raw.length > PHOTO_CACHE_MAX_CHARACTERS) {
+      localStorage.removeItem(PHOTO_CACHE_KEY);
+      return cache;
+    }
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      localStorage.removeItem(PHOTO_CACHE_KEY);
+      return cache;
+    }
+    Object.entries(parsed).slice(-PHOTO_CACHE_MAX_ENTRIES).forEach(([rawKey, rawUrl]) => {
+      const key = recipeIdentityText(rawKey).slice(0, 160);
+      const url = safeRecipeImageUrl(rawUrl);
+      if (key && url) cache[key] = url;
+    });
+  } catch (error) {
+    // A damaged or unavailable cache must never stop the recipe book.
+    try { localStorage.removeItem(PHOTO_CACHE_KEY); } catch (storageError) {}
+  }
+  return cache;
+}
+
+let persistedPhotoCache = loadPhotoCache();
+function savePhotoCache() {
+  try { localStorage.setItem(PHOTO_CACHE_KEY, JSON.stringify(persistedPhotoCache)); } catch (e) { /* storage unavailable, safe to ignore */ }
+}
+const exactPhotoCache = Object.assign(Object.create(null), persistedPhotoCache); // title (lowercased) -> final ready-to-use url, or null (session-only if null)
+const exactPhotoRequests = new Map();
+const queuedPhotoLookups = [];
+let activePhotoLookups = 0;
+let photoHydrationTimer = null;
+let photoHydrationGeneration = 0;
+let photoHydrationObserver = null;
+
+function rememberRecipePhoto(key, value) {
+  const url = safeRecipeImageUrl(value);
+  if (!key || !url) return "";
+  delete persistedPhotoCache[key];
+  persistedPhotoCache[key] = url;
+  while (Object.keys(persistedPhotoCache).length > PHOTO_CACHE_MAX_ENTRIES) {
+    delete persistedPhotoCache[Object.keys(persistedPhotoCache)[0]];
+  }
+  exactPhotoCache[key] = url;
+  savePhotoCache();
+  return url;
+}
+
+function forgetRecipePhoto(key, failedUrl) {
+  const normalizedKey = recipeIdentityText(key);
+  const normalizedUrl = safeRecipeImageUrl(failedUrl);
+  if (!normalizedKey || !Object.prototype.hasOwnProperty.call(exactPhotoCache, normalizedKey)) return;
+  if (normalizedUrl && exactPhotoCache[normalizedKey] !== normalizedUrl) return;
+  delete exactPhotoCache[normalizedKey];
+  delete persistedPhotoCache[normalizedKey];
+  savePhotoCache();
+}
+
+function drainPhotoLookupQueue() {
+  while (activePhotoLookups < PHOTO_LOOKUP_CONCURRENCY && queuedPhotoLookups.length > 0) {
+    const job = queuedPhotoLookups.shift();
+    activePhotoLookups += 1;
+    Promise.resolve()
+      .then(job.lookup)
+      .then(job.resolve, job.reject)
+      .finally(() => {
+        activePhotoLookups -= 1;
+        drainPhotoLookupQueue();
+      });
+  }
+}
+
+function queuePhotoLookup(lookup) {
+  return new Promise((resolve, reject) => {
+    if (queuedPhotoLookups.length >= PHOTO_LOOKUP_QUEUE_MAX) {
+      queuedPhotoLookups.shift().resolve(null);
+    }
+    queuedPhotoLookups.push({ lookup, resolve, reject });
+    drainPhotoLookupQueue();
+  });
+}
+
+async function readBoundedPhotoText(response) {
+  const reader = response.body && typeof response.body.getReader === "function"
+    ? response.body.getReader()
+    : null;
+  if (!reader) return "";
+  const chunks = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = value instanceof Uint8Array ? value : new Uint8Array(value || []);
+      total += chunk.byteLength;
+      if (total > PHOTO_RESPONSE_MAX_BYTES) {
+        await reader.cancel("response-too-large").catch(() => {});
+        return "";
+      }
+      chunks.push(chunk);
+    }
+  } finally {
+    try { reader.releaseLock(); } catch (error) {}
+  }
+  const combined = new Uint8Array(total);
+  let offset = 0;
+  chunks.forEach((chunk) => {
+    combined.set(chunk, offset);
+    offset += chunk.byteLength;
+  });
+  return new TextDecoder("utf-8", { fatal: true }).decode(combined);
+}
+
+async function fetchRecipePhotoJson(url) {
+  const controller = typeof AbortController === "function" ? new AbortController() : null;
+  const timeout = controller ? window.setTimeout(() => controller.abort(), PHOTO_REQUEST_TIMEOUT_MS) : null;
+  try {
+    const response = await fetch(url, {
+      headers: { Accept: "application/json" },
+      cache: "default",
+      credentials: "omit",
+      mode: "cors",
+      referrerPolicy: "no-referrer",
+      signal: controller ? controller.signal : undefined
+    });
+    if (!response.ok) return null;
+    const contentType = String(response.headers.get("content-type") || "").toLowerCase();
+    const declaredLength = Number(response.headers.get("content-length") || 0);
+    if (!contentType.includes("json") || (Number.isFinite(declaredLength) && declaredLength > PHOTO_RESPONSE_MAX_BYTES)) return null;
+    const text = await readBoundedPhotoText(response);
+    if (!text) return null;
+    const parsed = JSON.parse(text);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch (error) {
+    return null;
+  } finally {
+    if (timeout) window.clearTimeout(timeout);
+  }
+}
+
+async function fetchExactPhotoUncached(title, key) {
+
+  // Tier 1: TheMealDB
+  try {
+    const data = await fetchRecipePhotoJson(`https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(title)}`);
+    const wantedTitle = recipeIdentityText(title);
+    const exactMeal = Array.isArray(data?.meals)
+      ? data.meals.find((meal) => meal && recipeIdentityText(meal.strMeal) === wantedTitle)
+      : null;
+    const thumb = exactMeal && typeof exactMeal.strMealThumb === "string" ? exactMeal.strMealThumb : null;
+    if (thumb) {
+      const finalUrl = safeRecipeImageUrl(thumb + "/preview");
+      if (finalUrl) {
+        return rememberRecipePhoto(key, finalUrl);
+      }
+    }
+  } catch (err) { /* fall through to next tier */ }
+
+  // Tier 2: Wikipedia
+  try {
+    const exactWikiUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&redirects=1&prop=pageimages&pithumbsize=500&format=json&origin=*`;
+    const exactData = await fetchRecipePhotoJson(exactWikiUrl);
+    const exactPages = exactData && exactData.query && exactData.query.pages;
+    if (exactPages) {
+      const exactPage = Object.values(exactPages).find((page) => page && !page.missing && page.thumbnail && page.thumbnail.source);
+      if (exactPage) {
+        const finalUrl = safeRecipeImageUrl(exactPage.thumbnail.source);
+        if (finalUrl) {
+          return rememberRecipePhoto(key, finalUrl);
+        }
+      }
+    }
+
+  } catch (err) { /* fall through to the initials placeholder */ }
+
+  // No match this time — don't persist the miss, so it gets another chance on the next visit
+  // instead of being permanently stuck without a real photo.
+  exactPhotoCache[key] = null;
+  return null;
+}
+
+function fetchExactPhoto(title) {
+  const key = recipeIdentityText(title);
+  if (!key) return Promise.resolve(null);
+  if (Object.prototype.hasOwnProperty.call(exactPhotoCache, key)) return Promise.resolve(exactPhotoCache[key]);
+  if (exactPhotoRequests.has(key)) return exactPhotoRequests.get(key);
+
+  const request = queuePhotoLookup(() => fetchExactPhotoUncached(title, key))
+    .finally(() => exactPhotoRequests.delete(key));
+  exactPhotoRequests.set(key, request);
+  return request;
+}
+
+async function hydrateExactPhotos(recipes, generation = photoHydrationGeneration) {
+  if (isKiddoSproutDemoMode() || generation !== photoHydrationGeneration) return;
+  const builtInRecipes = (Array.isArray(recipes) ? recipes : [])
+    .filter((recipe) => recipe && recipe._source !== "cloud");
+  for (let offset = 0; offset < builtInRecipes.length; offset += PHOTO_LOOKUP_QUEUE_MAX) {
+    if (isKiddoSproutDemoMode() || generation !== photoHydrationGeneration) return;
+    const chunk = builtInRecipes.slice(offset, offset + PHOTO_LOOKUP_QUEUE_MAX);
+    await Promise.all(chunk.map(async (r) => {
+      const url = safeRecipeImageUrl(await fetchExactPhoto(r.title));
+      const currentRecipe = state.recipes.find((recipe) => recipe.id === r.id);
+      if (!url || isKiddoSproutDemoMode() || !currentRecipe || currentRecipe._source === "cloud"
+          || recipeIdentityText(currentRecipe.title) !== recipeIdentityText(r.title)) return;
+      Array.from(document.querySelectorAll("img[data-recipe-img]"))
+        .filter((img) => img.getAttribute("data-recipe-img") === String(r.id))
+        .forEach((img) => {
+          img.src = url;
+          if (img.complete) handleRecipePhotoLoad({ target: img });
+        });
+    }));
+  }
+}
+
+function cancelExactPhotoHydration() {
+  photoHydrationGeneration += 1;
+  if (photoHydrationTimer) window.clearTimeout(photoHydrationTimer);
+  photoHydrationTimer = null;
+  photoHydrationObserver?.disconnect();
+  photoHydrationObserver = null;
+}
+
+function scheduleExactPhotoHydration(recipes) {
+  cancelExactPhotoHydration();
+  const generation = photoHydrationGeneration;
+  if (isKiddoSproutDemoMode()) return;
+  const batch = Array.isArray(recipes) ? recipes.slice() : [];
+  photoHydrationTimer = window.setTimeout(() => {
+    photoHydrationTimer = null;
+    if (generation !== photoHydrationGeneration || !batch.length) return;
+    const recipesById = new Map(batch.map((recipe) => [String(recipe?.id || ""), recipe]));
+    const images = [...document.querySelectorAll("img[data-recipe-img]")]
+      .filter((image) => recipesById.has(String(image.dataset.recipeImg || "")));
+    if (!images.length) return;
+
+    // Exact-photo searches can require several cross-origin API requests per
+    // dish. Start them only when the matching card is near the viewport so a
+    // long recipe page does not spend bandwidth on off-screen photography.
+    if (typeof IntersectionObserver !== "function") {
+      void hydrateExactPhotos(batch, generation).catch(() => {});
+      return;
+    }
+    photoHydrationObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        observer.unobserve(entry.target);
+        const recipeId = String(entry.target.dataset.recipeImg || "");
+        const recipe = recipesById.get(recipeId);
+        if (!recipe) return;
+        recipesById.delete(recipeId);
+        void hydrateExactPhotos([recipe], generation).catch(() => {});
+      });
+      if (!recipesById.size) {
+        observer.disconnect();
+        if (photoHydrationObserver === observer) photoHydrationObserver = null;
+      }
+    }, { rootMargin: "320px 0px" });
+    images.forEach((image) => photoHydrationObserver.observe(image));
+  }, 160);
+}
+function missingRecipeBadge(r) {
+  const missing = !(Array.isArray(r.ingredients) && r.ingredients.length) || !(Array.isArray(r.steps) && r.steps.length);
+  return missing ? `<span style="font-size:12px;color:var(--accent-dark);background:var(--accent-soft);border:1px solid var(--accent-border);padding:2px 6px;border-radius:999px;font-weight:600;margin-left:6px;">details coming soon</span>` : "";
+}
+function recipePhotoSourcesHtml() {
+  if (isKiddoSproutDemoMode()) {
+    return `<p class="recipe-photo-sources">External food photos are off in this public demo, so FlavorNest shows recipe initials.</p>`;
+  }
+  return `<p class="recipe-photo-sources">Exact-match food photos, when available, come from
+    <a href="https://www.themealdb.com/" target="_blank" rel="noopener noreferrer">TheMealDB</a> or
+    <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>.
+    Recipe initials remain visible until a photo loads.</p>`;
+}
+function cookingSafetyNoteHtml() {
+  return `<aside class="cooking-safety-note" role="note" aria-labelledby="cooking-safety-title">
+    <h2 id="cooking-safety-title">Cook safely with an adult</h2>
+    <p>Check allergies first. Wash hands, keep raw meat, fish, eggs, and their utensils away from ready-to-eat food, and cook food fully. Recipe times are a guide—follow packaging and local food-safety advice.</p>
+  </aside>`;
+}
+function getFoodEmoji(title, category) {
+  const t = (title || "").toLowerCase();
+  const keywordMap = [
+    [["jollof", "fried rice", "rice"], "🍚"],
+    [["soup", "pepper soup", "pho", "ramen", "tom yum"], "🍲"],
+    [["egusi", "ogbono", "banga", "efo", "stew"], "🍛"],
+    [["pizza"], "🍕"],
+    [["spaghetti", "pasta", "lasagna", "alfredo", "carbonara"], "🍝"],
+    [["taco"], "🌮"],
+    [["quesadilla", "burrito"], "🌯"],
+    [["burger"], "🍔"],
+    [["chicken wing"], "🍗"],
+    [["chicken", "turkey"], "🍗"],
+    [["beef", "steak", "bulgogi", "rendang", "stroganoff"], "🥩"],
+    [["fish", "shrimp", "prawn", "seafood"], "🐟"],
+    [["egg", "shakshuka"], "🥚"],
+    [["bread", "baguette", "roll", "pie", "pastry"], "🥐"],
+    [["cake", "doughnut", "candy", "sweet", "brittle"], "🍩"],
+    [["salad"], "🥗"],
+    [["bean", "moi moi", "akara", "ewa", "chana", "hummus", "falafel"], "🫘"],
+    [["plantain", "chips", "fries"], "🍟"],
+    [["sushi"], "🍣"],
+    [["noodle", "chow mein", "pad thai"], "🍜"],
+    [["popcorn"], "🍿"],
+    [["yam", "potato"], "🥔"],
+    [["suya", "kilishi", "skewer", "kebab", "souvlaki"], "🍢"],
+  ];
+  for (const [keywords, emoji] of keywordMap) {
+    if (keywords.some((k) => t.includes(k))) return emoji;
+  }
+  const categoryFallback = {
+    "Rice": "🍚", "Soup": "🍲", "Snacks": "🍟", "Pasta": "🍝", "Italian": "🍕",
+    "Chinese": "🥡", "Indian": "🍛", "Mexican": "🌮", "American": "🍔", "Asian": "🍜",
+    "Greek": "🥙", "Vietnamese": "🍜", "Japanese": "🍣", "Korean": "🍲", "French": "🥖",
+    "Spanish": "🥘", "Middle Eastern": "🧆", "Other": "🍽️"
+  };
+  return categoryFallback[category] || "🍽️";
+}
+
+// ---- Supabase Auth REST helpers ----
+function authRequestSignal(timeoutMs = AUTH_REQUEST_TIMEOUT_MS) {
+  if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+    return AbortSignal.timeout(timeoutMs);
+  }
+  if (typeof AbortController === "undefined") return undefined;
+  const controller = new AbortController();
+  window.setTimeout(() => controller.abort(), timeoutMs);
+  return controller.signal;
+}
+
+async function authRequest(path, body) {
+  if (!SUPABASE_CONNECTED) {
+    throw new Error("Account service is unavailable. Check the app configuration.");
+  }
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/${path}`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_PUBLISHABLE_KEY,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body),
+    cache: "no-store",
+    signal: authRequestSignal(),
+  });
+  const contentType = res.headers.get("content-type") || "";
+  const data = contentType.includes("application/json")
+    ? await res.json()
+    : { error: await res.text() };
+  if (!res.ok) {
+    const error = new Error(data.error_description || data.msg || data.error || "Something went wrong");
+    error.code = data.error_code || data.code || "";
+    error.status = res.status;
+    throw error;
+  }
+  return data;
+}
+function authRedirectUrl() {
+  return window.location.origin + window.location.pathname;
+}
+function recipeAuthNonce() {
+  const randomBytes = new Uint8Array(32);
+  window.crypto.getRandomValues(randomBytes);
+  return window.btoa(String.fromCharCode(...randomBytes))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+}
+function validRecipeAuthEmail(value) {
+  const email = String(value || "").trim().toLowerCase();
+  return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+async function recipeAuthEmailFingerprint(email, nonce) {
+  const normalizedEmail = String(email || "").trim().toLowerCase();
+  const normalizedNonce = String(nonce || "");
+  if (!validRecipeAuthEmail(normalizedEmail)
+      || !/^[A-Za-z0-9_-]{43}$/.test(normalizedNonce)
+      || !window.crypto?.subtle
+      || typeof TextEncoder !== "function") {
+    throw new Error("Secure browser storage is unavailable. Open this page outside private browsing and try again.");
+  }
+  const digest = new Uint8Array(await window.crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(normalizedNonce + "\u0000" + normalizedEmail)
+  ));
+  return window.btoa(String.fromCharCode(...digest))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+}
+async function createRecipePasswordRecoveryTransaction(email) {
+  const nonce = recipeAuthNonce();
+  const transaction = {
+    nonce,
+    emailFingerprint: await recipeAuthEmailFingerprint(email, nonce),
+    createdAt: Date.now()
+  };
+  try {
+    window.localStorage.setItem(RECIPE_PASSWORD_RECOVERY_TRANSACTION_KEY, JSON.stringify(transaction));
+  } catch (error) {
+    throw new Error("Secure browser storage is unavailable. Open this page outside private browsing and try again.");
+  }
+  return transaction;
+}
+function readRecipePasswordRecoveryTransaction(returnedNonce) {
+  let serialized = "";
+  try {
+    serialized = window.localStorage.getItem(RECIPE_PASSWORD_RECOVERY_TRANSACTION_KEY) || "";
+  } catch (error) {
+    return null;
+  }
+  if (!serialized || !returnedNonce) return null;
+  try {
+    const transaction = JSON.parse(serialized);
+    const age = Date.now() - Number(transaction?.createdAt);
+    const valid = /^[A-Za-z0-9_-]{43}$/.test(String(transaction?.nonce || ""))
+      && transaction.nonce === returnedNonce
+      && /^[A-Za-z0-9_-]{43}$/.test(String(transaction?.emailFingerprint || ""))
+      && Number.isFinite(age)
+      && age >= 0
+      && age <= RECIPE_PASSWORD_RECOVERY_TRANSACTION_TTL_MS;
+    if (valid) return transaction;
+  } catch (error) {
+    // Clear malformed recovery state below.
+  }
+  try { window.localStorage.removeItem(RECIPE_PASSWORD_RECOVERY_TRANSACTION_KEY); } catch (error) {}
+  return null;
+}
+function passwordRecoveryRedirectUrl(transactionNonce) {
+  const redirect = new URL(authRedirectUrl());
+  redirect.searchParams.set(RECIPE_PASSWORD_RECOVERY_TRANSACTION_PARAM, transactionNonce);
+  return redirect.toString();
+}
+function captchaProtectedBody(body, captchaToken) {
+  const token = String(captchaToken || "").trim();
+  if (!token) throw new Error("Confirm you are not a bot before continuing.");
+  return {
+    ...body,
+    gotrue_meta_security: { captcha_token: token }
+  };
+}
+function signUpRequest(email, password, captchaToken) {
+  const redirect = encodeURIComponent(authRedirectUrl());
+  return authRequest(`signup?redirect_to=${redirect}`, captchaProtectedBody({ email, password }, captchaToken));
+}
+function signInRequest(email, password, captchaToken) {
+  return authRequest("token?grant_type=password", captchaProtectedBody({ email, password }, captchaToken));
+}
+function resendConfirmationRequest(email, captchaToken) {
+  const redirect = encodeURIComponent(authRedirectUrl());
+  return authRequest(
+    `resend?redirect_to=${redirect}`,
+    captchaProtectedBody({ type: "signup", email }, captchaToken)
+  );
+}
+function recoverPasswordRequest(email, captchaToken, transactionNonce) {
+  const redirect = encodeURIComponent(passwordRecoveryRedirectUrl(transactionNonce));
+  return authRequest(`recover?redirect_to=${redirect}`, captchaProtectedBody({ email }, captchaToken));
+}
+async function updatePasswordRequest(access_token, password) {
+  if (!SUPABASE_CONNECTED) {
+    throw new Error("Account service is unavailable. Check the app configuration.");
+  }
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    method: "PUT",
+    headers: {
+      apikey: SUPABASE_PUBLISHABLE_KEY,
+      Authorization: `Bearer ${access_token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ password }),
+    cache: "no-store",
+    signal: authRequestSignal()
+  });
+  const contentType = res.headers.get("content-type") || "";
+  const data = contentType.includes("application/json")
+    ? await res.json()
+    : { error: await res.text() };
+  if (!res.ok) {
+    const error = new Error(data.error_description || data.msg || data.error || "Could not update password");
+    error.code = data.error_code || data.code || data.error || "";
+    error.status = res.status;
+    throw error;
+  }
+  return data;
+}
+async function fetchRecipeRecoveryUser(access_token) {
+  if (!SUPABASE_CONNECTED) {
+    throw new Error("Account service is unavailable. Check the app configuration.");
+  }
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    headers: {
+      apikey: SUPABASE_PUBLISHABLE_KEY,
+      Authorization: `Bearer ${access_token}`
+    },
+    cache: "no-store",
+    signal: authRequestSignal()
+  });
+  const contentType = res.headers.get("content-type") || "";
+  const data = contentType.includes("application/json")
+    ? await res.json()
+    : { error: await res.text() };
+  if (!res.ok || !validRecipeAuthEmail(data?.email)) {
+    const error = new Error(data.error_description || data.msg || data.error || "The password reset link could not be verified.");
+    error.code = data.error_code || data.code || data.error || "";
+    error.status = res.status;
+    throw error;
+  }
+  return data;
+}
+async function endRecipeAuthSession(accessToken) {
+  if (!SUPABASE_CONNECTED || !accessToken) return false;
+  try {
+    const response = await fetch(`${SUPABASE_URL}/auth/v1/logout?scope=local`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        Authorization: `Bearer ${accessToken}`
+      },
+      cache: "no-store",
+      signal: authRequestSignal(5000)
+    });
+    return response.ok;
+  } catch (error) {
+    return false;
+  }
+}
+
+// ---- Supabase table (PostgREST) helpers ----
+async function fetchAllRecipes(access_token, user_id) {
+  return getRecipeCloudClient().list(access_token, user_id);
+}
+
+async function insertRecipe(access_token, user_id, { title, category, ingredients, steps }) {
+  return getRecipeCloudClient().create(access_token, user_id, { title, category, ingredients, steps });
+}
+
+async function updateRecipe(access_token, user_id, recipe_id, { title, category, ingredients, steps }) {
+  return getRecipeCloudClient().update(access_token, user_id, recipe_id, { title, category, ingredients, steps });
+}
+
+async function deleteRecipe(access_token, user_id, recipe_id) {
+  return getRecipeCloudClient().remove(access_token, user_id, recipe_id);
+}
+
+// ---- Shared session bridge ----
+function persistSession(session) {
+  const sessionApi = sharedRecipeSession();
+  const saved = sessionApi.save(session);
+  const storedSession = saved === false ? null : sessionApi.getSession();
+  return Boolean(
+    storedSession?.access_token
+    && String(storedSession.access_token) === String(session?.access_token || "")
+    && String(storedSession.user?.id || "") === String(session?.user?.id || "")
+  );
+}
+
+function acceptRecipeSession(session) {
+  if (!session?.user?.email_confirmed_at && !session?.user?.confirmed_at) {
+    throw new Error("Email not confirmed");
+  }
+  if (persistSession(session)) return session;
+  void endRecipeAuthSession(session?.access_token);
+  throw new Error("This browser could not save your sign-in. Check its storage or private-browsing settings, then try again.");
+}
+
+function clearPersistedSession() {
+  window.KiddoSproutSession?.clear?.();
+}
+
+function readPersistedSession() {
+  if (isKiddoSproutDemoMode()) return null;
+  return window.KiddoSproutSession?.getSession?.() || null;
+}
+
+// ---- Derived ----
+function getCategories() {
+  const set = new Set(state.recipes.map((r) => r.category || "Other"));
+  const priorityCategories = [
+    "Family Favourites", "Rice", "Soup", "Snacks", "Pasta", "Breakfast",
+    "Vegetarian", "Mexican", "Italian", "Indian", "Nigerian"
+  ];
+  const categories = Array.from(set).sort((a, b) => a.localeCompare(b));
+  return [
+    "All",
+    ...priorityCategories.filter((category) => set.has(category)),
+    ...categories.filter((category) => !priorityCategories.includes(category))
+  ];
+}
+function reconcileSelectedRecipeCategory(categories) {
+  if (!categories.includes(state.selectedCategory)) {
+    state.selectedCategory = "All";
+    resetRecipePage();
+  }
+}
+function normalizeRecipeSearchText(value) {
+  return String(value == null ? "" : value)
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("en-GB")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+function getFilteredRecipes() {
+  const q = normalizeRecipeSearchText(state.searchQuery).slice(0, 200);
+  const queryWords = q.split(" ").filter(Boolean);
+  return state.recipes.filter((r) => {
+    const matchesCategory = state.selectedCategory === "All" || (r.category || "Other") === state.selectedCategory;
+    if (!matchesCategory || !q) return matchesCategory;
+    const searchableText = normalizeRecipeSearchText([
+      r.title,
+      r.category,
+      ...(Array.isArray(r.ingredients) ? r.ingredients : [])
+    ].join(" "));
+    const matchesSearch = queryWords.every((word) => searchableText.includes(word));
+    return matchesCategory && matchesSearch;
+  });
+}
+function resetRecipePage() {
+  state.visibleRecipeLimit = RECIPE_PAGE_SIZE;
+  persistRecipeBrowseState();
+}
+function getRecipePage(filteredRecipes) {
+  const recipes = Array.isArray(filteredRecipes) ? filteredRecipes : [];
+  const visibleLimit = normalizedRecipePageLimit(state.visibleRecipeLimit);
+  const visible = recipes.slice(0, visibleLimit);
+  const remaining = Math.max(0, recipes.length - visible.length);
+  return {
+    visible,
+    total: recipes.length,
+    remaining,
+    nextCount: Math.min(RECIPE_PAGE_SIZE, remaining)
+  };
+}
+function recipeResultsSummary(page) {
+  if (page.total === 0) return "No recipes found";
+  if (page.remaining > 0) return `Showing ${page.visible.length} of ${page.total} recipes`;
+  return `Showing all ${page.total} ${page.total === 1 ? "recipe" : "recipes"}`;
+}
+function clearRecipeActionNotice() {
+  state.recipeActionNotice = "";
+  document.querySelector(".recipe-action-notice")?.remove();
+}
+function clearRecipeSearch() {
+  state.searchQuery = "";
+  clearRecipeActionNotice();
+  resetRecipePage();
+  const searchInput = document.getElementById("search-input");
+  if (searchInput) searchInput.value = "";
+  refreshRecipeList();
+  searchInput?.focus();
+}
+function resetRecipeFilters() {
+  state.searchQuery = "";
+  state.selectedCategory = "All";
+  clearRecipeActionNotice();
+  resetRecipePage();
+  const searchInput = document.getElementById("search-input");
+  if (searchInput) searchInput.value = "";
+  refreshRecipeList();
+  searchInput?.focus();
+}
+function getSelectedRecipe() {
+  return state.recipes.find((r) => r.id === state.selectedRecipeId) || null;
+}
+
+function canWriteCloudRecipes() {
+  return Boolean(
+    !PUBLIC_DEMO_ONLY
+    && !state.readOnlyBrowse
+    && state.recipeMode === "cloud"
+    && state.session?.access_token
+    && state.session?.user?.id
+    && state.authorizedOwnerId
+    && String(state.session.user.id).trim().toLowerCase() === state.authorizedOwnerId
+  );
+}
+
+function isOwnedCloudRecipe(recipe) {
+  return Boolean(
+    canWriteCloudRecipes()
+    && recipe?._source === "cloud"
+    && String(recipe.user_id || "").trim().toLowerCase() === state.authorizedOwnerId
+  );
+}
+
+function recipeFallbackDetails(error) {
+  const kind = String(error?.kind || "unavailable");
+  if (kind === "schema_missing") {
+    return {
+      kind,
+      notice: "Family recipe storage has not been installed yet. You can still browse the built-in recipes, but saving is off."
+    };
+  }
+  if (kind === "auth") {
+    return {
+      kind,
+      notice: "Your recipe session has expired. Built-in recipes are available read-only; log out and back in before saving."
+    };
+  }
+  if (kind === "permission") {
+    return {
+      kind,
+      notice: "Family recipe storage permissions need attention. Built-in recipes are available read-only and nothing is being synced."
+    };
+  }
+  if (kind === "network" || kind === "timeout" || kind === "unavailable") {
+    return {
+      kind,
+      notice: "Cloud recipes cannot be reached right now. You are viewing the built-in recipe book only, and saving is paused."
+    };
+  }
+  if (kind === "session_refresh_unavailable") {
+    return {
+      kind,
+      notice: "Your saved sign-in has been kept, but the account service could not refresh it right now. Built-in recipes are available read-only until you try again."
+    };
+  }
+  return {
+    kind,
+    notice: "Cloud recipes could not be loaded safely. You are viewing built-in recipes only, and saving is paused."
+  };
+}
+
+function showBuiltInRecipeFallback(error) {
+  const details = recipeFallbackDetails(error);
+  state.cloudRecipes = [];
+  state.recipes = builtInRecipeCollection();
+  state.recipeMode = "built-in";
+  state.recipeNotice = details.notice;
+  state.cloudErrorKind = details.kind;
+}
+
+function startReadOnlyRecipeBrowse() {
+  recipeLoadRevision += 1;
+  recipeMutationRevision += 1;
+  state.authChecked = true;
+  state.session = null;
+  state.authorizedOwnerId = "";
+  kiddoSproutGate = null;
+  state.readOnlyBrowse = true;
+  state.recipeMode = "demo";
+  state.recipeNotice = "Demo recipe book: browse the built-in collection. Accounts, cloud syncing, saving, editing, and deleting are disabled in this preview.";
+  state.recipeActionNotice = "";
+  state.cloudErrorKind = "";
+  state.cloudChecking = false;
+  state.cloudRecipes = [];
+  state.recipes = builtInRecipeCollection();
+  state.recipesLoaded = true;
+  state.screen = "browse";
+  state.selectedRecipeId = null;
+  state.editingRecipeId = null;
+  state.detailError = "";
+  state.detailSubmitting = false;
+  state.addError = "";
+  state.addSubmitting = false;
+  browseReturnRecipeId = "";
+  render();
+}
+
+// ---- Actions ----
+function clearAuthCallbackUrl() {
+  const cleanUrl = new URL(window.location.href);
+  [
+    "access_token", "code", "error", "error_code", "error_description", "expires_at",
+    "expires_in", "provider_refresh_token", "provider_token", "refresh_token", "token_type", "type"
+  ].forEach((name) => cleanUrl.searchParams.delete(name));
+  cleanUrl.searchParams.delete(RECIPE_PASSWORD_RECOVERY_TRANSACTION_PARAM);
+  cleanUrl.hash = "";
+  window.history.replaceState(null, "", cleanUrl.pathname + cleanUrl.search);
+}
+
+function readAuthCallback() {
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const query = new URLSearchParams(window.location.search);
+  const getParam = (name) => hash.get(name) || query.get(name);
+  const type = getParam("type");
+  const accessToken = hash.get("access_token");
+  const refreshToken = hash.get("refresh_token");
+  const callbackError = getParam("error_description") || getParam("error");
+  const callbackErrorCode = getParam("error_code") || "";
+  const returnedRecoveryNonce = query.get(RECIPE_PASSWORD_RECOVERY_TRANSACTION_PARAM) || "";
+  const recoveryTransaction = returnedRecoveryNonce
+    ? readRecipePasswordRecoveryTransaction(returnedRecoveryNonce)
+    : null;
+
+  if (query.has("access_token") || query.has("refresh_token") || query.has("provider_token") || query.has("provider_refresh_token")) {
+    state.authChecked = true;
+    state.authMode = "login";
+    state.authInfo = "";
+    state.authError = "That account link was not safe to use. Please request a new email.";
+    try { window.localStorage.removeItem(RECIPE_PASSWORD_RECOVERY_TRANSACTION_KEY); } catch (error) {}
+    clearAuthCallbackUrl();
+    render();
+    return true;
+  }
+
+  if (callbackError) {
+    state.authChecked = true;
+    state.authMode = "login";
+    state.authInfo = "";
+    state.authError = callbackErrorCode === "otp_expired"
+      ? "This email link has expired. Try logging in, or sign up again to request a new confirmation email."
+      : "We could not finish that email link. Please try logging in or request a new email.";
+    if (returnedRecoveryNonce) {
+      state.authError = callbackErrorCode === "otp_expired"
+        ? "This password reset link expired. Request a new one."
+        : "We could not finish that password reset link. Request a new one.";
+      try { window.localStorage.removeItem(RECIPE_PASSWORD_RECOVERY_TRANSACTION_KEY); } catch (error) {}
+    }
+    clearAuthCallbackUrl();
+    render();
+    return true;
+  }
+
+  if (type === "recovery" && accessToken) {
+    if (!recoveryTransaction) {
+      state.authChecked = true;
+      state.authMode = "login";
+      state.authInfo = "";
+      state.authError = "For safety, this password reset link must be opened in the browser that requested it. Request a new link.";
+      clearAuthCallbackUrl();
+      render();
+      return true;
+    }
+    state.recoveryMode = true;
+    state.recoveryAccessToken = accessToken;
+    state.recoveryEmailFingerprint = recoveryTransaction.emailFingerprint;
+    state.recoveryNonce = recoveryTransaction.nonce;
+    state.recoveryError = "";
+    state.recoveryInfo = "Reset link verified. Choose and confirm your new password.";
+    state.authChecked = true;
+    try { window.localStorage.removeItem(RECIPE_PASSWORD_RECOVERY_TRANSACTION_KEY); } catch (error) {}
+    clearAuthCallbackUrl();
+    render();
+    return true;
+  }
+
+  if (type === "signup" && accessToken && refreshToken) {
+    state.authChecked = true;
+    state.authMode = "login";
+    state.authError = "";
+    state.authInfo = "Email confirmed. You can log in now.";
+    clearAuthCallbackUrl();
+    render();
+    return true;
+  }
+
+  return false;
+}
+
+async function restoreSession() {
+  if (readAuthCallback()) {
+    return;
+  }
+  state.authChecked = false;
+  state.cloudChecking = true;
+  render();
+  try {
+    const storedSession = readPersistedSession();
+    if (!storedSession) {
+      state.session = null;
+      state.authorizedOwnerId = "";
+      return;
+    }
+    const access = await validatedRecipeAccess();
+    state.session = access.session;
+    const allowed = await canOpenKiddoSproutApp("recipe", APP_NAME);
+    if (allowed) await loadRecipes();
+  } catch (error) {
+    state.authorizedOwnerId = "";
+    const temporary = window.KiddoSproutSession?.isTemporaryError?.(error)
+      || error?.kind === "session_refresh_unavailable";
+    if (temporary) {
+      showKiddoSproutGate(
+        "Parent check temporarily unavailable",
+        "KiddoSprout could not safely verify this parent session. The saved sign-in is safe; try again when the connection returns.",
+        { retry: true }
+      );
+    } else {
+      state.session = null;
+      clearPersistedSession();
+    }
+  } finally {
+    state.authChecked = true;
+    state.cloudChecking = false;
+    render();
+  }
+}
+
+function retryKiddoSproutGate() {
+  if (recipeGateRetryInFlight) return recipeGateRetryInFlight;
+  if (kiddoSproutGate?.retry !== true) return Promise.resolve(false);
+  kiddoSproutGate = null;
+  recipeGateRetryInFlight = (async () => {
+    try {
+      await restoreSession();
+      return kiddoSproutGate === null;
+    } catch (error) {
+      showKiddoSproutGate(
+        "Parent check temporarily unavailable",
+        "KiddoSprout still cannot verify this parent session. Check the connection and try again.",
+        { retry: true }
+      );
+      render();
+      return false;
+    }
+  })().finally(() => {
+    recipeGateRetryInFlight = null;
+  });
+  return recipeGateRetryInFlight;
+}
+
+function retryRecipeCloud() {
+  if (state.cloudErrorKind === "session_refresh_unavailable") {
+    state.cloudChecking = true;
+    render();
+    return restoreSession();
+  }
+  if (state.recipeMode === "stale") {
+    return loadRecipes({ keepExistingOnFailure: true, preserveFocus: true });
+  }
+  return loadRecipes();
+}
+
+async function handleRecipePasswordUpdate(password, confirmation) {
+  if (state.recoverySubmitting) return;
+  state.recoveryError = "";
+  state.recoveryInfo = "";
+  if (!password || password.length < 8) {
+    state.recoveryError = "Password must be at least 8 characters.";
+    syncRecipeRecoveryFeedback("recipe-new-password");
+    return;
+  }
+  if (password !== confirmation) {
+    state.recoveryError = "The two new passwords do not match.";
+    syncRecipeRecoveryFeedback("recipe-confirm-password");
+    return;
+  }
+  const accessToken = String(state.recoveryAccessToken || "");
+  const expectedFingerprint = String(state.recoveryEmailFingerprint || "");
+  const recoveryNonce = String(state.recoveryNonce || "");
+  if (!accessToken
+      || !/^[A-Za-z0-9_-]{43}$/.test(expectedFingerprint)
+      || !/^[A-Za-z0-9_-]{43}$/.test(recoveryNonce)) {
+    state.recoveryError = "The password reset link is no longer available. Request a new one.";
+    syncRecipeRecoveryFeedback("recipe-reset-error");
+    return;
+  }
+  const revision = ++recoveryOperationRevision;
+  state.recoverySubmitting = true;
+  state.recoveryInfo = "Updating your password…";
+  syncRecipeRecoveryFeedback("recipe-reset-info");
+  updateRecipeRecoveryControls();
+  try {
+    const verifiedUser = await fetchRecipeRecoveryUser(accessToken);
+    if (revision !== recoveryOperationRevision || accessToken !== state.recoveryAccessToken) return;
+    if (await recipeAuthEmailFingerprint(verifiedUser.email, recoveryNonce) !== expectedFingerprint) {
+      throw new Error("The password reset link does not match the account requested in this browser.");
+    }
+    const user = await updatePasswordRequest(accessToken, password);
+    if (revision !== recoveryOperationRevision || accessToken !== state.recoveryAccessToken) return;
+    if (String(user?.id || "") !== String(verifiedUser?.id || "")
+        || String(user?.email || "").trim().toLowerCase()
+          !== String(verifiedUser?.email || "").trim().toLowerCase()) {
+      throw new Error("The password reset account changed before it could be saved.");
+    }
+    await endRecipeAuthSession(accessToken);
+    if (revision !== recoveryOperationRevision) return;
+    state.authError = "";
+    state.authInfo = "Password updated. You can log in now.";
+    state.recoveryInfo = "";
+    state.recoveryMode = false;
+    state.recoveryAccessToken = "";
+    state.recoveryEmailFingerprint = "";
+    state.recoveryNonce = "";
+    state.authMode = "login";
+  } catch (err) {
+    if (revision !== recoveryOperationRevision) return;
+    state.recoveryInfo = "";
+    state.recoveryError = friendlyAuthError(err);
+  } finally {
+    if (revision === recoveryOperationRevision) {
+      state.recoverySubmitting = false;
+      render();
+    }
+  }
+}
+
+function cancelRecipePasswordRecovery() {
+  const accessToken = String(state.recoveryAccessToken || "");
+  recoveryOperationRevision += 1;
+  state.recoverySubmitting = false;
+  state.recoveryMode = false;
+  state.recoveryAccessToken = "";
+  state.recoveryEmailFingerprint = "";
+  state.recoveryNonce = "";
+  state.recoveryError = "";
+  state.recoveryInfo = "";
+  state.authMode = "login";
+  state.authInfo = "Password reset cancelled. You can request a new link at any time.";
+  try { window.localStorage.removeItem(RECIPE_PASSWORD_RECOVERY_TRANSACTION_KEY); } catch (error) {}
+  if (accessToken) void endRecipeAuthSession(accessToken);
+  requestNextAuthFocus("auth-info");
+  render();
+}
+
+async function loadRecipes(options = {}) {
+  if (PUBLIC_DEMO_ONLY || state.readOnlyBrowse) {
+    startReadOnlyRecipeBrowse();
+    return;
+  }
+  const focusSnapshot = options.preserveFocus === true ? captureRecipeFocus() : null;
+  const expectedOwnerId = String(state.authorizedOwnerId || "").trim().toLowerCase();
+  if (!expectedOwnerId) {
+    showKiddoSproutGate("Parent check needed", "Return to KiddoSprout so FlavorNest can verify the current child settings.");
+    return;
+  }
+  const loadRevision = ++recipeLoadRevision;
+  const isCurrentLoad = () => loadRevision === recipeLoadRevision
+    && state.authorizedOwnerId === expectedOwnerId
+    && String(window.KiddoSproutSession?.getSession?.()?.user?.id || "").trim().toLowerCase() === expectedOwnerId;
+  if (options.silent !== true) state.recipeActionNotice = "";
+  state.cloudChecking = true;
+  if (state.recipesLoaded && options.silent !== true) render();
+  try {
+    const access = await validatedRecipeAccess(expectedOwnerId);
+    if (!isCurrentLoad()) return;
+    state.session = access.session;
+    const cloudRecipes = await fetchAllRecipes(access.accessToken, access.ownerId);
+    if (!isCurrentLoad()) return;
+    state.cloudRecipes = cloudRecipes;
+    state.recipes = mergeFamilyRecipes(state.cloudRecipes);
+    state.recipeMode = "cloud";
+    state.recipeNotice = "Family recipes are synced for this account. New recipes are saved privately for this signed-in family.";
+    state.cloudErrorKind = "";
+    state.loadError = "";
+  } catch (err) {
+    if (!isCurrentLoad()) return;
+    if (options.keepExistingOnFailure === true && state.recipesLoaded && state.cloudRecipes.length > 0) {
+      const details = recipeFallbackDetails(err);
+      state.recipeMode = "stale";
+      state.recipeNotice = "Cloud recipes could not be refreshed. Your previously synced recipes remain visible read-only; saving is paused until cloud access returns.";
+      state.cloudErrorKind = details.kind;
+    } else {
+      showBuiltInRecipeFallback(err);
+    }
+    state.loadError = "";
+  } finally {
+    if (!isCurrentLoad()) return;
+    state.cloudChecking = false;
+    state.recipesLoaded = true;
+    render();
+    restoreRecipeFocus(focusSnapshot);
+    flushExternalRecipeRefresh();
+  }
+}
+
+async function handleAuthSubmit(email, password, captchaToken) {
+  if (state.authSubmitting) return;
+  const operationMode = state.authMode;
+  const operationRevision = ++authOperationRevision;
+  state.authEmail = String(email || "").trim().slice(0, 254);
+  state.authError = "";
+  state.authInfo = "";
+  if (state.authMode === "signup" && !AUTH_EMAIL_DELIVERY_READY) {
+    state.authError = EMAIL_DELIVERY_UNAVAILABLE_MESSAGE;
+    syncAuthFeedback("auth-error");
+    return;
+  }
+  if (!captchaToken) {
+    state.authError = "Confirm you are not a bot before continuing.";
+    syncAuthFeedback("auth-human-check-start");
+    return;
+  }
+  state.authSubmitting = true;
+  state.authInfo = operationMode === "signup" ? "Creating your account…" : "Signing you in…";
+  syncAuthFeedback("auth-info");
+  updateAuthControls();
+  let shouldLoadRecipes = false;
+  try {
+    if (operationMode === "signup") {
+      const data = await signUpRequest(email, password, captchaToken);
+      if (operationRevision !== authOperationRevision || state.authMode !== operationMode) {
+        if (data?.access_token) void endRecipeAuthSession(data.access_token);
+        return;
+      }
+      if (data.access_token) {
+        state.session = acceptRecipeSession({ access_token: data.access_token, refresh_token: data.refresh_token, user: data.user });
+        state.authInfo = "";
+        shouldLoadRecipes = await canOpenKiddoSproutApp("recipe", APP_NAME);
+      } else {
+        state.authInfo = AUTH_REQUEST_GENERIC_SIGNUP_MESSAGE;
+        state.authMode = "login";
+      }
+    } else {
+      const data = await signInRequest(email, password, captchaToken);
+      if (operationRevision !== authOperationRevision || state.authMode !== operationMode) {
+        if (data?.access_token) void endRecipeAuthSession(data.access_token);
+        return;
+      }
+      state.session = acceptRecipeSession({ access_token: data.access_token, refresh_token: data.refresh_token, user: data.user });
+      state.authInfo = "";
+      shouldLoadRecipes = await canOpenKiddoSproutApp("recipe", APP_NAME);
+    }
+  } catch (err) {
+    if (operationRevision !== authOperationRevision) return;
+    if (operationMode === "signup" && authErrorDisclosesAccountExistence(err)) {
+      state.authInfo = AUTH_REQUEST_GENERIC_SIGNUP_MESSAGE;
+      state.authError = "";
+      state.authMode = "login";
+    } else {
+      state.authInfo = "";
+      state.authError = friendlyAuthError(err);
+    }
+  } finally {
+    if (operationRevision === authOperationRevision) {
+      resetAuthHumanCheck();
+      state.authSubmitting = false;
+      if (shouldLoadRecipes) requestNextAuthFocus("recipe-browse-heading");
+      render();
+      if (shouldLoadRecipes) await loadRecipes();
+    }
+  }
+}
+
+async function handleRecipePasswordRecovery(email, captchaToken) {
+  if (state.authSubmitting) return;
+  const operationRevision = ++authOperationRevision;
+  state.authEmail = String(email || "").trim().slice(0, 254);
+  state.authError = "";
+  state.authInfo = "";
+  if (!AUTH_EMAIL_DELIVERY_READY) {
+    state.authError = EMAIL_DELIVERY_UNAVAILABLE_MESSAGE;
+    syncAuthFeedback("auth-error");
+    return;
+  }
+  if (!email) {
+    state.authError = "Enter your email first.";
+    syncAuthFeedback("auth-email");
+    return;
+  }
+  if (!validRecipeAuthEmail(email)) {
+    state.authError = "Enter a complete email address.";
+    syncAuthFeedback("auth-email");
+    return;
+  }
+  if (!captchaToken) {
+    state.authError = "Confirm you are not a bot before requesting a password reset.";
+    syncAuthFeedback("auth-human-check-start");
+    return;
+  }
+  state.authSubmitting = true;
+  state.authInfo = "Sending your password reset email…";
+  syncAuthFeedback("auth-info");
+  updateAuthControls();
+  try {
+    const transaction = await createRecipePasswordRecoveryTransaction(email);
+    await recoverPasswordRequest(email, captchaToken, transaction.nonce);
+    if (operationRevision !== authOperationRevision) return;
+    state.authInfo = AUTH_REQUEST_GENERIC_RECOVERY_MESSAGE;
+  } catch (err) {
+    if (operationRevision !== authOperationRevision) return;
+    if (authErrorDisclosesAccountExistence(err)) {
+      state.authInfo = AUTH_REQUEST_GENERIC_RECOVERY_MESSAGE;
+      state.authError = "";
+    } else {
+      state.authInfo = "";
+      state.authError = friendlyAuthError(err);
+    }
+  } finally {
+    if (operationRevision === authOperationRevision) {
+      resetAuthHumanCheck();
+      state.authSubmitting = false;
+      render();
+    }
+  }
+}
+
+async function handleResendConfirmation(email, captchaToken) {
+  if (state.authSubmitting) return;
+  const operationRevision = ++authOperationRevision;
+  state.authEmail = String(email || "").trim().slice(0, 254);
+  state.authError = "";
+  state.authInfo = "";
+  if (!AUTH_EMAIL_DELIVERY_READY) {
+    state.authError = EMAIL_DELIVERY_UNAVAILABLE_MESSAGE;
+    syncAuthFeedback("auth-error");
+    return;
+  }
+  if (!email) {
+    state.authError = "Enter your email first.";
+    syncAuthFeedback("auth-email");
+    return;
+  }
+  if (!captchaToken) {
+    state.authError = "Confirm you are not a bot before requesting another email.";
+    syncAuthFeedback("auth-human-check-start");
+    return;
+  }
+  state.authSubmitting = true;
+  state.authInfo = "Sending a fresh confirmation email…";
+  syncAuthFeedback("auth-info");
+  updateAuthControls();
+  try {
+    await resendConfirmationRequest(email, captchaToken);
+    if (operationRevision !== authOperationRevision) return;
+    state.authInfo = "If an unconfirmed account matches that email, a confirmation link will arrive. Check the inbox and spam folder.";
+  } catch (err) {
+    if (operationRevision !== authOperationRevision) return;
+    if (authErrorDisclosesAccountExistence(err)) {
+      state.authInfo = "If an unconfirmed account matches that email, a confirmation link will arrive. Check the inbox and spam folder.";
+      state.authError = "";
+    } else {
+      state.authInfo = "";
+      state.authError = friendlyAuthError(err);
+    }
+  } finally {
+    if (operationRevision === authOperationRevision) {
+      resetAuthHumanCheck();
+      state.authSubmitting = false;
+      render();
+    }
+  }
+}
+
+async function handleLogout() {
+  const accessToken = state.session?.access_token;
+  authOperationRevision += 1;
+  recoveryOperationRevision += 1;
+  recipeLoadRevision += 1;
+  recipeMutationRevision += 1;
+  clearPersistedSession();
+  state.session = null;
+  state.authorizedOwnerId = "";
+  kiddoSproutGate = null;
+  state.readOnlyBrowse = false;
+  state.recipesLoaded = false;
+  state.recipeMode = "loading";
+  state.recipeNotice = "";
+  state.cloudErrorKind = "";
+  state.cloudRecipes = [];
+  state.recipes = [];
+  state.screen = "browse";
+  state.searchQuery = "";
+  state.selectedCategory = "All";
+  showAllRecipeCategories = false;
+  editingRecipeBaseline = "";
+  externalRecipeRefreshPending = false;
+  if (externalRecipeRefreshTimer) window.clearTimeout(externalRecipeRefreshTimer);
+  externalRecipeRefreshTimer = null;
+  resetRecipePage();
+  state.editingRecipeId = null;
+  state.detailError = "";
+  state.recoveryMode = false;
+  state.recoveryAccessToken = "";
+  state.recoveryEmailFingerprint = "";
+  state.recoveryNonce = "";
+  try { window.localStorage.removeItem(RECIPE_PASSWORD_RECOVERY_TRANSACTION_KEY); } catch (error) {}
+  render();
+  if (accessToken && SUPABASE_CONNECTED) {
+    try {
+      await fetch(`${SUPABASE_URL}/auth/v1/logout?scope=local`, {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${accessToken}`
+        },
+        cache: "no-store",
+        signal: authRequestSignal(5000)
+      });
+    } catch (error) {
+      // Local session data is already cleared; remote expiry remains the fallback.
+    }
+  }
+}
+
+function focusAfterRender(selector) {
+  window.requestAnimationFrame(() => {
+    const target = document.querySelector(selector);
+    if (!target) return;
+    try { target.focus({ preventScroll: true }); } catch (error) { target.focus(); }
+  });
+}
+
+function focusRecipeCardAfterRender(recipeId) {
+  window.requestAnimationFrame(() => {
+    const target = Array.from(document.querySelectorAll(".recipe-card"))
+      .find((card) => card.getAttribute("data-recipe-id") === recipeId)
+      || document.getElementById("recipe-results-summary");
+    if (!target) return;
+    target.focus();
+  });
+}
+
+function openRecipe(id) {
+  if (!state.recipes.some((recipe) => recipe.id === id)) return;
+  if (state.screen === "browse") {
+    browseReturnRecipeId = id;
+    state.recipeActionNotice = "";
+  }
+  state.selectedRecipeId = id;
+  state.detailError = "";
+  state.detailSubmitting = false;
+  state.screen = "detail";
+  render();
+  window.scrollTo(0, 0);
+  focusAfterRender(".detail-title");
+}
+
+function backToBrowse(options = {}) {
+  const recipeId = browseReturnRecipeId || state.selectedRecipeId || "";
+  state.screen = "browse";
+  state.selectedRecipeId = null;
+  state.editingRecipeId = null;
+  state.detailError = "";
+  render();
+  if (options.focusSummary) focusAfterRender("#recipe-results-summary");
+  else focusRecipeCardAfterRender(recipeId);
+}
+
+function cancelRecipeEditor() {
+  const recipeId = state.editingRecipeId;
+  state.addError = "";
+  state.addSubmitting = false;
+  state.editingRecipeId = null;
+  editingRecipeBaseline = "";
+  if (recipeId && state.recipes.some((recipe) => recipe.id === recipeId)) {
+    state.selectedRecipeId = recipeId;
+    state.screen = "detail";
+    render();
+    focusAfterRender(".detail-title");
+    flushExternalRecipeRefresh();
+    return;
+  }
+  backToBrowse();
+  flushExternalRecipeRefresh();
+}
+
+function openAddForm() {
+  if (!canWriteCloudRecipes()) return;
+  state.addForm = { title: "", category: "", ingredients: [""], steps: [""] };
+  state.addError = "";
+  state.addSubmitting = false;
+  state.recipeActionNotice = "";
+  browseReturnRecipeId = "";
+  state.editingRecipeId = null;
+  editingRecipeBaseline = "";
+  state.screen = "add";
+  render();
+  window.scrollTo(0, 0);
+  focusAfterRender("#recipe-title-input");
+}
+
+function openEditForm() {
+  const recipe = getSelectedRecipe();
+  if (!isOwnedCloudRecipe(recipe)) return;
+  state.addForm = {
+    title: recipe.title,
+    category: recipe.category || "Other",
+    ingredients: recipe.ingredients.slice(),
+    steps: recipe.steps.slice()
+  };
+  state.addError = "";
+  state.addSubmitting = false;
+  state.recipeActionNotice = "";
+  state.editingRecipeId = recipe.id;
+  editingRecipeBaseline = recipeContentFingerprint(recipe);
+  state.screen = "add";
+  render();
+  window.scrollTo(0, 0);
+  focusAfterRender("#recipe-title-input");
+}
+
+function friendlyRecipeMutationError(error) {
+  const kind = String(error?.kind || "");
+  if (kind === "validation" || kind === "not_found") return error.message;
+  if (kind === "conflict") return "This recipe changed in another tab. Your draft is still here; review the latest recipe, then apply your changes again.";
+  if (kind === "schema_missing") return "Family recipe storage has not been installed yet, so this recipe was not saved.";
+  if (kind === "auth") return "Your recipe session has expired. Log out and back in before saving.";
+  if (kind === "session_refresh_unavailable") return "The account service cannot be reached right now. Your recipe draft is still here; try saving again when the connection returns.";
+  if (kind === "permission") return "This recipe could not be changed because the family storage permissions need attention.";
+  if (kind === "network" || kind === "timeout" || kind === "unavailable") return "Cloud recipes cannot be reached right now. Nothing was saved; please try again later.";
+  return "This recipe could not be saved safely. Please try again.";
+}
+
+function showRecipeEditorError(message, selector) {
+  state.addError = message;
+  render();
+  focusAfterRender(selector);
+}
+
+async function recheckRecipeMutationRule(expectedOwnerId) {
+  const allowed = await canOpenKiddoSproutApp("recipe", APP_NAME, expectedOwnerId);
+  if (allowed) return true;
+
+  // A save or removal may have remained open while a parent changed the rule.
+  // Drop private recipe data before leaving the freshly rendered gate visible.
+  recipeLoadRevision += 1;
+  recipeMutationRevision += 1;
+  state.authorizedOwnerId = "";
+  state.cloudRecipes = [];
+  state.recipes = [];
+  state.recipesLoaded = false;
+  state.selectedRecipeId = null;
+  state.editingRecipeId = null;
+  editingRecipeBaseline = "";
+  state.detailSubmitting = false;
+  state.addSubmitting = false;
+  closeRecipeDeleteDialog();
+  render();
+  return false;
+}
+
+async function submitAddForm() {
+  if (!canWriteCloudRecipes() || state.addSubmitting) return;
+  const draft = {
+    title: state.addForm.title,
+    category: state.addForm.category,
+    ingredients: state.addForm.ingredients.slice(),
+    steps: state.addForm.steps.slice()
+  };
+  const title = draft.title.trim();
+  const category = draft.category.trim();
+  const ingredients = draft.ingredients.map((s) => s.trim()).filter(Boolean);
+  const steps = draft.steps.map((s) => s.trim()).filter(Boolean);
+
+  if (!title) { showRecipeEditorError("Please give the recipe a name.", "#recipe-title-input"); return; }
+  if (ingredients.length === 0) { showRecipeEditorError("Add at least one ingredient.", ".ingredient-input"); return; }
+  if (steps.length === 0) { showRecipeEditorError("Add at least one step.", ".step-input"); return; }
+  let recipeInput;
+  try {
+    recipeInput = window.KiddoSproutRecipeCloud.normalizeRecipeInput({ title, category, ingredients, steps });
+  } catch (error) {
+    showRecipeEditorError(friendlyRecipeMutationError(error), "#recipe-editor-error");
+    return;
+  }
+
+  const expectedOwnerId = state.authorizedOwnerId;
+  const editingRecipeId = state.editingRecipeId;
+  const mutationRevision = ++recipeMutationRevision;
+  const isCurrentMutation = () => mutationRevision === recipeMutationRevision
+    && state.authorizedOwnerId === expectedOwnerId
+    && String(window.KiddoSproutSession?.getSession?.()?.user?.id || "").trim().toLowerCase() === expectedOwnerId;
+  recipeLoadRevision += 1;
+  state.cloudChecking = false;
+  state.addSubmitting = true;
+  state.addError = "";
+  state.recipeActionNotice = "";
+  render();
+  try {
+    const result = await withRecipeMutationLock(expectedOwnerId, async () => {
+      if (!await recheckRecipeMutationRule(expectedOwnerId) || !isCurrentMutation()) return null;
+      const access = await validatedRecipeAccess(expectedOwnerId);
+      if (!isCurrentMutation()) return null;
+      state.session = access.session;
+
+      // Read inside the cross-tab mutation lock. This catches a stale edit and
+      // turns two identical simultaneous submissions into one cloud recipe.
+      const latestCloudRecipes = await fetchAllRecipes(access.accessToken, access.ownerId);
+      if (!isCurrentMutation()) return null;
+      if (editingRecipeId) {
+        const latestRecipe = latestCloudRecipes.find((recipe) => recipe.id === editingRecipeId);
+        if (!latestRecipe) {
+          throw recipeOperationError("not_found", "That family recipe was removed in another tab.");
+        }
+        if (editingRecipeBaseline && recipeContentFingerprint(latestRecipe) !== editingRecipeBaseline) {
+          throw recipeOperationError("conflict", "That family recipe changed in another tab.");
+        }
+        const savedRecipe = await updateRecipe(access.accessToken, access.ownerId, editingRecipeId, recipeInput);
+        return {
+          savedRecipe,
+          duplicate: false,
+          cloudRecipes: latestCloudRecipes.map((recipe) => recipe.id === savedRecipe.id ? savedRecipe : recipe)
+        };
+      }
+
+      const fingerprint = recipeContentFingerprint(recipeInput);
+      const duplicateRecipe = latestCloudRecipes.find((recipe) => recipeContentFingerprint(recipe) === fingerprint);
+      if (duplicateRecipe) {
+        return { savedRecipe: duplicateRecipe, duplicate: true, cloudRecipes: latestCloudRecipes };
+      }
+      if (latestCloudRecipes.length >= RECIPE_CLOUD_MAX_ROWS) {
+        throw recipeOperationError("validation", `This family recipe book is full (${RECIPE_CLOUD_MAX_ROWS} recipes). Remove one before adding another.`);
+      }
+      const savedRecipe = await insertRecipe(access.accessToken, access.ownerId, recipeInput);
+      return { savedRecipe, duplicate: false, cloudRecipes: latestCloudRecipes.concat(savedRecipe) };
+    });
+    if (!result || !isCurrentMutation()) return;
+    const { savedRecipe } = result;
+    state.cloudRecipes = result.cloudRecipes;
+    state.recipes = mergeFamilyRecipes(state.cloudRecipes);
+    state.editingRecipeId = null;
+    editingRecipeBaseline = "";
+    state.addSubmitting = false;
+    state.recipeActionNotice = result.duplicate
+      ? `“${savedRecipe.title}” was already in this family account, so another copy was not added.`
+      : editingRecipeId
+      ? `“${savedRecipe.title}” was updated.`
+      : `“${savedRecipe.title}” was saved to this family account.`;
+    if (!result.duplicate) announceRecipeCloudChange(expectedOwnerId);
+    openRecipe(savedRecipe.id);
+  } catch (err) {
+    if (!isCurrentMutation()) return;
+    state.addForm = draft;
+    state.addError = friendlyRecipeMutationError(err);
+    state.addSubmitting = false;
+    render();
+    focusAfterRender("#recipe-editor-error");
+  } finally {
+    flushExternalRecipeRefresh();
+  }
+}
+
+function finishRecipeDeleteDialogClose() {
+  const dialog = document.getElementById("recipe-delete-dialog");
+  if (!dialog) return;
+  dialog.removeAttribute("aria-busy");
+  dialog.removeAttribute("data-recipe-id");
+  const returnTarget = recipeDeleteReturnFocus?.isConnected
+    ? recipeDeleteReturnFocus
+    : (recipeDeleteReturnFocusId ? document.getElementById(recipeDeleteReturnFocusId) : null)
+      || document.querySelector(".detail-title")
+      || document.getElementById("recipe-results-summary");
+  if (returnTarget && typeof returnTarget.focus === "function") returnTarget.focus();
+  recipeDeleteReturnFocus = null;
+  recipeDeleteReturnFocusId = "";
+  flushExternalRecipeRefresh();
+}
+
+function closeRecipeDeleteDialog() {
+  const dialog = document.getElementById("recipe-delete-dialog");
+  if (!dialog) return;
+  if (typeof dialog.close === "function" && dialog.open) {
+    dialog.close();
+    return;
+  }
+  const wasOpen = dialog.hasAttribute("open");
+  dialog.removeAttribute("open");
+  // Browsers without HTMLDialogElement.close() do not dispatch a close event.
+  // Keep the compatibility path equivalent: restore focus and release any
+  // cross-tab refresh that was queued while the confirmation was visible.
+  if (wasOpen) finishRecipeDeleteDialogClose();
+}
+
+function requestSelectedRecipeRemoval() {
+  const recipe = getSelectedRecipe();
+  if (!isOwnedCloudRecipe(recipe) || state.detailSubmitting) return;
+  const dialog = document.getElementById("recipe-delete-dialog");
+  const recipeName = document.getElementById("recipe-delete-name");
+  const dialogError = document.getElementById("recipe-delete-error");
+  const confirmButton = document.getElementById("recipe-delete-confirm");
+  const cancelButton = document.getElementById("recipe-delete-cancel");
+  if (!dialog || !recipeName || !dialogError || !confirmButton || !cancelButton) return;
+  if (dialog.open) return;
+
+  recipeDeleteReturnFocus = document.activeElement;
+  recipeDeleteReturnFocusId = String(recipeDeleteReturnFocus?.id || "");
+  dialog.dataset.recipeId = recipe.id;
+  recipeName.textContent = `“${recipe.title}”`;
+  dialogError.textContent = "";
+  dialogError.hidden = true;
+  dialog.removeAttribute("aria-busy");
+  confirmButton.disabled = false;
+  confirmButton.textContent = "Remove recipe";
+  cancelButton.disabled = false;
+  if (typeof dialog.showModal === "function") dialog.showModal();
+  else {
+    dialog.setAttribute("open", "");
+    cancelButton.focus();
+  }
+}
+
+async function removeSelectedRecipe() {
+  const recipe = getSelectedRecipe();
+  const dialog = document.getElementById("recipe-delete-dialog");
+  const dialogError = document.getElementById("recipe-delete-error");
+  const confirmButton = document.getElementById("recipe-delete-confirm");
+  const cancelButton = document.getElementById("recipe-delete-cancel");
+  if (!isOwnedCloudRecipe(recipe) || state.detailSubmitting || dialog?.dataset.recipeId !== recipe.id) return;
+
+  const expectedOwnerId = state.authorizedOwnerId;
+  const recipeId = recipe.id;
+  const mutationRevision = ++recipeMutationRevision;
+  const isCurrentMutation = () => mutationRevision === recipeMutationRevision
+    && state.authorizedOwnerId === expectedOwnerId
+    && String(window.KiddoSproutSession?.getSession?.()?.user?.id || "").trim().toLowerCase() === expectedOwnerId
+    && state.selectedRecipeId === recipeId;
+  recipeLoadRevision += 1;
+  state.cloudChecking = false;
+  state.detailSubmitting = true;
+  state.detailError = "";
+  state.recipeActionNotice = "";
+  dialog?.setAttribute("aria-busy", "true");
+  if (dialogError) {
+    dialogError.textContent = "";
+    dialogError.hidden = true;
+  }
+  if (confirmButton) {
+    confirmButton.disabled = true;
+    confirmButton.textContent = "Removing…";
+  }
+  if (cancelButton) cancelButton.disabled = true;
+  render();
+  try {
+    const result = await withRecipeMutationLock(expectedOwnerId, async () => {
+      if (!await recheckRecipeMutationRule(expectedOwnerId) || !isCurrentMutation()) return null;
+      const access = await validatedRecipeAccess(expectedOwnerId);
+      if (!isCurrentMutation()) return null;
+      state.session = access.session;
+      const latestCloudRecipes = await fetchAllRecipes(access.accessToken, access.ownerId);
+      if (!isCurrentMutation()) return null;
+      if (!latestCloudRecipes.some((item) => item.id === recipeId)) {
+        return { alreadyRemoved: true, cloudRecipes: latestCloudRecipes };
+      }
+      await deleteRecipe(access.accessToken, access.ownerId, recipeId);
+      return {
+        alreadyRemoved: false,
+        cloudRecipes: latestCloudRecipes.filter((item) => item.id !== recipeId)
+      };
+    });
+    if (!result || !isCurrentMutation()) {
+      closeRecipeDeleteDialog();
+      return;
+    }
+    state.cloudRecipes = result.cloudRecipes;
+    state.recipes = mergeFamilyRecipes(state.cloudRecipes);
+    state.detailSubmitting = false;
+    state.recipeActionNotice = result.alreadyRemoved
+      ? `“${recipe.title}” had already been removed in another tab.`
+      : `“${recipe.title}” was removed from this family account.`;
+    if (!result.alreadyRemoved) announceRecipeCloudChange(expectedOwnerId);
+    closeRecipeDeleteDialog();
+    backToBrowse({ focusSummary: true });
+  } catch (error) {
+    if (!isCurrentMutation()) {
+      closeRecipeDeleteDialog();
+      return;
+    }
+    state.detailSubmitting = false;
+    state.detailError = friendlyRecipeMutationError(error).replace("saved", "removed");
+    render();
+    dialog?.removeAttribute("aria-busy");
+    if (dialogError) {
+      dialogError.textContent = state.detailError;
+      dialogError.hidden = false;
+    }
+    if (confirmButton) {
+      confirmButton.disabled = false;
+      confirmButton.textContent = "Try again";
+    }
+    if (cancelButton) cancelButton.disabled = false;
+    dialogError?.focus();
+  } finally {
+    flushExternalRecipeRefresh();
+  }
+}
+
+// ---- Render ----
+function render() {
+  const app = document.getElementById("app");
+  cancelExactPhotoHydration();
+  document.body.classList.toggle("auth-page", !state.authChecked || state.recoveryMode || (!state.session && !state.readOnlyBrowse));
+
+  if (kiddoSproutGate) {
+    disposeAuthHumanCheck();
+    showKiddoSproutGate(kiddoSproutGate.title, kiddoSproutGate.message, {
+      retry: kiddoSproutGate.retry === true
+    });
+    return;
+  }
+
+  if (recipeAccessChecking) {
+    disposeAuthHumanCheck();
+    app.innerHTML = `<div class="loading-screen" role="status" aria-live="polite">Checking parent access…</div>`;
+    return;
+  }
+
+  if (!state.authChecked) {
+    disposeAuthHumanCheck();
+    app.innerHTML = `<div class="loading-screen" role="status" aria-live="polite">Loading…</div>`;
+    return;
+  }
+  if (state.recoveryMode) {
+    disposeAuthHumanCheck();
+    renderPasswordResetScreen(app);
+    return;
+  }
+  if (!state.session && !state.readOnlyBrowse) { renderAuthScreen(app); return; }
+  disposeAuthHumanCheck();
+  if (!state.recipesLoaded) { app.innerHTML = `<div class="loading-screen" role="status" aria-live="polite">Loading recipes…</div>`; return; }
+
+  if (state.screen === "detail") renderDetailScreen(app);
+  else if (state.screen === "add") renderAddScreen(app);
+  else renderBrowseScreen(app);
+}
+
+function logoSvg(sizeClass) {
+  return `<svg class="${sizeClass}" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <circle cx="32" cy="32" r="30" fill="var(--accent)"/>
+    <path d="M20 30c0-3 2-5 5-5h14c3 0 5 2 5 5v2c0 8-6 14-12 14s-12-6-12-14v-2z" fill="#fff"/>
+    <rect x="30" y="12" width="4" height="10" rx="2" fill="#fff"/>
+    <rect x="23" y="12" width="4" height="10" rx="2" fill="#fff"/>
+    <rect x="37" y="12" width="4" height="10" rx="2" fill="#fff"/>
+  </svg>`;
+}
+
+function renderAuthScreen(app) {
+  disposeAuthHumanCheck();
+  const isLogin = state.authMode === "login";
+  app.innerHTML = `
+    <div class="auth-wrap">
+      <div class="logo-row">
+        ${logoSvg("logo-icon")}
+        <p class="eyebrow">${APP_NAME}</p>
+      </div>
+      <h1 id="auth-heading" tabindex="-1">${isLogin ? "Welcome Back" : "Create an account"}</h1>
+      ${SUPABASE_CONNECTED ? "" : `<p class="info-text">Account service is unavailable.</p>`}
+      ${AUTH_EMAIL_DELIVERY_READY ? "" : `<p class="info-text">${esc(EMAIL_DELIVERY_UNAVAILABLE_MESSAGE)} Existing families can still log in.</p>`}
+      <form id="auth-form" aria-busy="${state.authSubmitting ? "true" : "false"}">
+        <label class="field">
+          <span class="label-text">Email address</span>
+          <input type="email" id="auth-email" autocomplete="email" maxlength="254" required aria-describedby="auth-error auth-info" value="${esc(state.authEmail)}" />
+        </label>
+        <label class="field">
+          <span class="label-text">Password</span>
+          <input type="password" id="auth-password" autocomplete="${isLogin ? "current-password" : "new-password"}" required minlength="8" aria-describedby="auth-error auth-info" />
+        </label>
+        <fieldset class="human-check-field">
+          <legend>Confirm you are not a bot</legend>
+          <button type="button" id="auth-human-check-start" class="auth-human-check-start" data-state="idle" aria-controls="auth-human-check" aria-pressed="false">
+            <span class="auth-human-check-box" aria-hidden="true"></span>
+            <span class="auth-human-check-label">I’m not a robot</span>
+            <span class="auth-human-check-shield" aria-hidden="true">🛡️</span>
+          </button>
+          <div id="auth-human-check" hidden></div>
+          <p id="auth-human-check-status" class="human-check-status" role="status" aria-live="polite" aria-atomic="true" data-state="notice">Tick the box to start.</p>
+        </fieldset>
+        <p id="auth-error" class="error-text" role="alert" tabindex="-1" ${state.authError ? "" : "hidden"}>${esc(state.authError)}</p>
+        <p id="auth-info" class="info-text" role="status" aria-live="polite" aria-atomic="true" tabindex="-1" ${state.authInfo ? "" : "hidden"}>${esc(state.authInfo)}</p>
+        <button type="submit" id="auth-submit" class="btn-primary" disabled>
+          ${state.authSubmitting ? "Please wait..." : (isLogin ? "Login" : "Sign up")}
+        </button>
+      </form>
+      ${isLogin && AUTH_EMAIL_DELIVERY_READY ? `
+        <button type="button" id="auth-resend-confirmation" class="btn-ghost" style="margin-top:8px;width:100%;" disabled>Resend confirmation email</button>
+        <button type="button" id="auth-recover" class="btn-ghost" style="margin-top:8px;width:100%;" disabled>Forgot password?</button>
+      ` : ""}
+      <button type="button" id="auth-toggle" class="btn-ghost" style="margin-top:16px;width:100%;" ${isLogin && !AUTH_EMAIL_DELIVERY_READY ? "disabled title=\"Email sign-up has not been enabled on this setup.\"" : ""}>
+        ${isLogin ? (AUTH_EMAIL_DELIVERY_READY ? "New to FlavorNest? Sign up" : "Email sign-up is not enabled") : "Already have an account? Login"}
+      </button>
+    </div>
+  `;
+  document.getElementById("auth-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const email = document.getElementById("auth-email").value.trim();
+    const password = document.getElementById("auth-password").value;
+    handleAuthSubmit(email, password, state.authCaptchaToken);
+  });
+  const authEmailInput = document.getElementById("auth-email");
+  authEmailInput.addEventListener("input", () => {
+    state.authEmail = authEmailInput.value.slice(0, 254);
+  });
+  document.getElementById("auth-toggle").addEventListener("click", () => {
+    authOperationRevision += 1;
+    state.authSubmitting = false;
+    state.authEmail = authEmailInput.value.slice(0, 254);
+    state.authMode = isLogin ? "signup" : "login";
+    state.authError = "";
+    state.authInfo = "";
+    const emailIsReady = Boolean(state.authEmail.trim() && authEmailInput.validity.valid);
+    requestNextAuthFocus(emailIsReady ? "auth-password" : "auth-email");
+    render();
+  });
+  const recoverButton = document.getElementById("auth-recover");
+  if (recoverButton) {
+    recoverButton.addEventListener("click", () => {
+      const emailInput = document.getElementById("auth-email");
+      if (!emailInput.reportValidity()) return;
+      handleRecipePasswordRecovery(emailInput.value.trim(), state.authCaptchaToken);
+    });
+  }
+  const resendButton = document.getElementById("auth-resend-confirmation");
+  if (resendButton) {
+    resendButton.addEventListener("click", () => {
+      const emailInput = document.getElementById("auth-email");
+      if (!emailInput.reportValidity()) return;
+      handleResendConfirmation(emailInput.value.trim(), state.authCaptchaToken);
+    });
+  }
+  document.getElementById("auth-human-check-start").addEventListener("click", mountAuthHumanCheck);
+  updateAuthControls();
+  focusRenderedAuthTarget(state.authError ? "auth-error" : state.authInfo ? "auth-info" : "auth-email");
+}
+
+function renderPasswordResetScreen(app) {
+  app.innerHTML = `
+    <div class="auth-wrap">
+      <div class="logo-row">
+        ${logoSvg("logo-icon")}
+        <p class="eyebrow">${APP_NAME}</p>
+      </div>
+      <h1 id="recipe-reset-heading" tabindex="-1">Set new password</h1>
+      <form id="recipe-reset-form" aria-busy="${state.recoverySubmitting ? "true" : "false"}">
+        <label class="field">
+          <span class="label-text">New password</span>
+          <input type="password" id="recipe-new-password" autocomplete="new-password" required minlength="8" aria-describedby="recipe-reset-error recipe-reset-info" />
+        </label>
+        <label class="field">
+          <span class="label-text">Confirm new password</span>
+          <input type="password" id="recipe-confirm-password" autocomplete="new-password" required minlength="8" aria-describedby="recipe-reset-error recipe-reset-info" />
+        </label>
+        <p id="recipe-reset-error" class="error-text" role="alert" tabindex="-1" ${state.recoveryError ? "" : "hidden"}>${esc(state.recoveryError)}</p>
+        <p id="recipe-reset-info" class="info-text" role="status" aria-live="polite" aria-atomic="true" tabindex="-1" ${state.recoveryInfo ? "" : "hidden"}>${esc(state.recoveryInfo)}</p>
+        <button type="submit" id="recipe-reset-submit" class="btn-primary" ${state.recoverySubmitting ? "disabled" : ""}>
+          ${state.recoverySubmitting ? "Saving..." : "Update password"}
+        </button>
+        <button type="button" id="recipe-reset-cancel" class="btn-ghost" style="margin-top:8px;width:100%;" ${state.recoverySubmitting ? "disabled" : ""}>Cancel password reset</button>
+      </form>
+    </div>
+  `;
+  document.getElementById("recipe-reset-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    handleRecipePasswordUpdate(
+      document.getElementById("recipe-new-password").value,
+      document.getElementById("recipe-confirm-password").value
+    );
+  });
+  document.getElementById("recipe-reset-cancel").addEventListener("click", cancelRecipePasswordRecovery);
+  updateRecipeRecoveryControls();
+  focusRenderedAuthTarget(state.recoveryError ? "recipe-reset-error" : state.recoveryInfo ? "recipe-reset-info" : "recipe-new-password");
+}
+
+function currentRecipeStatus() {
+  if (state.recipeMode === "demo") {
+    return { title: "Read-only demo recipes", message: state.recipeNotice, retry: false };
+  }
+  if (state.recipeMode === "cloud") {
+    return { title: "Cloud recipes loaded", message: state.recipeNotice, retry: false };
+  }
+  if (state.recipeMode === "stale") {
+    return { title: "Previously synced recipes", message: state.recipeNotice, retry: true };
+  }
+  return {
+    title: "Built-in recipes only",
+    message: state.recipeNotice || "Cloud recipes are unavailable, so viewing is read-only and nothing will be saved.",
+    retry: Boolean(state.session && SUPABASE_CONNECTED)
+  };
+}
+
+function visibleRecipeCategoryEntries(categories) {
+  const indexedCategories = categories.map((category, index) => ({ category, index }));
+  let visibleCategories = indexedCategories.slice();
+  if (!showAllRecipeCategories && categories.length > RECIPE_CATEGORY_INITIAL_LIMIT) {
+    visibleCategories = indexedCategories.slice(0, RECIPE_CATEGORY_INITIAL_LIMIT);
+    const selectedIndex = categories.indexOf(state.selectedCategory);
+    if (selectedIndex >= RECIPE_CATEGORY_INITIAL_LIMIT) {
+      visibleCategories.push(indexedCategories[selectedIndex]);
+    }
+  }
+  return visibleCategories;
+}
+
+function recipeCategoryChipsHtml(categories) {
+  return visibleRecipeCategoryEntries(categories).map(({ category, index }) => `
+    <button type="button" class="category-chip ${category === state.selectedCategory ? "active" : ""}"
+      data-category-index="${index}" role="radio" aria-checked="${category === state.selectedCategory}"
+      tabindex="${category === state.selectedCategory ? "0" : "-1"}">${esc(category)}</button>
+  `).join("");
+}
+
+function recipeCategoryMoreButtonHtml(categories) {
+  const hiddenCount = categories.length - visibleRecipeCategoryEntries(categories).length;
+  if (hiddenCount <= 0) return "";
+  return `<button type="button" id="show-all-recipe-categories" class="btn-ghost category-more-button"
+    aria-controls="recipe-category-options" aria-label="Show ${hiddenCount} more recipe categories">More categories (${hiddenCount})</button>`;
+}
+
+function recipeCardsHtml(recipes, canWrite) {
+  return recipes.length === 0
+    ? `<div class="empty-note" role="status">
+        <p>No recipes found. Try a different search or category${canWrite ? " — or add your own!" : "."}</p>
+        <button id="reset-recipe-filters" class="btn-ghost" type="button">Show all recipes</button>
+      </div>`
+    : recipes.map((r) => `
+        <button type="button" class="recipe-card" data-recipe-id="${esc(r.id)}">
+          <span class="recipe-icon-circle" style="background:${getCategoryColor(r.category)}22; color:${getCategoryColor(r.category)}; overflow:hidden; padding:0;">
+            ${foodMediaHtml(r, 46)}
+          </span>
+          <span class="recipe-card-body">
+            <span>
+              <span class="recipe-title">${esc(r.title)}</span>
+              <span class="recipe-cat-tag" style="background:${getCategoryColor(r.category)}22;">${esc(r.category || "Other")}</span>${missingRecipeBadge(r)}
+            </span>
+            <span aria-hidden="true" style="color:var(--accent); font-size:18px;">›</span>
+          </span>
+        </button>
+      `).join("");
+}
+
+function recipePaginationHtml(page) {
+  if (page.remaining === 0) return "";
+  return `<button id="load-more-recipes" class="btn-ghost load-more-recipes" type="button"
+    aria-controls="recipe-list" aria-label="Load ${page.nextCount} more recipes; ${page.remaining} remaining">
+    Load ${page.nextCount} more recipes
+  </button>`;
+}
+
+function renderBrowseScreen(app) {
+  const categories = getCategories();
+  reconcileSelectedRecipeCategory(categories);
+  const filtered = getFilteredRecipes();
+  const page = getRecipePage(filtered);
+  const status = currentRecipeStatus();
+  const canWrite = canWriteCloudRecipes();
+  const accountLabel = state.readOnlyBrowse ? "Public demo · no account connected" : (state.session?.user?.email || "Signed-in family");
+
+  app.innerHTML = `
+    <header class="app-header">
+      <div>
+        <div class="logo-row">
+          ${logoSvg("logo-icon-sm")}
+          <p class="eyebrow">${APP_NAME}</p>
+        </div>
+        <h1 id="recipe-browse-heading" tabindex="-1">Find a recipe</h1>
+        <p class="email-tag">${esc(accountLabel)}</p>
+        <span class="music-credit">Play gentle built-in focus music while you cook.</span>
+      </div>
+      <div class="header-actions">
+        <button id="music-btn" class="btn-ghost music-btn ${youtubeMusicOpen || youtubeMusicPlaying ? "active" : ""}" type="button" aria-expanded="${youtubeMusicOpen}" aria-controls="youtube-music-panel">♫ Focus music</button>
+        <button id="exit-recipe-btn" class="btn-ghost" type="button">Back to Child Site</button>
+        ${state.readOnlyBrowse ? "" : `<button id="logout-btn" class="btn-ghost" type="button">Log out</button>`}
+      </div>
+    </header>
+
+    <section id="youtube-music-panel" class="youtube-music-panel ${youtubeMusicOpen ? "open" : ""}" aria-label="Focus music player" ${youtubeMusicOpen ? "" : "hidden"}>
+      <div class="youtube-music-head">
+        <h2>♫ Focus music</h2>
+        <button id="youtube-close-btn" class="btn-ghost" type="button">Close</button>
+      </div>
+      <label class="field">
+        <span class="label-text">Choose a track</span>
+        <div class="youtube-music-grid">
+          <select id="youtube-link-input">
+            <option value="rain" ${youtubeMusicVideoId === "rain" ? "selected" : ""}>Soft piano loop</option>
+            <option value="waves" ${youtubeMusicVideoId === "waves" ? "selected" : ""}>Ocean lofi groove</option>
+            <option value="kitchen" ${youtubeMusicVideoId === "kitchen" ? "selected" : ""}>Kitchen jazz loop</option>
+            <option value="chimes" ${youtubeMusicVideoId === "chimes" ? "selected" : ""}>Dream chime song</option>
+          </select>
+          <button id="youtube-play-btn" class="btn-primary" type="button">Play music</button>
+        </div>
+      </label>
+      <p id="youtube-api-status" class="youtube-help">Choose a track and press Play.</p>
+      <p id="youtube-music-error" class="youtube-error" role="status" aria-live="polite"></p>
+      <div id="youtube-player-wrap" class="youtube-player-wrap ${youtubeMusicPlaying ? "active" : ""}">
+        <p class="youtube-help">Now playing: <strong id="focus-sound-label">Focus music</strong></p>
+        <button id="youtube-stop-btn" class="btn-ghost" type="button" style="margin-top:8px">Stop music</button>
+      </div>
+    </section>
+
+    ${state.loadError ? `<p class="error-banner" role="alert">${esc(state.loadError)}</p>` : ""}
+    ${state.recipeActionNotice ? `<p class="recipe-action-notice" role="status" aria-live="polite">${esc(state.recipeActionNotice)}</p>` : ""}
+    <section class="recipe-status" data-mode="${esc(state.recipeMode)}" aria-label="Recipe availability">
+      <div class="recipe-status-copy" role="status" aria-live="polite" aria-atomic="true">
+        <strong>${esc(status.title)}</strong>
+        <span>${esc(status.message)}</span>
+      </div>
+      ${status.retry ? `<button id="retry-recipes-btn" class="btn-ghost" type="button" ${state.cloudChecking ? "disabled" : ""}>${state.cloudChecking ? "Checking…" : "Try cloud again"}</button>` : ""}
+    </section>
+
+    <div class="search-bar">
+      <span class="search-icon" aria-hidden="true">🔍</span>
+      <input type="search" id="search-input" maxlength="200" enterkeyhint="search" autocomplete="off" aria-label="Search recipe names, categories, or ingredients" placeholder="Search recipes, categories, or ingredients…" value="${esc(state.searchQuery)}" />
+      <button id="clear-recipe-search" class="search-clear" type="button" aria-label="Clear recipe search" ${state.searchQuery ? "" : "hidden"}>Clear</button>
+    </div>
+
+    <section class="category-filter" aria-labelledby="recipe-category-filter-title">
+      <div class="category-filter-head">
+        <strong class="category-filter-title" id="recipe-category-filter-title">Browse by category</strong>
+        <span class="category-filter-help" id="recipe-category-filter-help">Scroll to explore. With a keyboard, use the arrow keys.</span>
+      </div>
+      <div class="category-filter-controls">
+        <div class="category-scroll" id="recipe-category-options" role="radiogroup" aria-orientation="horizontal" aria-labelledby="recipe-category-filter-title" aria-describedby="recipe-category-filter-help">${recipeCategoryChipsHtml(categories)}</div>
+        <div id="recipe-category-more">${recipeCategoryMoreButtonHtml(categories)}</div>
+      </div>
+    </section>
+
+    <p id="recipe-results-summary" class="recipe-results-summary" role="status" aria-live="polite" aria-atomic="true" tabindex="-1">${recipeResultsSummary(page)}</p>
+    <section id="recipe-list" aria-label="Recipes">${recipeCardsHtml(page.visible, canWrite)}</section>
+    <div id="recipe-pagination" class="recipe-pagination">${recipePaginationHtml(page)}</div>
+    ${recipePhotoSourcesHtml()}
+
+    ${canWrite ? `<button id="fab-add" class="fab" type="button" aria-label="Add recipe">+</button>` : ""}
+  `;
+
+  document.getElementById("music-btn").addEventListener("click", () => {
+    const opening = !youtubeMusicOpen;
+    setYouTubePanel(opening);
+    if (opening) focusAfterRender("#youtube-link-input");
+  });
+  document.getElementById("youtube-close-btn").addEventListener("click", () => {
+    setYouTubePanel(false);
+    document.getElementById("music-btn")?.focus();
+  });
+  document.getElementById("youtube-play-btn").addEventListener("click", playYouTubeLink);
+  document.getElementById("youtube-stop-btn").addEventListener("click", stopYouTubeMusic);
+  document.getElementById("youtube-link-input").addEventListener("keydown", (event) => {
+    if (event.key === "Enter") { event.preventDefault(); playYouTubeLink(); }
+  });
+  document.getElementById("youtube-music-panel").addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    event.preventDefault();
+    setYouTubePanel(false);
+    document.getElementById("music-btn")?.focus();
+  });
+  refreshYouTubeApiUi();
+  const logoutButton = document.getElementById("logout-btn");
+  if (logoutButton) logoutButton.addEventListener("click", handleLogout);
+  document.getElementById("exit-recipe-btn").addEventListener("click", returnToKiddoSproutChild);
+  const addButton = document.getElementById("fab-add");
+  if (addButton) addButton.addEventListener("click", openAddForm);
+  const retryButton = document.getElementById("retry-recipes-btn");
+  if (retryButton) retryButton.addEventListener("click", retryRecipeCloud);
+
+  const searchInput = document.getElementById("search-input");
+  searchInput.addEventListener("input", (e) => {
+    state.searchQuery = e.target.value.slice(0, 200);
+    clearRecipeActionNotice();
+    resetRecipePage();
+    refreshRecipeList();
+  });
+  document.getElementById("clear-recipe-search").addEventListener("click", clearRecipeSearch);
+
+  wireRecipeCategories(categories);
+  wireRecipeCards();
+  wireRecipePagination();
+  scheduleExactPhotoHydration(page.visible);
+  focusRenderedAuthTarget("");
+}
+
+function refreshRecipeList(options = {}) {
+  // Only re-render the list + chips (not the search input) so focus/keyboard stays intact
+  const categories = getCategories();
+  reconcileSelectedRecipeCategory(categories);
+  const filtered = getFilteredRecipes();
+  const page = getRecipePage(filtered);
+
+  const chipWrap = document.querySelector(".category-scroll");
+  if (chipWrap) {
+    chipWrap.innerHTML = recipeCategoryChipsHtml(categories);
+  }
+
+  const categoryMore = document.getElementById("recipe-category-more");
+  if (categoryMore) categoryMore.innerHTML = recipeCategoryMoreButtonHtml(categories);
+
+  const summary = document.getElementById("recipe-results-summary");
+  if (summary) summary.textContent = recipeResultsSummary(page);
+
+  const clearSearchButton = document.getElementById("clear-recipe-search");
+  if (clearSearchButton) clearSearchButton.hidden = !state.searchQuery;
+
+  const list = document.getElementById("recipe-list");
+  if (list) {
+    list.innerHTML = recipeCardsHtml(page.visible, canWriteCloudRecipes());
+  }
+
+  const pagination = document.getElementById("recipe-pagination");
+  if (pagination) pagination.innerHTML = recipePaginationHtml(page);
+
+  wireRecipeCategories(categories);
+  wireRecipeCards();
+  wireRecipePagination();
+  scheduleExactPhotoHydration(page.visible);
+
+  if (Number.isInteger(options.focusCategoryIndex)) {
+    const categoryTarget = document.querySelector(`[data-category-index="${options.focusCategoryIndex}"]`);
+    categoryTarget?.focus();
+    categoryTarget?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  } else if (Number.isInteger(options.focusRecipeIndex)) {
+    (document.querySelectorAll(".recipe-card")[options.focusRecipeIndex] || summary)?.focus();
+  }
+}
+
+function wireRecipeCategories(categories) {
+  const categoryButtons = Array.from(document.querySelectorAll(".category-chip[data-category-index]"));
+  const chooseCategory = (button) => {
+    const categoryIndex = Number(button.getAttribute("data-category-index"));
+    const category = categories[categoryIndex];
+    if (typeof category !== "string") return;
+    state.selectedCategory = category;
+    clearRecipeActionNotice();
+    resetRecipePage();
+    refreshRecipeList({ focusCategoryIndex: categoryIndex });
+  };
+  categoryButtons.forEach((button, buttonIndex) => {
+    button.addEventListener("click", () => {
+      chooseCategory(button);
+    });
+    button.addEventListener("keydown", (event) => {
+      const direction = {
+        ArrowRight: 1,
+        ArrowDown: 1,
+        ArrowLeft: -1,
+        ArrowUp: -1,
+      }[event.key];
+      let nextButtonIndex = direction == null ? -1 : (buttonIndex + direction + categoryButtons.length) % categoryButtons.length;
+      if (event.key === "Home") nextButtonIndex = 0;
+      if (event.key === "End") nextButtonIndex = categoryButtons.length - 1;
+      if (nextButtonIndex < 0) return;
+      event.preventDefault();
+      chooseCategory(categoryButtons[nextButtonIndex]);
+    });
+  });
+  document.getElementById("show-all-recipe-categories")?.addEventListener("click", () => {
+    showAllRecipeCategories = true;
+    persistRecipeBrowseState();
+    refreshRecipeList({ focusCategoryIndex: RECIPE_CATEGORY_INITIAL_LIMIT });
+  });
+}
+
+function wireRecipeCards() {
+  document.querySelectorAll(".recipe-card").forEach((card) => {
+    card.addEventListener("click", () => openRecipe(card.getAttribute("data-recipe-id")));
+  });
+  document.getElementById("reset-recipe-filters")?.addEventListener("click", resetRecipeFilters);
+}
+
+function wireRecipePagination() {
+  const loadMoreButton = document.getElementById("load-more-recipes");
+  if (!loadMoreButton) return;
+  loadMoreButton.addEventListener("click", () => {
+    const previousVisibleCount = getRecipePage(getFilteredRecipes()).visible.length;
+    state.visibleRecipeLimit = normalizedRecipePageLimit(state.visibleRecipeLimit + RECIPE_PAGE_SIZE);
+    persistRecipeBrowseState();
+    refreshRecipeList({ focusRecipeIndex: previousVisibleCount });
+  });
+}
+
+function renderDetailScreen(app) {
+  const r = getSelectedRecipe();
+  if (!r) { backToBrowse(); return; }
+
+  const hasIngredients = Array.isArray(r.ingredients) && r.ingredients.length > 0;
+  const hasSteps = Array.isArray(r.steps) && r.steps.length > 0;
+  const canChange = isOwnedCloudRecipe(r);
+
+  const ingredientsHtml = hasIngredients
+    ? `<ul class="ingredient-list" role="list">${r.ingredients.map((i) => `<li class="ingredient-item">${esc(cleanRecipeText(i))}</li>`).join("")}</ul>`
+    : `<p class="empty-note">No ingredients saved yet for this dish.</p>`;
+  const stepsHtml = hasSteps
+    ? `<ol class="step-list" role="list">${r.steps.map((s, idx) => `
+      <li class="step-item">
+        <span class="step-num" aria-hidden="true">${idx + 1}</span>
+        <span>${esc(cleanRecipeText(s))}</span>
+      </li>
+    `).join("")}</ol>`
+    : `<p class="empty-note">No steps saved yet for this dish.</p>`;
+
+  app.innerHTML = `
+    <div class="back-row">
+      <button class="back-btn" id="detail-back-btn" type="button" aria-label="Back to recipes" ${state.detailSubmitting ? "disabled" : ""}>←</button>
+      <span class="recipe-cat-tag" style="background:${getCategoryColor(r.category)}22;">${esc(r.category || "Other")}</span>
+    </div>
+    <div class="detail-icon-circle" style="background:${getCategoryColor(r.category)}22; color:${getCategoryColor(r.category)}; overflow:hidden; padding:0;">
+      ${foodMediaHtml(r, 72)}
+    </div>
+    <h1 class="detail-title" tabindex="-1">${esc(r.title)}</h1>
+    ${state.recipeActionNotice ? `<p class="recipe-action-notice" role="status" aria-live="polite">${esc(state.recipeActionNotice)}</p>` : ""}
+    ${canChange ? `
+      <div class="detail-actions">
+        <button id="edit-recipe-btn" class="btn-ghost" type="button" ${state.detailSubmitting ? "disabled" : ""}>Edit family recipe</button>
+        <button id="delete-recipe-btn" class="btn-ghost btn-danger" type="button" ${state.detailSubmitting ? "disabled" : ""}>${state.detailSubmitting ? "Removing…" : "Remove"}</button>
+      </div>
+    ` : ""}
+    ${youtubeMusicPlaying ? `<button id="detail-stop-music" class="btn-ghost" type="button" style="margin-top:12px;">♫ Stop focus music</button>` : ""}
+    ${state.detailError ? `<p id="recipe-detail-error" class="error-banner" role="alert" tabindex="-1">${esc(state.detailError)}</p>` : ""}
+
+    ${cookingSafetyNoteHtml()}
+
+    <h2 class="detail-section-title">Ingredients</h2>
+    ${ingredientsHtml}
+
+    <h2 class="detail-section-title">Steps</h2>
+    ${stepsHtml}
+    ${recipePhotoSourcesHtml()}
+  `;
+
+  document.getElementById("detail-back-btn").addEventListener("click", backToBrowse);
+  const editButton = document.getElementById("edit-recipe-btn");
+  if (editButton) editButton.addEventListener("click", openEditForm);
+  const deleteButton = document.getElementById("delete-recipe-btn");
+  if (deleteButton) deleteButton.addEventListener("click", requestSelectedRecipeRemoval);
+  const stopMusicButton = document.getElementById("detail-stop-music");
+  if (stopMusicButton) stopMusicButton.addEventListener("click", () => {
+    stopYouTubeMusic();
+    render();
+    focusAfterRender(".detail-title");
+  });
+  scheduleExactPhotoHydration([r]);
+}
+
+function renderAddScreen(app) {
+  if (!canWriteCloudRecipes()) {
+    state.screen = "browse";
+    state.editingRecipeId = null;
+    renderBrowseScreen(app);
+    return;
+  }
+  const isEditing = Boolean(state.editingRecipeId);
+  const editorDisabled = state.addSubmitting ? "disabled" : "";
+  const ingredientLimitReached = state.addForm.ingredients.length >= 100;
+  const stepLimitReached = state.addForm.steps.length >= 100;
+  const ingredientRows = state.addForm.ingredients.map((val, idx) => `
+    <div class="dynamic-list-row">
+      <input type="text" class="ingredient-input" data-idx="${idx}" maxlength="1000" aria-label="Ingredient ${idx + 1}" placeholder="e.g. 2 cups rice" value="${esc(val)}" ${editorDisabled} />
+      ${state.addForm.ingredients.length > 1 ? `<button type="button" class="remove-row-btn" data-remove-ingredient="${idx}" aria-label="Remove ingredient ${idx + 1}" ${editorDisabled}>×</button>` : ""}
+    </div>
+  `).join("");
+
+  const stepRows = state.addForm.steps.map((val, idx) => `
+    <div class="dynamic-list-row">
+      <input type="text" class="step-input" data-idx="${idx}" maxlength="4000" aria-label="Step ${idx + 1}" placeholder="Describe this step" value="${esc(val)}" ${editorDisabled} />
+      ${state.addForm.steps.length > 1 ? `<button type="button" class="remove-row-btn" data-remove-step="${idx}" aria-label="Remove step ${idx + 1}" ${editorDisabled}>×</button>` : ""}
+    </div>
+  `).join("");
+
+  app.innerHTML = `
+    <div class="back-row">
+      <button class="back-btn" id="editor-back-btn" type="button" aria-label="${isEditing ? "Back to recipe" : "Back to recipes"}" ${editorDisabled}>←</button>
+      <h1 style="font-size:20px;">${isEditing ? "Edit family recipe" : "Add a family recipe"}</h1>
+    </div>
+
+    <form id="recipe-editor-form" novalidate aria-busy="${state.addSubmitting ? "true" : "false"}">
+      <label class="field">
+        <span class="label-text">Food name</span>
+        <input type="text" id="recipe-title-input" maxlength="160" autocomplete="off" required aria-required="true" placeholder="e.g. Ofada Rice" value="${esc(state.addForm.title)}" ${editorDisabled} />
+      </label>
+
+      <label class="field" style="margin-top:12px;">
+        <span class="label-text">Category (optional)</span>
+        <input type="text" id="recipe-category-input" maxlength="80" autocomplete="off" placeholder="e.g. Rice, Soup, Snacks..." value="${esc(state.addForm.category)}" ${editorDisabled} />
+      </label>
+
+      <fieldset class="dynamic-fieldset" style="margin-top:16px;">
+        <legend class="label-text">Ingredients</legend>
+        <div id="ingredients-list">${ingredientRows}</div>
+        <button type="button" class="add-row-btn" id="add-ingredient-btn" ${editorDisabled || (ingredientLimitReached ? "disabled" : "")}>
+          ${ingredientLimitReached ? "Ingredient limit reached" : "+ Add ingredient"}
+        </button>
+      </fieldset>
+
+      <fieldset class="dynamic-fieldset" style="margin-top:16px;">
+        <legend class="label-text">Steps</legend>
+        <div id="steps-list">${stepRows}</div>
+        <button type="button" class="add-row-btn" id="add-step-btn" ${editorDisabled || (stepLimitReached ? "disabled" : "")}>
+          ${stepLimitReached ? "Step limit reached" : "+ Add step"}
+        </button>
+      </fieldset>
+
+      ${state.addError ? `<p id="recipe-editor-error" class="error-text" style="margin-top:12px;" role="alert" aria-live="assertive" tabindex="-1">${esc(state.addError)}</p>` : ""}
+
+      <button id="save-recipe-btn" class="btn-primary" type="submit" style="margin-top:20px;" ${editorDisabled}>
+        ${state.addSubmitting ? "Saving…" : (isEditing ? "Save changes" : "Save family recipe")}
+      </button>
+    </form>
+  `;
+
+  document.getElementById("editor-back-btn").addEventListener("click", cancelRecipeEditor);
+
+  document.getElementById("recipe-title-input").addEventListener("input", (e) => {
+    state.addForm.title = e.target.value;
+  });
+  document.getElementById("recipe-category-input").addEventListener("input", (e) => {
+    state.addForm.category = e.target.value;
+  });
+
+  document.querySelectorAll(".ingredient-input").forEach((input) => {
+    input.addEventListener("input", (e) => {
+      state.addForm.ingredients[Number(e.target.getAttribute("data-idx"))] = e.target.value;
+    });
+  });
+  document.querySelectorAll(".step-input").forEach((input) => {
+    input.addEventListener("input", (e) => {
+      state.addForm.steps[Number(e.target.getAttribute("data-idx"))] = e.target.value;
+    });
+  });
+
+  document.getElementById("add-ingredient-btn").addEventListener("click", () => {
+    if (state.addForm.ingredients.length >= 100) return;
+    state.addForm.ingredients.push("");
+    render();
+    window.requestAnimationFrame(() => {
+      const inputs = document.querySelectorAll(".ingredient-input");
+      inputs[inputs.length - 1]?.focus();
+    });
+  });
+  document.getElementById("add-step-btn").addEventListener("click", () => {
+    if (state.addForm.steps.length >= 100) return;
+    state.addForm.steps.push("");
+    render();
+    window.requestAnimationFrame(() => {
+      const inputs = document.querySelectorAll(".step-input");
+      inputs[inputs.length - 1]?.focus();
+    });
+  });
+  document.querySelectorAll("[data-remove-ingredient]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const idx = Number(btn.getAttribute("data-remove-ingredient"));
+      state.addForm.ingredients.splice(idx, 1);
+      render();
+      window.requestAnimationFrame(() => {
+        const inputs = document.querySelectorAll(".ingredient-input");
+        inputs[Math.min(idx, inputs.length - 1)]?.focus();
+      });
+    });
+  });
+  document.querySelectorAll("[data-remove-step]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const idx = Number(btn.getAttribute("data-remove-step"));
+      state.addForm.steps.splice(idx, 1);
+      render();
+      window.requestAnimationFrame(() => {
+        const inputs = document.querySelectorAll(".step-input");
+        inputs[Math.min(idx, inputs.length - 1)]?.focus();
+      });
+    });
+  });
+
+  document.getElementById("recipe-editor-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    submitAddForm();
+  });
+}
+
+function wireRecipeDeleteDialog() {
+  const dialog = document.getElementById("recipe-delete-dialog");
+  const cancelButton = document.getElementById("recipe-delete-cancel");
+  const confirmButton = document.getElementById("recipe-delete-confirm");
+  if (!dialog || !cancelButton || !confirmButton) return;
+
+  cancelButton.addEventListener("click", closeRecipeDeleteDialog);
+  confirmButton.addEventListener("click", () => { void removeSelectedRecipe(); });
+  dialog.addEventListener("cancel", (event) => {
+    if (state.detailSubmitting) event.preventDefault();
+  });
+  dialog.addEventListener("close", finishRecipeDeleteDialogClose);
+}
+
+async function revalidateConnectedRecipeAccess() {
+  if (PUBLIC_DEMO_ONLY || state.readOnlyBrowse || !state.authorizedOwnerId || document.hidden) return true;
+  if (recipeAccessRefreshInFlight) return recipeAccessRefreshInFlight;
+  const expectedOwnerId = state.authorizedOwnerId;
+  recipeAccessChecking = true;
+  closeRecipeDeleteDialog();
+  render();
+  recipeAccessRefreshInFlight = (async () => {
+    const allowed = await canOpenKiddoSproutApp("recipe", APP_NAME, expectedOwnerId);
+    if (allowed) {
+      recipeAccessChecking = false;
+      render();
+      return true;
+    }
+
+    // A parent may have blocked FlavorNest, changed the active family, or
+    // signed into another account while this tab was away. Invalidate pending
+    // work and discard family-only data before leaving the access gate visible.
+    recipeLoadRevision += 1;
+    recipeMutationRevision += 1;
+    state.authorizedOwnerId = "";
+    state.cloudRecipes = [];
+    state.recipes = [];
+    state.recipesLoaded = false;
+    state.selectedRecipeId = null;
+    state.editingRecipeId = null;
+    state.detailSubmitting = false;
+    state.addSubmitting = false;
+    recipeAccessChecking = false;
+    render();
+    return false;
+  })().finally(() => {
+    recipeAccessRefreshInFlight = null;
+  });
+  return recipeAccessRefreshInFlight;
+}
+
+async function refreshRecipesWhenPageReturns() {
+  const allowed = await revalidateConnectedRecipeAccess();
+  if (allowed) scheduleExternalRecipeRefresh();
+}
+
+window.addEventListener("storage", handleRecipeSyncStorage);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") void refreshRecipesWhenPageReturns();
+});
+window.addEventListener("pageshow", () => { void refreshRecipesWhenPageReturns(); });
+
+// ---- Boot ----
+async function bootFlavorNest() {
+  wireRecipeDeleteDialog();
+  if (isKiddoSproutDemoMode()) {
+    startReadOnlyRecipeBrowse();
+    return;
+  }
+  try {
+    await restoreSession();
+  } catch (error) {
+    state.authChecked = true;
+    state.authorizedOwnerId = "";
+    showKiddoSproutGate(
+      "FlavorNest could not start safely",
+      "Return to KiddoSprout and try again so the current parent and child settings can be verified."
+    );
+  }
+}
+void bootFlavorNest();
+</script>
+</body>
+</html>

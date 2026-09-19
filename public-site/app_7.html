@@ -1,0 +1,2772 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7fff6">
+  <script>
+    (function () {
+      "use strict";
+      function readState(storage, key) {
+        try {
+          const value = JSON.parse(storage?.getItem(key) || "null");
+          return value && typeof value === "object" && !Array.isArray(value) ? value : null;
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function applySavedTheme() {
+        let demoState = null;
+        let preferences = null;
+        let demoActive = false;
+        try {
+          demoState = readState(window.sessionStorage, "kiddosprout.demo.v1.family");
+          demoActive = Boolean(demoState)
+            || window.sessionStorage.getItem("kiddosprout.demo.v1.active") === "1";
+        } catch (error) {
+          // Restricted storage falls back to the operating-system preference.
+        }
+        try {
+          preferences = readState(window.localStorage, "kiddosproutPreferences");
+        } catch (error) {
+          // Restricted storage falls back to the operating-system preference.
+        }
+        const state = demoActive ? demoState : preferences;
+        const choice = ["auto", "day", "night"].includes(state?.themeMode) ? state.themeMode : "auto";
+        const hour = new Date().getHours();
+        const resolved = choice === "auto" ? (hour >= 19 || hour < 7 ? "night" : "day") : choice;
+        document.documentElement.classList.toggle("theme-night", resolved === "night");
+        document.documentElement.classList.toggle("theme-day", resolved === "day");
+        document.documentElement.dataset.themeMode = choice;
+        document.querySelector('meta[name="theme-color"]')?.setAttribute(
+          "content",
+          resolved === "night" ? "#061a25" : "#f7fff6"
+        );
+      }
+
+      applySavedTheme();
+      if (typeof window.setInterval === "function") {
+        window.setInterval(() => {
+          if (document.documentElement.dataset.themeMode === "auto") applySavedTheme();
+        }, 60000);
+      }
+      window.addEventListener?.("pageshow", applySavedTheme);
+      document.addEventListener?.("visibilitychange", () => {
+        if (document.visibilityState === "visible") applySavedTheme();
+      });
+      window.addEventListener("storage", (event) => {
+        if (event.key === "kiddosproutPreferences") applySavedTheme();
+      });
+    }());
+  </script>
+  <title>Smart Spending</title>
+  <link rel="icon" type="image/png" href="kiddosprout_logo_128.png">
+  <link rel="apple-touch-icon" href="kiddosprout_logo_128.png">
+  <style>
+    :root {
+      --ink: #18222d;
+      --muted: #657586;
+      --paper: #f5fbf7;
+      --panel: #ffffff;
+      --line: #dce8df;
+      --green: #156b55;
+      --green-text: #156b55;
+      --leaf: #477d35;
+      --gold: #f0b83f;
+      --coral: #b74435;
+      --blue: #286697;
+      --field: #ffffff;
+      --row: #fbfdfa;
+      --toast-bg: #18222d;
+      --toast-ink: #ffffff;
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 12%, rgba(240, 184, 63, 0.26), transparent 28%),
+        radial-gradient(circle at 86% 18%, rgba(52, 111, 159, 0.18), transparent 26%),
+        linear-gradient(135deg, #f7fff6, #eef8ff 52%, #fff8ea);
+    }
+
+    .skip-link {
+      position: fixed;
+      top: max(8px, env(safe-area-inset-top));
+      left: max(8px, env(safe-area-inset-left));
+      z-index: 1000;
+      display: inline-flex;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 14px;
+      border: 2px solid #173148;
+      border-radius: 10px;
+      color: #12202b;
+      background: #fff;
+      box-shadow: 0 8px 24px rgba(7, 28, 36, .28);
+      font-weight: 900;
+      text-decoration: none;
+      transform: translateY(calc(-100% - 20px));
+    }
+
+    .skip-link:focus,
+    .skip-link:focus-visible {
+      transform: translateY(0);
+      box-shadow: 0 0 0 6px var(--blue), 0 8px 24px rgba(7, 28, 36, .28);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      min-height: 38px;
+      border: 0;
+      border-radius: 8px;
+      padding: 0 14px;
+      font-weight: 850;
+      cursor: pointer;
+      transition: transform 170ms ease, box-shadow 170ms ease, background 170ms ease;
+    }
+
+    @media (hover: hover) {
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(24, 34, 45, 0.12);
+      }
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      border: 1px solid #c8d6d2;
+      color: #51626d;
+      background: #e1e9e6;
+      opacity: 1;
+      transform: none;
+      box-shadow: none;
+    }
+
+    input {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 12px;
+      color: var(--ink);
+      background: var(--field);
+    }
+
+    input[aria-invalid="true"] {
+      border-color: #b83a2a;
+      box-shadow: 0 0 0 3px rgba(184, 58, 42, 0.16);
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    a:focus-visible {
+      outline: 3px solid #ffffff;
+      outline-offset: 2px;
+      box-shadow: 0 0 0 6px var(--blue);
+    }
+
+    .shell {
+      width: min(1080px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 44px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 950;
+      font-size: 20px;
+    }
+
+    .mark {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      color: white;
+      background: linear-gradient(135deg, var(--green), var(--leaf));
+      box-shadow: 0 14px 26px rgba(23, 119, 93, 0.22);
+    }
+
+    .back {
+      color: var(--ink);
+      background: #eaf3ef;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      min-height: 38px;
+      border-radius: 8px;
+      padding: 0 14px;
+      font-weight: 850;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+      gap: 16px;
+      align-items: stretch;
+      margin-bottom: 16px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 18px 42px rgba(24, 34, 45, 0.08);
+    }
+
+    .money-card {
+      position: relative;
+      overflow: hidden;
+      color: white;
+      background: linear-gradient(135deg, var(--green), var(--leaf));
+    }
+
+    .money-card::after {
+      content: "";
+      position: absolute;
+      right: -54px;
+      bottom: -54px;
+      width: 190px;
+      height: 190px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    .money-card > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+      font-size: clamp(30px, 5vw, 56px);
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin-bottom: 8px;
+    }
+
+    .small {
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .money-card .small {
+      color: rgba(255, 255, 255, 0.84);
+    }
+
+    .balance {
+      display: block;
+      margin: 18px 0 8px;
+      font-size: clamp(42px, 7vw, 76px);
+      font-weight: 950;
+      line-height: 0.9;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .mini {
+      min-height: 126px;
+    }
+
+    .mini strong {
+      display: block;
+      margin: 7px 0;
+      font-size: 26px;
+    }
+
+    .track {
+      height: 12px;
+      border-radius: 999px;
+      background: #e7eee9;
+      overflow: hidden;
+    }
+
+    .fill {
+      width: var(--w);
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--gold), var(--leaf));
+      transition: width 220ms ease;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .primary {
+      color: white;
+      background: var(--green);
+    }
+
+    .secondary {
+      color: var(--ink);
+      background: #edf4ef;
+    }
+
+    .warn {
+      color: white;
+      background: var(--coral);
+    }
+
+    .form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 130px auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .history {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .bank-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .bank-badge {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 8px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      color: #105f4c;
+      background: #e4f5ec;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .bank-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .bank-mode-note {
+      display: none;
+      width: fit-content;
+      margin: 10px 0 0;
+      border: 1px solid #ead18e;
+      border-radius: 8px;
+      padding: 8px 10px;
+      color: #6b4a00;
+      background: #fff7dc;
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .bank-mode-note.show {
+      display: block;
+    }
+
+    dialog {
+      width: min(480px, calc(100% - 32px));
+      max-height: calc(100vh - 32px);
+      max-height: calc(100dvh - 32px);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
+      color: var(--ink);
+      background: var(--panel);
+      box-shadow: 0 24px 70px rgba(24, 34, 45, 0.3);
+    }
+
+    dialog::backdrop {
+      background: rgba(24, 34, 45, 0.58);
+      backdrop-filter: blur(3px);
+    }
+
+    .pin-form {
+      padding: 22px;
+    }
+
+    .pin-form h2 {
+      margin-bottom: 6px;
+    }
+
+    .pin-fields {
+      display: grid;
+      gap: 12px;
+      margin: 18px 0 12px;
+    }
+
+    .pin-fields label > span {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 800;
+    }
+
+    .bank-enrollment {
+      display: grid;
+      gap: 12px;
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+    }
+
+    .bank-enrollment[hidden] {
+      display: none;
+    }
+
+    .bank-enrollment h3 {
+      margin-bottom: 0;
+      font-size: 17px;
+    }
+
+    .bank-human-check {
+      min-height: 66px;
+      overflow: hidden;
+    }
+
+    .bank-human-check iframe {
+      max-width: 100%;
+    }
+
+    .human-check-status {
+      min-height: 20px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .human-check-status[data-state="error"] {
+      color: #a23222;
+    }
+
+    .pin-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+      font-weight: 750;
+    }
+
+    .pin-check input {
+      width: 20px;
+      min-height: 20px;
+      margin: 0;
+    }
+
+    .form-error {
+      min-height: 22px;
+      margin: 8px 0;
+      color: #a23222;
+      font-weight: 800;
+    }
+
+    .spend-request-error {
+      grid-column: 1 / -1;
+      margin: 0;
+    }
+
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--row);
+    }
+
+    .row strong {
+      color: var(--green-text);
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      width: min(360px, calc(100% - 36px));
+      border-radius: 8px;
+      padding: 14px;
+      z-index: 20;
+      color: var(--toast-ink);
+      background: var(--toast-bg);
+      pointer-events: none;
+      box-shadow: 0 18px 36px rgba(24, 34, 45, 0.24);
+      transform: translateY(120%);
+      opacity: 0;
+      transition: transform 220ms ease, opacity 220ms ease;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    @media (max-width: 820px) {
+      .hero,
+      .grid,
+      .actions,
+      .form,
+      .bank-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .bank-actions {
+        justify-content: stretch;
+      }
+
+      .bank-actions button {
+        flex: 1;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .shell {
+        width: min(100% - 20px, 1080px);
+        padding-top: 14px;
+      }
+
+      .topbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .back {
+        justify-content: center;
+      }
+
+      .card {
+        padding: 15px;
+      }
+
+      input {
+        font-size: 16px;
+      }
+
+      .row {
+        grid-template-columns: 1fr;
+        gap: 4px;
+      }
+
+      .row strong {
+        overflow-wrap: anywhere;
+      }
+
+      .dialog-actions {
+        align-items: stretch;
+        flex-direction: column-reverse;
+      }
+
+      .dialog-actions button,
+      .actions button,
+      .bank-actions button {
+        width: 100%;
+      }
+    }
+
+    html.theme-night {
+      color-scheme: dark;
+    }
+
+    html.theme-night body {
+      --ink: #f4fbff;
+      --muted: #bed2dc;
+      --panel: #0d2b36;
+      --line: #376675;
+      --green: #176b59;
+      --green-text: #76e4c0;
+      --leaf: #385f43;
+      --gold: #ffd166;
+      --coral: #b94739;
+      --blue: #76c9ff;
+      --field: #071f2a;
+      --row: #123540;
+      --toast-bg: #edfaff;
+      --toast-ink: #09232e;
+      background:
+        radial-gradient(circle at 11% 12%, rgba(255, 209, 102, 0.2), transparent 27%),
+        radial-gradient(circle at 85% 15%, rgba(118, 201, 255, 0.2), transparent 28%),
+        radial-gradient(circle at 50% 90%, rgba(77, 191, 151, 0.16), transparent 35%),
+        linear-gradient(145deg, #041722, #0b3440 55%, #191f38);
+    }
+
+    html.theme-night .card {
+      background: rgba(11, 39, 50, 0.94);
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.3);
+    }
+
+    html.theme-night .money-card {
+      background: linear-gradient(135deg, #105947, #345d3f);
+    }
+
+    html.theme-night .back,
+    html.theme-night .secondary {
+      color: var(--ink);
+      background: #173e49;
+    }
+
+    html.theme-night button:disabled {
+      border-color: #4f707a;
+      color: #d8e5e8;
+      background: #38515a;
+    }
+
+    html.theme-night .skip-link {
+      color: #071c24;
+      background: #ffedaa;
+      border-color: #fff8db;
+    }
+
+    html.theme-night .track {
+      background: #244954;
+    }
+
+    html.theme-night .bank-badge {
+      color: #baffdf;
+      background: #174c40;
+    }
+
+    html.theme-night .bank-mode-note {
+      border-color: #8a6b27;
+      color: #ffe39a;
+      background: #413615;
+    }
+
+    html.theme-night dialog {
+      background: #0d2b36;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.56);
+    }
+
+    html.theme-night .human-check-status[data-state="error"],
+    html.theme-night .form-error {
+      color: #ff9d8c;
+    }
+
+    html.theme-night input[aria-invalid="true"] {
+      border-color: #ff9d8c;
+      box-shadow: 0 0 0 3px rgba(255, 157, 140, 0.2);
+    }
+
+    html.theme-night input::placeholder {
+      color: #91aab5;
+      opacity: 1;
+    }
+
+    html.theme-night button:focus-visible,
+    html.theme-night input:focus-visible,
+    html.theme-night a:focus-visible {
+      outline-color: #071f2a;
+    }
+
+    button,
+    .back {
+      min-height: 44px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+
+      .skip-link {
+        transition: none;
+      }
+    }
+
+    @media (prefers-contrast: more) {
+      :root {
+        --line: #879792;
+        --muted: #354957;
+      }
+      html.theme-night {
+        --line: #83a2ad;
+        --muted: #e0edf1;
+      }
+      .card,
+      dialog { border-width: 2px; }
+      :is(button, input, a):focus-visible { outline-width: 4px; }
+    }
+
+    @media (forced-colors: active) {
+      body,
+      html.theme-night body,
+      .card,
+      dialog {
+        color: CanvasText;
+        background: Canvas;
+        background-image: none;
+        box-shadow: none;
+      }
+      .card,
+      dialog { border-color: CanvasText; }
+      :is(button, input) { border: 2px solid ButtonText; }
+      :is(button, input):disabled {
+        border-color: GrayText;
+        color: GrayText;
+        background: Canvas;
+        -webkit-text-fill-color: GrayText;
+      }
+      :is(button, input, a):focus-visible {
+        outline: 3px solid Highlight !important;
+        box-shadow: none !important;
+      }
+      a { color: LinkText; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <main class="shell" id="main-content" tabindex="-1">
+    <nav class="topbar" aria-label="Smart Spending navigation">
+      <div class="brand">
+        <span class="mark" aria-hidden="true">KS</span>
+        <span>Smart Spending</span>
+      </div>
+      <a class="back" href="index.html#child">Back to KiddoSprout</a>
+    </nav>
+
+    <section class="hero">
+      <article class="card money-card">
+        <p class="small">Kid money practice</p>
+        <h1>Spend smart, save steadily.</h1>
+        <span class="balance" id="balance">$18.00</span>
+        <p class="small">Children can practise choices here. Real spending still needs a parent.</p>
+      </article>
+      <article class="card">
+        <h2 id="savingsGoalTitle">Savings Goal</h2>
+        <p class="small" id="goalName">New Football</p>
+        <strong id="goalLabel">$18.00 / $40.00</strong>
+        <div class="track" id="goalProgress" style="margin-top: 12px;" role="progressbar" aria-labelledby="savingsGoalTitle goalName" aria-valuemin="0" aria-valuemax="100" aria-valuenow="45" aria-valuetext="$18.00 of $40.00 saved">
+          <div class="fill" id="goalFill" style="--w: 45%;"></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="grid" aria-label="Practice money actions">
+      <article class="card mini">
+        <span class="small">Weekly allowance</span>
+        <strong id="allowance">$5.00</strong>
+        <button class="secondary" id="addAllowance" disabled>Add allowance</button>
+      </article>
+      <article class="card mini">
+        <span class="small">Saved this week</span>
+        <strong id="savedWeek">$0.00</strong>
+        <button class="secondary" id="saveFive" disabled>Save $5</button>
+      </article>
+      <article class="card mini">
+        <span class="small">Parent status</span>
+        <strong id="parentStatus" role="status" aria-live="polite" aria-atomic="true">Ready</strong>
+        <button class="primary" id="requestApproval" disabled>Ask parent</button>
+      </article>
+    </section>
+
+    <section class="card bank-panel" aria-labelledby="bankLinkTitle">
+      <div>
+        <span class="bank-badge" id="bankStatusBadge">Bank not connected</span>
+        <h2 id="bankLinkTitle">Bank Link</h2>
+        <p class="small" id="bankStatusText" role="status" aria-live="polite" aria-atomic="true">Checking the secure bank service…</p>
+        <p class="bank-mode-note" id="bankModeNote"></p>
+        <div class="history" id="bankAccounts" role="list" aria-label="Protected bank accounts"></div>
+      </div>
+      <div class="bank-actions" role="group" aria-label="Bank controls">
+        <button class="primary" id="connectBank" disabled>Connect bank</button>
+        <button class="secondary" id="syncBank" disabled>View balances</button>
+        <button class="warn" id="disconnectBank" disabled>Disconnect</button>
+      </div>
+    </section>
+
+    <section class="card" style="margin-bottom: 16px;">
+      <h2>Request Something</h2>
+      <p class="small">Type what you want and how much it costs. This records a pretend approval request.</p>
+      <form class="form" id="spendRequestForm" novalidate>
+        <label>
+          <span class="small">Thing to buy</span>
+          <input id="itemName" name="itemName" type="text" maxlength="80" autocomplete="off" placeholder="Book, football, craft kit" required disabled aria-describedby="spendRequestError">
+        </label>
+        <label>
+          <span class="small">Cost</span>
+          <input id="itemCost" name="itemCost" type="number" inputmode="decimal" min="1" max="1000000" step="0.01" value="4" required disabled aria-describedby="spendRequestError">
+        </label>
+        <button class="warn" id="requestSpend" type="submit" disabled>Request</button>
+        <p class="form-error spend-request-error" id="spendRequestError" role="alert" aria-live="assertive"></p>
+      </form>
+    </section>
+
+    <section class="actions" aria-label="More practice money actions">
+      <button class="primary" id="earnTwo" disabled>Earn $2 task credit</button>
+      <button class="secondary" id="changeGoal" disabled>Change goal</button>
+    </section>
+
+    <section class="card" aria-labelledby="spendingHistoryTitle">
+      <h2 id="spendingHistoryTitle">Spending History</h2>
+      <div class="history" id="history" role="list" aria-label="Recent practice money activity"></div>
+    </section>
+  </main>
+
+  <dialog id="bankPinDialog" aria-labelledby="bankPinTitle" aria-describedby="bankPinDescription">
+    <form class="pin-form" id="bankPinForm" novalidate>
+      <h2 id="bankPinTitle">Parent confirmation</h2>
+      <p class="small" id="bankPinDescription">Enter the 4–8 digit Bank PIN to continue.</p>
+      <div class="pin-fields">
+        <label>
+          <span>Bank PIN</span>
+          <input id="bankPin" name="bankPin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="32" required aria-describedby="bankPinError">
+        </label>
+        <label id="bankPinConfirmField">
+          <span>Confirm Bank PIN</span>
+          <input id="bankPinConfirm" name="bankPinConfirm" type="password" inputmode="numeric" autocomplete="new-password" maxlength="32" aria-describedby="bankPinError">
+        </label>
+        <section class="bank-enrollment" id="bankEnrollmentFields" aria-labelledby="bankEnrollmentTitle" hidden>
+          <h3 id="bankEnrollmentTitle">Verify the parent account</h3>
+          <p class="small">For first-time setup only. Your KiddoSprout account password is checked securely and is never saved here.</p>
+          <label>
+            <span>Parent account password</span>
+            <input id="bankAccountPassword" name="bankAccountPassword" type="password" autocomplete="current-password" maxlength="256" aria-describedby="bankPinError">
+          </label>
+          <div role="group" aria-labelledby="bankSafetyLabel">
+            <span id="bankSafetyLabel" style="display:block;margin-bottom:6px;font-weight:800;">Safety check</span>
+            <div class="bank-human-check" id="bankHumanCheck"></div>
+            <p class="human-check-status" id="bankHumanCheckStatus" role="status" aria-live="polite" aria-atomic="true">The safety check will appear here.</p>
+          </div>
+        </section>
+        <label class="pin-check">
+          <input id="viewBankPin" type="checkbox">
+          <span>View PIN</span>
+        </label>
+      </div>
+      <p class="form-error" id="bankPinError" role="alert" aria-live="assertive"></p>
+      <div class="dialog-actions">
+        <button class="secondary" id="cancelBankPin" type="button">Cancel</button>
+        <button class="primary" id="confirmBankPin" type="submit">Continue</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="goalDialog" aria-labelledby="goalDialogTitle" aria-describedby="goalDialogDescription">
+    <form class="pin-form" id="goalForm" novalidate>
+      <h2 id="goalDialogTitle">Change savings goal</h2>
+      <p class="small" id="goalDialogDescription">Choose what you are saving for and the practice amount.</p>
+      <div class="pin-fields">
+        <label>
+          <span>Goal name</span>
+          <input id="goalNameInput" name="goalName" type="text" maxlength="32" autocomplete="off" required aria-describedby="goalFormError">
+        </label>
+        <label>
+          <span>Goal amount</span>
+          <input id="goalAmountInput" name="goalAmount" type="number" inputmode="decimal" min="1" max="1000000" step="0.01" required aria-describedby="goalFormError">
+        </label>
+      </div>
+      <p class="form-error" id="goalFormError" role="alert" aria-live="assertive"></p>
+      <div class="dialog-actions">
+        <button class="secondary" id="cancelGoal" type="button">Cancel</button>
+        <button class="primary" id="saveGoal" type="submit">Save goal</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="supabase-config.js?v=7"></script>
+  <script src="human-check.js?v=4"></script>
+  <script src="auth-session.js?v=7"></script>
+  <script src="family-state-cloud.js?v=2"></script>
+  <script>
+    "use strict";
+
+    // Version 3 keeps practice-only data separate for each family/child. Earlier
+    // versions could mix bank views or another child's balance into this screen,
+    // so ambiguous legacy data is deliberately not imported.
+    const PUBLIC_DEMO_ONLY = window.KIDDO_SPROUT_SUPABASE?.publicDemoOnly === true;
+    const SESSION_DEMO_ACTIVE = (() => {
+      try {
+        return window.sessionStorage?.getItem("kiddosprout.demo.v1.active") === "1";
+      } catch (error) {
+        return false;
+      }
+    })();
+    const READ_ONLY_DEMO = PUBLIC_DEMO_ONLY || SESSION_DEMO_ACTIVE;
+    const STORAGE_KEY = "kiddoSproutSmartSpendingV3";
+    const MAX_PRACTICE_STORAGE_CHARACTERS = 256 * 1024;
+    const AUTH_SESSION_KEYS = new Set(["kiddosproutSupabaseSession", "flavornest_session"]);
+    const MAX_PRACTICE_AMOUNT = 1000000;
+    const BANK_BALANCE_VISIBILITY_MS = 2 * 60 * 1000;
+    const DEFAULT_STATE = {
+      balance: 18,
+      allowance: 5,
+      goal: 40,
+      goalName: "New Football",
+      savedWeek: 0,
+      parentStatus: "Ready",
+      currency: "USD",
+      history: [
+        { label: "Started Smart Spending", amount: "+$18.00", type: "save" }
+      ]
+    };
+    let verifiedSession = null;
+    let verifiedOwnerId = "";
+    let loadedFamily = null;
+    let familyWriteTail = Promise.resolve();
+    let cloudRefreshInFlight = null;
+    let familyContextRevision = 0;
+    let PRACTICE_SCOPE = READ_ONLY_DEMO ? "preview" : "";
+    let appAccessReady = false;
+    let spendRequestBusy = false;
+    let parentReviewBusy = false;
+
+    function currentPracticeScope() {
+      if (READ_ONLY_DEMO) return "preview";
+      const owner = safeText(verifiedOwnerId, 64).toLowerCase();
+      const child = safeText(loadedFamily?.activeChild, 160);
+      return owner && child ? `${owner}\u001f${child}` : "";
+    }
+
+    function freshPracticeState() {
+      return {
+        ...DEFAULT_STATE,
+        history: DEFAULT_STATE.history.map((item) => ({ ...item }))
+      };
+    }
+
+    function discardDamagedPracticeRecord() {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch (error) {
+        // Storage can be unavailable in private or locked-down browser modes.
+      }
+    }
+
+    function readPracticeRecord() {
+      let raw = "";
+      try {
+        raw = localStorage.getItem(STORAGE_KEY) || "";
+      } catch (error) {
+        return null;
+      }
+      if (!raw) return null;
+      if (raw.length > MAX_PRACTICE_STORAGE_CHARACTERS) {
+        discardDamagedPracticeRecord();
+        return null;
+      }
+      try {
+        const record = JSON.parse(raw);
+        if (!record || typeof record !== "object" || Array.isArray(record)
+            || record.version !== 1 || !record.profiles
+            || typeof record.profiles !== "object" || Array.isArray(record.profiles)) {
+          discardDamagedPracticeRecord();
+          return null;
+        }
+        return record;
+      } catch (error) {
+        discardDamagedPracticeRecord();
+        return null;
+      }
+    }
+
+    function loadState() {
+      if (READ_ONLY_DEMO) {
+        return {
+          ...DEFAULT_STATE,
+          history: DEFAULT_STATE.history.map((item) => ({ ...item }))
+        };
+      }
+      const record = readPracticeRecord();
+      const saved = record?.profiles[PRACTICE_SCOPE];
+      if (saved && typeof saved === "object" && !Array.isArray(saved)) {
+        return saved;
+      }
+      return {
+        ...DEFAULT_STATE,
+        history: DEFAULT_STATE.history.map((item) => ({ ...item }))
+      };
+    }
+
+    function normalizePracticeState(value) {
+      const next = value && typeof value === "object" && !Array.isArray(value)
+        ? value
+        : freshPracticeState();
+      next.balance = boundedMoney(next.balance, DEFAULT_STATE.balance);
+      next.allowance = boundedMoney(next.allowance, DEFAULT_STATE.allowance);
+      next.goal = boundedMoney(next.goal, DEFAULT_STATE.goal, 1);
+      next.goalName = safeText(next.goalName || DEFAULT_STATE.goalName, 32);
+      next.savedWeek = Math.min(next.balance, boundedMoney(next.savedWeek, 0));
+      next.parentStatus = validParentStatus(next.parentStatus);
+      next.currency = validCurrency(next.currency);
+      next.history = Array.isArray(next.history)
+        ? next.history.slice(0, 10).map((item) => ({
+          label: safeText(item?.label, 100) || "Activity",
+          amount: safeText(item?.amount, 40),
+          type: safeText(item?.type, 20)
+        }))
+        : [];
+      return next;
+    }
+
+    let state = normalizePracticeState(READ_ONLY_DEMO ? loadState() : freshPracticeState());
+    let practiceStorageWarningShown = false;
+
+    // Linked account information only lives in memory for the current page. It is
+    // deliberately separate from the saved practice-money state below.
+    const bankView = {
+      institution: "",
+      accounts: [],
+      revealed: false
+    };
+
+    const currencyFormatters = new Map();
+    const toast = document.querySelector("#toast");
+    const bankPanel = document.querySelector(".bank-panel");
+    const bankPinDialog = document.querySelector("#bankPinDialog");
+    const bankPinForm = document.querySelector("#bankPinForm");
+    const bankPinInput = document.querySelector("#bankPin");
+    const bankPinConfirmInput = document.querySelector("#bankPinConfirm");
+    const bankPinConfirmField = document.querySelector("#bankPinConfirmField");
+    const bankEnrollmentFields = document.querySelector("#bankEnrollmentFields");
+    const bankAccountPasswordInput = document.querySelector("#bankAccountPassword");
+    const bankHumanCheck = document.querySelector("#bankHumanCheck");
+    const bankHumanCheckStatus = document.querySelector("#bankHumanCheckStatus");
+    const viewBankPin = document.querySelector("#viewBankPin");
+    const confirmBankPinButton = document.querySelector("#confirmBankPin");
+    const bankPinError = document.querySelector("#bankPinError");
+    const goalDialog = document.querySelector("#goalDialog");
+    const goalForm = document.querySelector("#goalForm");
+    const goalNameInput = document.querySelector("#goalNameInput");
+    const goalAmountInput = document.querySelector("#goalAmountInput");
+    const goalFormError = document.querySelector("#goalFormError");
+    const changeGoalButton = document.querySelector("#changeGoal");
+    const saveGoalButton = document.querySelector("#saveGoal");
+    const spendRequestForm = document.querySelector("#spendRequestForm");
+    const itemNameInput = document.querySelector("#itemName");
+    const itemCostInput = document.querySelector("#itemCost");
+    const spendRequestError = document.querySelector("#spendRequestError");
+    const requestSpendButton = document.querySelector("#requestSpend");
+    const requestApprovalButton = document.querySelector("#requestApproval");
+    let bankPinResolver = null;
+    let bankHumanCheckController = null;
+    let bankCaptchaToken = "";
+    let bankHumanCheckGeneration = 0;
+    let plaidScriptPromise = null;
+    let bankBusy = false;
+    let bankPromptOpen = false;
+    let bankPinReturnFocus = null;
+    let bankRequestRevision = 0;
+    let bankBalanceVisibilityTimer = 0;
+    const activeBankRequests = new Set();
+    const BANK_STATE_RECONCILE_CODES = new Set([
+      "bank_already_connected",
+      "bank_connection_changed",
+      "bank_connection_error",
+      "bank_not_connected",
+      "bank_request_uncertain",
+      "invalid_link_session",
+      "pin_not_configured"
+    ]);
+    let bankService = {
+      checked: false,
+      authenticated: false,
+      configured: false,
+      mode: "unavailable",
+      hasConnection: false,
+      connectionIssue: false,
+      pinConfigured: false,
+      canConnect: false,
+      canView: false,
+      canDisconnect: false,
+      institution: ""
+    };
+
+    function finiteNumber(value, fallback = 0) {
+      if (typeof value === "number") return Number.isFinite(value) ? value : fallback;
+      if (typeof value !== "string") return fallback;
+      const input = value.trim();
+      if (!/^-?(?:\d+(?:\.\d+)?|\.\d+)$/.test(input)) return fallback;
+      const number = Number(input);
+      return Number.isFinite(number) ? number : fallback;
+    }
+
+    function boundedMoney(value, fallback = 0, minimum = 0) {
+      const number = finiteNumber(value, fallback);
+      return Math.round(Math.min(MAX_PRACTICE_AMOUNT, Math.max(minimum, number)) * 100) / 100;
+    }
+
+    function parsePracticeRequestAmount(value) {
+      const input = String(value ?? "").trim();
+      if (!/^(?:\d+(?:\.\d{0,2})?|\.\d{1,2})$/.test(input)) return null;
+      const amount = Number(input);
+      if (!Number.isFinite(amount) || amount < 1 || amount > MAX_PRACTICE_AMOUNT) return null;
+      return Math.round(amount * 100) / 100;
+    }
+
+    function safeText(value, maxLength = 120) {
+      return String(value ?? "")
+        .replace(/[\u0000-\u001f\u007f]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, maxLength);
+    }
+
+    function sanitizeInstitution(value) {
+      return safeText(value, 80);
+    }
+
+    function validCurrency(value) {
+      const currency = String(value || "USD").trim().toUpperCase();
+      return /^[A-Z]{3}$/.test(currency) ? currency : "USD";
+    }
+
+    function validParentStatus(value) {
+      const status = safeText(value, 20);
+      return ["Ready", "Waiting", "Asked"].includes(status) ? status : "Ready";
+    }
+
+    function formatMoney(value, currency = state.currency) {
+      const code = validCurrency(currency);
+      if (!currencyFormatters.has(code)) {
+        try {
+          currencyFormatters.set(code, new Intl.NumberFormat(undefined, {
+            style: "currency",
+            currency: code
+          }));
+        } catch (error) {
+          currencyFormatters.set(code, new Intl.NumberFormat(undefined, {
+            style: "currency",
+            currency: "USD"
+          }));
+        }
+      }
+      return currencyFormatters.get(code).format(finiteNumber(value));
+    }
+
+    function ownerScopedPracticeProfiles(value) {
+      const profiles = Object.create(null);
+      if (!value || typeof value !== "object" || Array.isArray(value)) return profiles;
+      const ownerPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      Object.entries(value).slice(0, 100).forEach(([scope, profile]) => {
+        const parts = String(scope).split("\u001f");
+        if (parts.length !== 2 || !ownerPattern.test(parts[0]) || !safeText(parts[1], 160)) return;
+        if (!profile || typeof profile !== "object" || Array.isArray(profile)) return;
+        profiles[scope] = profile;
+      });
+      return profiles;
+    }
+
+    function save() {
+      if (READ_ONLY_DEMO || !PRACTICE_SCOPE) return;
+      // Keep the browser record limited to the pretend-money activity. Bank
+      // balances, account names, connection metadata, and currencies never enter
+      // localStorage.
+      const practiceState = {
+        balance: state.balance,
+        allowance: state.allowance,
+        goal: state.goal,
+        goalName: state.goalName,
+        savedWeek: state.savedWeek,
+        parentStatus: state.parentStatus,
+        currency: state.currency,
+        history: state.history
+      };
+      try {
+        const saved = readPracticeRecord();
+        const profiles = ownerScopedPracticeProfiles(saved?.profiles);
+        profiles[PRACTICE_SCOPE] = practiceState;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, profiles }));
+      } catch (error) {
+        if (!practiceStorageWarningShown) {
+          practiceStorageWarningShown = true;
+          showToast("Practice changes will last for this visit because browser storage is unavailable.");
+        }
+      }
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toast.classList.remove("show"), 2400);
+    }
+
+    function showKiddoSproutGate(title, message) {
+      // An access check can finish while a native dialog is open. Remove any
+      // top-layer UI before replacing the page, then move focus to the reason
+      // access stopped so keyboard and screen-reader users are not stranded on
+      // a detached control.
+      if (bankPinDialog.open) closeBankPin(null);
+      if (goalDialog.open) goalDialog.close();
+      const main = document.createElement("main");
+      main.className = "shell";
+      const section = document.createElement("section");
+      section.className = "card";
+      section.setAttribute("aria-labelledby", "smartSpendingGateTitle");
+      section.setAttribute("aria-describedby", "smartSpendingGateDescription");
+      section.style.cssText = "max-width:520px;margin:70px auto;text-align:center;";
+      const brand = document.createElement("div");
+      brand.className = "brand";
+      brand.style.cssText = "justify-content:center;margin-bottom:14px;";
+      const mark = document.createElement("span");
+      mark.className = "mark";
+      mark.textContent = "KS";
+      const brandName = document.createElement("span");
+      brandName.textContent = "KiddoSprout Access";
+      const heading = document.createElement("h1");
+      heading.id = "smartSpendingGateTitle";
+      heading.tabIndex = -1;
+      heading.textContent = safeText(title, 80);
+      const description = document.createElement("p");
+      description.id = "smartSpendingGateDescription";
+      description.className = "small";
+      description.textContent = safeText(message, 240);
+      const back = document.createElement("a");
+      back.className = "back";
+      back.href = "index.html#child";
+      back.style.cssText = "justify-content:center;margin-top:12px;";
+      back.textContent = "Back to KiddoSprout";
+      brand.append(mark, brandName);
+      section.append(brand, heading, description, back);
+      main.append(section);
+      document.body.replaceChildren(main);
+      heading.focus({ preventScroll: true });
+    }
+
+    function normalizeDashboardRequest(request) {
+      if (!Array.isArray(request)) return null;
+      const title = safeText(request[0], 100);
+      if (!title || title.toLowerCase() === "no request" || title.toLowerCase() === "no request yet") return null;
+      return [
+        title,
+        safeText(request[1] || "Request from Smart Spending", 240),
+        safeText(request[2] || title.slice(0, 1), 3),
+        safeText(request[3] || "spendRequest", 40),
+        ...request.slice(4, 8).map((value) => safeText(value, 100))
+      ];
+    }
+
+    function smartSpendingAccessAllowed(child) {
+      if (!child || typeof child !== "object" || Array.isArray(child)) return false;
+      if (child.appRules == null) return true;
+      if (typeof child.appRules !== "object" || Array.isArray(child.appRules)) return false;
+      return (child.appRules.spending || "allowed") === "allowed";
+    }
+
+    function isFamilyWriteConflict(error) {
+      return error?.kind === "conflict" || error?.code === "family_state_conflict";
+    }
+
+    function copyFamilyState(value) {
+      if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+      try {
+        return JSON.parse(JSON.stringify(value));
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function familyMatchesSession(family, session, expectedOwnerId = verifiedOwnerId) {
+      const ownerId = safeText(expectedOwnerId, 64).toLowerCase();
+      const sessionOwnerId = safeText(session?.user?.id, 64).toLowerCase();
+      const familyEmail = safeText(family?.parentEmail, 320).toLowerCase();
+      const sessionEmail = safeText(session?.user?.email, 320).toLowerCase();
+      return Boolean(
+        ownerId
+        && sessionOwnerId === ownerId
+        && familyEmail
+        && sessionEmail
+        && familyEmail === sessionEmail
+      );
+    }
+
+    async function fetchVerifiedFamily(expectedOwnerId = "") {
+      const sessionApi = window.KiddoSproutSession;
+      const familyApi = window.KiddoSproutFamilyState;
+      if (!sessionApi?.validate || !familyApi?.load) {
+        throw new Error("Secure family access is unavailable.");
+      }
+      const session = await sessionApi.validate();
+      const ownerId = safeText(session?.user?.id, 64).toLowerCase();
+      if (!ownerId || !safeText(session?.user?.email, 320)) {
+        throw new Error("A verified parent login is required.");
+      }
+      if (expectedOwnerId && ownerId !== safeText(expectedOwnerId, 64).toLowerCase()) {
+        throw new Error("The parent sign-in changed.");
+      }
+      const family = await familyApi.load({ expectedOwnerId: ownerId });
+      if (!family || !familyMatchesSession(family, session, ownerId)) {
+        throw new Error("The secure family profile does not match this parent login.");
+      }
+      return { session, ownerId, family };
+    }
+
+    async function enqueueDashboardRequest(request) {
+      if (READ_ONLY_DEMO) return "preview";
+      const normalized = normalizeDashboardRequest(request);
+      const expectedOwnerId = verifiedOwnerId;
+      const expectedChildId = safeText(loadedFamily?.activeChild, 160);
+      if (!normalized || !expectedOwnerId || !expectedChildId) return "unavailable";
+
+      const writeRequest = async () => {
+        for (let attempt = 0; attempt < 2; attempt += 1) {
+          try {
+            const context = await fetchVerifiedFamily(expectedOwnerId);
+            const latestChildId = safeText(context.family?.activeChild, 160);
+            if (latestChildId !== expectedChildId) return "access-changed";
+            const family = copyFamilyState(context.family);
+            const child = family?.children?.[latestChildId];
+            if (!child || typeof child !== "object" || Array.isArray(child)) return "unavailable";
+            if ((normalized[3] === "spendRequest" || normalized[3] === "spendReview")
+                && !smartSpendingAccessAllowed(child)) {
+              loadedFamily = context.family;
+              verifiedSession = context.session;
+              return "access-changed";
+            }
+
+            const queued = Array.isArray(child.requests)
+              ? child.requests.map(normalizeDashboardRequest).filter(Boolean).slice(0, 100)
+              : [];
+            const legacy = normalizeDashboardRequest(child.currentRequest);
+            if (legacy && Number(child.pending || 0) > queued.length
+                && !queued.some((item) => JSON.stringify(item) === JSON.stringify(legacy))) {
+              queued.push(legacy);
+            }
+            const requestKey = JSON.stringify(normalized);
+            if (queued.some((item) => JSON.stringify(item) === requestKey)) return "duplicate";
+            if (queued.length >= 100) return "full";
+
+            queued.push(normalized);
+            child.requests = queued;
+            child.pending = queued.length;
+            child.currentRequest = [...queued[0]];
+            const savedFamily = await window.KiddoSproutFamilyState.save(family, { expectedOwnerId });
+            if (!savedFamily || !familyMatchesSession(savedFamily, context.session, expectedOwnerId)) {
+              return "unavailable";
+            }
+            loadedFamily = savedFamily;
+            verifiedSession = context.session;
+            return "sent";
+          } catch (error) {
+            // The shared family client uses compare-and-swap writes. One fresh
+            // reload/merge retry preserves both tabs' requests without ever
+            // overwriting a newer parent decision.
+            if (attempt === 0 && isFamilyWriteConflict(error)) continue;
+            return "unavailable";
+          }
+        }
+        return "unavailable";
+      };
+
+      const result = familyWriteTail.then(writeRequest, writeRequest);
+      familyWriteTail = result.then(() => undefined, () => undefined);
+      return result;
+    }
+
+    async function requestKiddoSproutAccess(appId, appTitle) {
+      return enqueueDashboardRequest([
+        appTitle,
+        `${appTitle} requested from a connected app page`,
+        appTitle.charAt(0),
+        "appAccess",
+        appId
+      ]);
+    }
+
+    function dashboardRequestMessage(result, sentMessage) {
+      if (result === "sent") return sentMessage;
+      if (result === "duplicate") return "That request is already waiting on the parent dashboard.";
+      if (result === "full") return "The parent request list is full. Ask a parent to review it first.";
+      if (result === "access-changed") return "The parent changed Smart Spending access. Return to KiddoSprout to check the new setting.";
+      if (result === "preview") return "Practice request added for this preview visit.";
+      return "The parent dashboard could not be reached, so the request was not sent.";
+    }
+
+    function refreshParentStatusFromDashboard() {
+      if (READ_ONLY_DEMO) return;
+      try {
+        const child = loadedFamily?.children?.[loadedFamily.activeChild];
+        if (!child) return;
+        let requests = Array.isArray(child.requests)
+          ? child.requests.map(normalizeDashboardRequest).filter(Boolean)
+          : [];
+        if (!requests.length && Number(child.pending || 0) > 0) {
+          const legacy = normalizeDashboardRequest(child.currentRequest);
+          if (legacy) requests = [legacy];
+        }
+        const smartSpendingRequests = requests.filter((item) =>
+          item[3] === "spendRequest" || item[3] === "spendReview"
+        );
+        state.parentStatus = smartSpendingRequests.some((item) => item[3] === "spendReview")
+          ? "Asked"
+          : (smartSpendingRequests.length ? "Waiting" : "Ready");
+      } catch (error) {
+        // Keep the last in-memory status if the verified cloud state is malformed.
+      }
+    }
+
+    async function canOpenKiddoSproutApp(appId, appTitle) {
+      if (READ_ONLY_DEMO) return true;
+      try {
+        const family = loadedFamily;
+        if (!family || !verifiedOwnerId || !verifiedSession || !family.parentAccountCreated) {
+          showKiddoSproutGate("Parent account needed", "Create or log in to the parent account before opening connected child apps.");
+          return false;
+        }
+        const child = family.children?.[family.activeChild];
+        if (!child || typeof child !== "object" || Array.isArray(child)) {
+          showKiddoSproutGate("Child profile needed", "Add or select a child profile in KiddoSprout before opening Smart Spending.");
+          return false;
+        }
+        if (!familyMatchesSession(family, verifiedSession, verifiedOwnerId)) {
+          showKiddoSproutGate(
+            "Different parent account",
+            "This family hub belongs to another parent account. Use the matching parent login."
+          );
+          return false;
+        }
+        const rule = child?.appRules?.[appId] || "allowed";
+        if (rule === "allowed") return true;
+        if (rule === "blocked") {
+          showKiddoSproutGate(appTitle + " is blocked", "A parent has blocked this app for the current child profile.");
+          return false;
+        }
+        const requestResult = await requestKiddoSproutAccess(appId, appTitle);
+        showKiddoSproutGate(
+          "Ask a parent first",
+          dashboardRequestMessage(requestResult, "A request was sent to the parent dashboard for approval.")
+        );
+        return false;
+      } catch (error) {
+        showKiddoSproutGate("KiddoSprout check failed", "Open KiddoSprout again so this app can securely check the parent settings.");
+        return false;
+      }
+    }
+
+    function addHistory(label, amount, type) {
+      const sign = amount >= 0 ? "+" : "-";
+      state.history.unshift({
+        label: safeText(label, 100),
+        amount: sign + formatMoney(Math.abs(finiteNumber(amount))),
+        type: safeText(type, 20)
+      });
+      state.history = state.history.slice(0, 10);
+    }
+
+    function addHistoryNote(label, value, type) {
+      state.history.unshift({
+        label: safeText(label, 100),
+        amount: safeText(value, 40),
+        type: safeText(type, 20)
+      });
+      state.history = state.history.slice(0, 10);
+    }
+
+    function stoppedBankRequest(message = "The bank action stopped because the parent session changed.") {
+      const error = new Error(message);
+      error.code = "bank_request_cancelled";
+      return error;
+    }
+
+    function stopBankRequests(message) {
+      bankRequestRevision += 1;
+      activeBankRequests.forEach((controller) => controller.abort());
+      if (bankPromptOpen || bankPinDialog.open) closeBankPin(null);
+      setBankBusy(false);
+      if (message) showToast(message);
+    }
+
+    async function apiPost(path, body = {}) {
+      if (READ_ONLY_DEMO) {
+        throw new Error("Bank connections are unavailable in the Smart Spending preview.");
+      }
+      const accessToken = await window.KiddoSproutSession?.getAccessToken?.();
+      if (!accessToken) {
+        bankService.authenticated = false;
+        clearEphemeralBankData();
+        setAppAccessReady(false);
+        throw new Error("Your parent session has expired. Sign in to KiddoSprout again.");
+      }
+      const controller = new AbortController();
+      const requestRevision = bankRequestRevision;
+      let timedOut = false;
+      const timeoutId = window.setTimeout(() => {
+        timedOut = true;
+        controller.abort();
+      }, 15000);
+      activeBankRequests.add(controller);
+      try {
+        const response = await fetch(path, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${accessToken}`
+          },
+          body: JSON.stringify(body),
+          cache: "no-store",
+          credentials: "same-origin",
+          signal: controller.signal
+        });
+        const contentType = String(response.headers.get("content-type") || "").toLowerCase();
+        const data = contentType.includes("application/json")
+          ? await response.json().catch(() => ({ error: "Bank service returned an invalid response." }))
+          : { error: "Bank service returned an unexpected response." };
+        const currentAccessToken = String(window.KiddoSproutSession?.getSession?.()?.access_token || "");
+        if (requestRevision !== bankRequestRevision || currentAccessToken !== accessToken) {
+          throw stoppedBankRequest();
+        }
+        if (!response.ok || data.ok === false) {
+          if (response.status === 401) {
+            bankService.authenticated = false;
+            clearEphemeralBankData();
+            setAppAccessReady(false);
+            window.KiddoSproutSession?.clear?.();
+          }
+          const requestError = new Error(safeText(data.error || "Bank request failed.", 180));
+          requestError.status = response.status;
+          requestError.code = safeText(data.code, 80).toLowerCase();
+          throw requestError;
+        }
+        return data;
+      } catch (error) {
+        if (error?.code === "bank_request_cancelled") throw error;
+        if (timedOut) {
+          const timeoutError = new Error("The bank service took too long to respond. Please try again.");
+          timeoutError.code = "bank_request_uncertain";
+          throw timeoutError;
+        }
+        if (controller.signal.aborted) throw stoppedBankRequest();
+        if (error instanceof TypeError) {
+          const networkError = new Error("The bank service could not be reached. Check your connection and try again.");
+          networkError.code = "bank_request_uncertain";
+          throw networkError;
+        }
+        throw error;
+      } finally {
+        window.clearTimeout(timeoutId);
+        activeBankRequests.delete(controller);
+      }
+    }
+
+    function loadPlaid() {
+      if (READ_ONLY_DEMO) {
+        return Promise.reject(new Error("Bank connections are unavailable in the Smart Spending preview."));
+      }
+      if (window.Plaid?.create) return Promise.resolve(window.Plaid);
+      if (plaidScriptPromise) return plaidScriptPromise;
+      plaidScriptPromise = new Promise((resolve, reject) => {
+        const source = "https://cdn.plaid.com/link/v2/stable/link-initialize.js";
+        const staleScript = Array.from(document.scripts).find((candidate) =>
+          candidate.dataset.kiddoSproutPlaid === "true"
+        );
+        staleScript?.remove();
+        const script = document.createElement("script");
+        script.src = source;
+        script.async = true;
+        script.dataset.kiddoSproutPlaid = "true";
+        let settled = false;
+        const finish = (error) => {
+          if (settled) return;
+          settled = true;
+          window.clearTimeout(timeoutId);
+          script.removeEventListener("load", handleLoad);
+          script.removeEventListener("error", handleError);
+          if (error) {
+            script.remove();
+            plaidScriptPromise = null;
+            reject(error);
+          } else {
+            resolve(window.Plaid);
+          }
+        };
+        const handleLoad = () => window.Plaid?.create
+          ? finish()
+          : finish(new Error("The bank-link screen loaded without its secure browser tool."));
+        const handleError = () => finish(new Error("The bank-link screen could not load. Check your connection and try again."));
+        const timeoutId = window.setTimeout(
+          () => finish(new Error("The bank-link screen took too long to load. Please try again.")),
+          15000
+        );
+        script.addEventListener("load", handleLoad, { once: true });
+        script.addEventListener("error", handleError, { once: true });
+        document.head.appendChild(script);
+      });
+      return plaidScriptPromise;
+    }
+
+    function normalizeBankStatus(data) {
+      const suppliedMode = safeText(data?.mode, 20).toLowerCase();
+      const mode = ["demo", "plaid", "unavailable"].includes(suppliedMode)
+        ? suppliedMode
+        : (data?.configured === true ? "plaid" : "unavailable");
+      const configured = mode !== "unavailable" && data?.configured === true;
+      const hasConnection = (data?.hasConnection ?? data?.connected) === true;
+      return {
+        checked: true,
+        authenticated: true,
+        configured,
+        mode,
+        hasConnection,
+        connectionIssue: data?.connectionIssue === true,
+        pinConfigured: data?.pinConfigured === true,
+        canConnect: data?.canConnect == null ? configured && !hasConnection : data.canConnect === true,
+        canView: data?.canView == null ? configured && hasConnection : data.canView === true,
+        canDisconnect: data?.canDisconnect == null ? configured && hasConnection : data.canDisconnect === true,
+        institution: sanitizeInstitution(data?.institution || (mode === "demo" ? data?.provider : ""))
+      };
+    }
+
+    function normalizeAccount(account) {
+      const finiteBankAmount = (value) => typeof value === "number" && Number.isFinite(value)
+        ? value
+        : null;
+      const available = finiteBankAmount(account?.available);
+      const current = finiteBankAmount(account?.current);
+      return {
+        name: safeText(account?.name || "Bank account", 80),
+        mask: safeText(account?.mask, 8).replace(/[^0-9A-Za-z]/g, "").slice(-4),
+        type: safeText(account?.type || "account", 30),
+        available,
+        current,
+        currency: validCurrency(account?.currency)
+      };
+    }
+
+    function clearEphemeralBankData() {
+      window.clearTimeout(bankBalanceVisibilityTimer);
+      bankBalanceVisibilityTimer = 0;
+      bankView.institution = "";
+      bankView.accounts = [];
+      bankView.revealed = false;
+    }
+
+    function scheduleBankBalanceHide() {
+      window.clearTimeout(bankBalanceVisibilityTimer);
+      bankBalanceVisibilityTimer = window.setTimeout(() => {
+        clearEphemeralBankData();
+        if (bankPanel.isConnected) renderBank();
+        showToast("Bank balances were hidden. Enter the Bank PIN to view them again.");
+      }, BANK_BALANCE_VISIBILITY_MS);
+    }
+
+    function appendInfoRow(container, label, value) {
+      const row = document.createElement("div");
+      row.className = "row";
+      row.setAttribute("role", "listitem");
+      const name = document.createElement("span");
+      name.textContent = label;
+      const amount = document.createElement("strong");
+      amount.textContent = value;
+      row.append(name, amount);
+      container.append(row);
+    }
+
+    function updateBankControls() {
+      const connect = document.querySelector("#connectBank");
+      const sync = document.querySelector("#syncBank");
+      const disconnect = document.querySelector("#disconnectBank");
+      if (!connect || !sync || !disconnect || !bankPanel.isConnected) return;
+      const controlsLocked = !appAccessReady || bankBusy || bankPromptOpen;
+      connect.disabled = controlsLocked || !bankService.authenticated || !bankService.canConnect || bankService.hasConnection;
+      sync.disabled = controlsLocked || !bankService.authenticated || !bankService.canView || !bankService.hasConnection;
+      disconnect.disabled = controlsLocked || !bankService.authenticated || !bankService.canDisconnect || !bankService.hasConnection;
+      connect.textContent = bankBusy
+        ? "Please wait…"
+        : (bankService.mode === "demo" ? "Connect demo bank" : "Connect bank");
+      sync.textContent = bankBusy ? "Please wait…" : "View balances";
+      bankPanel.setAttribute("aria-busy", String(bankBusy));
+    }
+
+    function renderBank() {
+      if (!bankPanel.isConnected) return;
+      const badge = document.querySelector("#bankStatusBadge");
+      const text = document.querySelector("#bankStatusText");
+      const modeNote = document.querySelector("#bankModeNote");
+      const accounts = document.querySelector("#bankAccounts");
+      accounts.replaceChildren();
+      modeNote.classList.toggle("show", bankService.mode === "demo");
+      modeNote.textContent = bankService.mode === "demo"
+        ? "Demo data only — this is practice information and is not connected to real money."
+        : "";
+
+      if (READ_ONLY_DEMO) {
+        modeNote.classList.add("show");
+        modeNote.textContent = "Preview only — pretend-money activities work, while parent accounts and bank connections stay off.";
+        badge.textContent = "Practice preview";
+        text.textContent = "No bank details are loaded or stored in this preview.";
+        appendInfoRow(accounts, "Bank connections are off", "Safe preview");
+        updateBankControls();
+        return;
+      }
+
+      if (!bankService.checked) {
+        badge.textContent = "Checking bank service";
+        text.textContent = "Checking your secure bank options…";
+      } else if (!bankService.authenticated) {
+        badge.textContent = "Parent sign-in required";
+        text.textContent = "A parent must sign in to KiddoSprout before bank settings can be viewed or changed.";
+      } else if (bankService.hasConnection) {
+        badge.textContent = bankService.connectionIssue
+          ? "Bank record needs attention"
+          : bankService.mode === "demo" ? "Demo bank connected" : "Bank connected";
+        const institution = bankService.institution || bankView.institution;
+        text.textContent = bankService.connectionIssue
+          ? "This saved bank record is incomplete. A parent can remove it safely and connect again."
+          : !bankService.canView
+          ? "This saved bank connection cannot be opened until its bank provider is available again."
+          : institution
+          ? `Connected to ${institution}. A parent can enter the Bank PIN to view balances.`
+          : "A bank is connected. A parent can enter the Bank PIN to view balances.";
+      } else if (!bankService.configured) {
+        badge.textContent = "Bank service unavailable";
+        text.textContent = "Bank linking is not available on this server right now. Kid money practice still works.";
+      } else {
+        badge.textContent = bankService.mode === "demo" ? "Demo bank ready" : "Bank not connected";
+        text.textContent = bankService.mode === "demo"
+          ? "A parent can connect the safe demonstration bank using the Bank PIN."
+          : "A parent can connect through the secure bank provider. Kids never enter bank passwords here.";
+      }
+
+      if (bankService.authenticated && bankService.hasConnection && bankView.accounts.length) {
+        bankView.accounts.forEach((account) => {
+          const label = account.name + (account.mask ? ` •••• ${account.mask}` : "");
+          const accountValue = account.available ?? account.current;
+          appendInfoRow(
+            accounts,
+            label,
+            accountValue == null ? "Ready" : formatMoney(accountValue, account.currency)
+          );
+        });
+      } else if (bankService.authenticated && bankService.hasConnection && bankView.revealed) {
+        appendInfoRow(accounts, "No accounts were returned by the bank provider", "Connected");
+      } else if (bankService.authenticated && bankService.hasConnection) {
+        appendInfoRow(accounts, "Balances hidden until a parent enters the Bank PIN", "Protected");
+      } else {
+        appendInfoRow(
+          accounts,
+          bankService.authenticated ? "No linked accounts yet" : "Bank details are hidden",
+          "Parent"
+        );
+      }
+      updateBankControls();
+    }
+
+    function setAppAccessReady(ready) {
+      appAccessReady = ready === true;
+      ["#itemName", "#itemCost", "#changeGoal"].forEach((selector) => {
+        const control = document.querySelector(selector);
+        if (control) control.disabled = !appAccessReady;
+      });
+      // The goal editor can remain open while a returning tab rechecks the
+      // current parent's permission. Its fields and submit action must follow
+      // that same readiness state instead of allowing a stale write.
+      // Read-only preserves keyboard focus if the tab becomes visible while a
+      // parent is midway through the dialog; disabling the focused field would
+      // send focus back to the document body.
+      goalNameInput.readOnly = !appAccessReady;
+      goalAmountInput.readOnly = !appAccessReady;
+      saveGoalButton.disabled = !appAccessReady;
+      goalDialog.setAttribute("aria-busy", String(goalDialog.open && !appAccessReady));
+      requestSpendButton.disabled = !appAccessReady || spendRequestBusy;
+      requestApprovalButton.disabled = !appAccessReady || parentReviewBusy;
+    }
+
+    function stopForChangedAppAccess() {
+      familyContextRevision += 1;
+      stopBankRequests();
+      clearEphemeralBankData();
+      setAppAccessReady(false);
+      showKiddoSproutGate(
+        "Smart Spending access changed",
+        "A parent changed this app's setting. Return to KiddoSprout to check the current permission."
+      );
+    }
+
+    function render() {
+      const progress = Math.min(100, Math.round((state.balance / Math.max(1, state.goal)) * 100));
+      document.querySelector("#balance").textContent = formatMoney(state.balance);
+      document.querySelector("#allowance").textContent = formatMoney(state.allowance);
+      document.querySelector("#savedWeek").textContent = formatMoney(state.savedWeek);
+      document.querySelector("#parentStatus").textContent = state.parentStatus;
+      document.querySelector("#saveFive").textContent = `Save ${formatMoney(5)}`;
+      document.querySelector("#saveFive").disabled = !appAccessReady || state.savedWeek >= state.balance;
+      document.querySelector("#addAllowance").disabled = !appAccessReady || state.allowance <= 0 || state.balance >= MAX_PRACTICE_AMOUNT;
+      document.querySelector("#earnTwo").disabled = !appAccessReady || state.balance >= MAX_PRACTICE_AMOUNT;
+      document.querySelector("#earnTwo").textContent = `Earn ${formatMoney(2)} task credit`;
+      document.querySelector("#goalName").textContent = state.goalName;
+      document.querySelector("#goalLabel").textContent = formatMoney(state.balance) + " / " + formatMoney(state.goal);
+      document.querySelector("#goalFill").style.setProperty("--w", progress + "%");
+      document.querySelector("#goalProgress").setAttribute("aria-valuenow", String(progress));
+      document.querySelector("#goalProgress").setAttribute(
+        "aria-valuetext",
+        `${formatMoney(state.balance)} of ${formatMoney(state.goal)} saved`
+      );
+      const history = document.querySelector("#history");
+      history.replaceChildren();
+      if (state.history.length) {
+        state.history.forEach((item) => appendInfoRow(
+          history,
+          safeText(item?.label, 100) || "Activity",
+          safeText(item?.amount, 40)
+        ));
+      } else {
+        appendInfoRow(history, "No history yet", "Start");
+      }
+      renderBank();
+      save();
+    }
+
+    function setBankBusy(isBusy, message = "") {
+      bankBusy = isBusy;
+      updateBankControls();
+      if (message) {
+        document.querySelector("#bankStatusText").textContent = message;
+      }
+    }
+
+    function pinPayload(pinResult) {
+      const payload = { pin: pinResult.pin };
+      if (pinResult.confirmPin) payload.confirmPin = pinResult.confirmPin;
+      if (pinResult.accountPassword) payload.accountPassword = pinResult.accountPassword;
+      if (pinResult.captchaToken) payload.captchaToken = pinResult.captchaToken;
+      return payload;
+    }
+
+    function clearPinResult(pinResult) {
+      if (!pinResult) return;
+      pinResult.pin = "";
+      pinResult.confirmPin = "";
+      pinResult.accountPassword = "";
+      pinResult.captchaToken = "";
+    }
+
+    function resetBankPinVisibility() {
+      viewBankPin.checked = false;
+      bankPinInput.type = "password";
+      bankPinConfirmInput.type = "password";
+    }
+
+    function disposeBankHumanCheck() {
+      bankHumanCheckGeneration += 1;
+      bankCaptchaToken = "";
+      const controller = bankHumanCheckController;
+      bankHumanCheckController = null;
+      controller?.remove();
+      bankHumanCheck.replaceChildren();
+      bankHumanCheckStatus.hidden = false;
+      bankHumanCheckStatus.textContent = "The safety check will appear here.";
+      bankHumanCheckStatus.dataset.state = "notice";
+      bankHumanCheckStatus.setAttribute("role", "status");
+      bankHumanCheckStatus.setAttribute("aria-live", "polite");
+    }
+
+    async function mountBankHumanCheck() {
+      disposeBankHumanCheck();
+      const generation = bankHumanCheckGeneration;
+      confirmBankPinButton.disabled = true;
+      bankHumanCheckStatus.textContent = "Starting the safety check…";
+      const helper = window.KiddoSproutHumanCheck;
+      if (!helper?.render) {
+        bankHumanCheckStatus.textContent = "The safety check could not start. Refresh the page and try again.";
+        bankHumanCheckStatus.dataset.state = "error";
+        return;
+      }
+      try {
+        const controller = await helper.render(bankHumanCheck, {
+          statusElement: bankHumanCheckStatus,
+          widgetOptions: {
+            action: "kiddosprout_bank_pin",
+            appearance: "always",
+            language: "auto",
+            retry: "never",
+            "refresh-expired": "never",
+            "refresh-timeout": "never",
+            size: "flexible",
+            theme: document.documentElement.classList.contains("theme-night") ? "dark" : "light"
+          },
+          onToken(token) {
+            if (generation !== bankHumanCheckGeneration) return;
+            bankCaptchaToken = String(token || "");
+            confirmBankPinButton.disabled = !bankCaptchaToken;
+            bankHumanCheckStatus.hidden = false;
+            bankHumanCheckStatus.textContent = "Safety check complete.";
+            bankHumanCheckStatus.dataset.state = "success";
+          },
+          onExpired() {
+            if (generation !== bankHumanCheckGeneration) return;
+            bankCaptchaToken = "";
+            confirmBankPinButton.disabled = true;
+          },
+          onError() {
+            if (generation !== bankHumanCheckGeneration) return;
+            bankCaptchaToken = "";
+            confirmBankPinButton.disabled = true;
+          },
+          onTimeout() {
+            if (generation !== bankHumanCheckGeneration) return;
+            bankCaptchaToken = "";
+            confirmBankPinButton.disabled = true;
+          },
+          onUnsupported() {
+            if (generation !== bankHumanCheckGeneration) return;
+            bankCaptchaToken = "";
+            confirmBankPinButton.disabled = true;
+          }
+        });
+        if (generation !== bankHumanCheckGeneration || !bankPinDialog.open) {
+          controller.remove();
+          return;
+        }
+        bankHumanCheckController = controller;
+      } catch (error) {
+        if (generation !== bankHumanCheckGeneration) return;
+        confirmBankPinButton.disabled = true;
+        bankHumanCheckStatus.hidden = false;
+        bankHumanCheckStatus.textContent = "The safety check could not start. Refresh the page and try again.";
+        bankHumanCheckStatus.dataset.state = "error";
+      }
+    }
+
+    function settleBankPin(value) {
+      if (!bankPinResolver) return;
+      const resolver = bankPinResolver;
+      bankPinResolver = null;
+      resolver(value);
+    }
+
+    function cleanBankPinDialog() {
+      disposeBankHumanCheck();
+      bankPinForm.reset();
+      bankPinInput.value = "";
+      bankPinConfirmInput.value = "";
+      bankAccountPasswordInput.value = "";
+      bankPinInput.removeAttribute("aria-invalid");
+      bankPinConfirmInput.removeAttribute("aria-invalid");
+      bankAccountPasswordInput.removeAttribute("aria-invalid");
+      resetBankPinVisibility();
+      bankPinError.textContent = "";
+      bankPromptOpen = false;
+      updateBankControls();
+      const returnFocus = bankPinReturnFocus;
+      bankPinReturnFocus = null;
+      if (returnFocus?.isConnected && typeof returnFocus.focus === "function") {
+        window.requestAnimationFrame(() => returnFocus.focus());
+      }
+    }
+
+    function closeBankPin(value) {
+      settleBankPin(value);
+      if (bankPinDialog.open) bankPinDialog.close();
+      cleanBankPinDialog();
+    }
+
+    function requestBankPin(action, needsEnrollment, errorMessage = "") {
+      if (bankPromptOpen || bankPinDialog.open) {
+        return Promise.resolve(null);
+      }
+      const title = action === "disconnect"
+        ? "Disconnect bank"
+        : action === "view"
+          ? "View bank balances"
+          : "Parent confirmation";
+      const description = action === "disconnect"
+        ? (needsEnrollment
+          ? "Create a 4–8 digit Bank PIN, verify the parent account, and complete the safety check before removing this saved bank record."
+          : "Enter the Bank PIN to disconnect this bank.")
+        : action === "view"
+          ? "Enter the 4–8 digit Bank PIN to view balances for this visit."
+          : (needsEnrollment
+            ? "Create a 4–8 digit Bank PIN, verify the parent account, and complete the safety check."
+            : "Enter the 4–8 digit Bank PIN to continue.");
+      document.querySelector("#bankPinTitle").textContent = title;
+      document.querySelector("#bankPinDescription").textContent = description;
+      confirmBankPinButton.textContent = action === "disconnect"
+        ? "Disconnect"
+        : action === "view"
+          ? "View balances"
+          : "Continue";
+      bankPinConfirmField.hidden = !needsEnrollment;
+      bankPinConfirmInput.required = needsEnrollment;
+      bankEnrollmentFields.hidden = !needsEnrollment;
+      bankAccountPasswordInput.required = needsEnrollment;
+      bankPinInput.autocomplete = needsEnrollment ? "new-password" : "current-password";
+      disposeBankHumanCheck();
+      bankPinForm.reset();
+      resetBankPinVisibility();
+      bankPinError.textContent = safeText(errorMessage, 180);
+      confirmBankPinButton.disabled = needsEnrollment;
+      if (typeof bankPinDialog.showModal !== "function") {
+        showToast("This browser cannot open the secure parent confirmation screen.");
+        return Promise.resolve(null);
+      }
+      bankPromptOpen = true;
+      bankPinReturnFocus = document.activeElement;
+      updateBankControls();
+      const result = new Promise((resolve) => {
+        bankPinResolver = resolve;
+      });
+      try {
+        bankPinDialog.showModal();
+      } catch (error) {
+        settleBankPin(null);
+        cleanBankPinDialog();
+        showToast("The parent confirmation screen could not open. Refresh and try again.");
+        return Promise.resolve(null);
+      }
+      window.requestAnimationFrame(() => {
+        bankPinInput.focus();
+        if (needsEnrollment) mountBankHumanCheck();
+      });
+      return result;
+    }
+
+    function isParentConfirmationError(error) {
+      if (error?.status === 429) return false;
+      return new Set([
+        "invalid_pin",
+        "incorrect_pin",
+        "pin_mismatch",
+        "reauthentication_required",
+        "reauthentication_failed"
+      ]).has(String(error?.code || ""));
+    }
+
+    async function confirmAndRun(action, needsEnrollment, operation) {
+      let errorMessage = "";
+      while (true) {
+        const pinResult = await requestBankPin(action, needsEnrollment, errorMessage);
+        if (!pinResult) return { cancelled: true, value: null };
+        try {
+          const value = await operation(pinResult);
+          clearPinResult(pinResult);
+          return { cancelled: false, value };
+        } catch (error) {
+          clearPinResult(pinResult);
+          if (!isParentConfirmationError(error)) throw error;
+          setBankBusy(false);
+          errorMessage = error.message || "Parent confirmation failed. Try again.";
+        }
+      }
+    }
+
+    async function loadBankStatus() {
+      const data = await apiPost("/api/bank/status");
+      bankService = normalizeBankStatus(data);
+      if (bankService.hasConnection) {
+        bankView.institution = bankService.institution || bankView.institution;
+      } else {
+        clearEphemeralBankData();
+      }
+      renderBank();
+      return bankService;
+    }
+
+    function markBankStatusUnavailable(authenticated = true) {
+      clearEphemeralBankData();
+      bankService = {
+        checked: true,
+        authenticated: authenticated === true,
+        configured: false,
+        mode: "unavailable",
+        hasConnection: false,
+        connectionIssue: false,
+        pinConfigured: false,
+        canConnect: false,
+        canView: false,
+        canDisconnect: false,
+        institution: ""
+      };
+      renderBank();
+    }
+
+    async function reconcileBankState(error) {
+      if (!BANK_STATE_RECONCILE_CODES.has(String(error?.code || ""))) return false;
+      try {
+        await loadBankStatus();
+        return true;
+      } catch (refreshError) {
+        markBankStatusUnavailable(refreshError?.status !== 401);
+        return false;
+      }
+    }
+
+    async function refreshBankService(message = "Checking your secure bank options…", announceError = true) {
+      if (READ_ONLY_DEMO) return false;
+      setBankBusy(true, message);
+      try {
+        bankService.authenticated = true;
+        await loadBankStatus();
+        return true;
+      } catch (error) {
+        markBankStatusUnavailable(error?.status !== 401);
+        if (announceError && error?.code !== "bank_request_cancelled") {
+          showToast(error.message || "Bank service could not be checked.");
+        }
+        return false;
+      } finally {
+        setBankBusy(false);
+        renderBank();
+      }
+    }
+
+    async function fetchBankAccounts(pin) {
+      const data = await apiPost("/api/bank/accounts", { pin });
+      const accounts = Array.isArray(data?.accounts)
+        ? data.accounts.slice(0, 20).map(normalizeAccount)
+        : [];
+      bankView.accounts = accounts;
+      bankView.revealed = true;
+      bankService.hasConnection = true;
+      const responseMode = safeText(data?.mode, 20).toLowerCase();
+      if (responseMode === "demo" || responseMode === "plaid") {
+        bankService.mode = responseMode;
+      }
+      scheduleBankBalanceHide();
+      renderBank();
+      return accounts;
+    }
+
+    async function connectBank() {
+      if (!appAccessReady || bankBusy || bankPromptOpen) return;
+      const operationRevision = bankRequestRevision;
+      let plaidWindowOpen = false;
+      try {
+        setBankBusy(true, "Checking parent confirmation settings…");
+        const status = await loadBankStatus();
+        if (status.hasConnection) {
+          showToast("A bank is already connected. Refreshing its protected status.");
+          return;
+        }
+        if (!status.canConnect) {
+          showToast("Bank linking is not available on this server.");
+          return;
+        }
+
+        setBankBusy(false);
+        const confirmation = await confirmAndRun("connect", !status.pinConfigured, async (pinResult) => {
+          setBankBusy(true, status.mode === "demo" ? "Connecting the demo bank…" : "Opening the secure bank provider…");
+          if (status.mode === "demo") {
+            await apiPost("/api/bank/connect-demo", pinPayload(pinResult));
+            return { mode: "demo" };
+          }
+          if (status.mode !== "plaid") {
+            throw new Error("Bank linking is not available right now.");
+          }
+          await loadPlaid();
+          const tokenData = await apiPost("/api/bank/link-token", pinPayload(pinResult));
+          return { mode: "plaid", tokenData };
+        });
+        if (confirmation.cancelled) {
+          renderBank();
+          return;
+        }
+
+        if (confirmation.value.mode === "demo") {
+          clearEphemeralBankData();
+          await loadBankStatus();
+          showToast("Demo bank connected. Enter the Bank PIN to view its sample balances.");
+          return;
+        }
+
+        const tokenData = confirmation.value.tokenData;
+        const linkToken = tokenData?.link_token || tokenData?.linkToken;
+        if (!linkToken || !tokenData?.linkSessionId) {
+          throw new Error("The bank provider did not return a valid link session.");
+        }
+        let plaidCallbackHandled = false;
+        const beginPlaidCallback = () => {
+          if (plaidCallbackHandled || operationRevision !== bankRequestRevision) return false;
+          plaidCallbackHandled = true;
+          return true;
+        };
+        const handler = window.Plaid.create({
+          token: linkToken,
+          onSuccess: async (publicToken, metadata) => {
+            if (!beginPlaidCallback()) return;
+            try {
+              const institution = sanitizeInstitution(metadata?.institution?.name);
+              await apiPost("/api/bank/exchange-public-token", {
+                publicToken,
+                linkSessionId: tokenData.linkSessionId
+              });
+              clearEphemeralBankData();
+              bankView.institution = institution;
+              await loadBankStatus();
+              showToast("Bank connected. Enter the Bank PIN to view balances.");
+            } catch (error) {
+              if (error?.status === 401) clearEphemeralBankData();
+              const reconciled = await reconcileBankState(error);
+              showToast(reconciled && bankService.hasConnection
+                ? "Bank connection confirmed. Enter the Bank PIN to view balances."
+                : (error.message || "Bank could not be connected."));
+            } finally {
+              setBankBusy(false);
+              renderBank();
+            }
+          },
+          onExit: (error) => {
+            if (!beginPlaidCallback()) return;
+            setBankBusy(false);
+            renderBank();
+            showToast(error ? "Bank link could not finish." : "Bank link closed.");
+          }
+        });
+        handler.open();
+        plaidWindowOpen = true;
+      } catch (error) {
+        if (error?.status === 401) clearEphemeralBankData();
+        if (error?.code !== "bank_request_cancelled") {
+          const reconciled = await reconcileBankState(error);
+          showToast(reconciled && bankService.hasConnection
+            ? "Bank connection confirmed. Enter the Bank PIN to view balances."
+            : (error.message || "Bank could not be connected."));
+        }
+      } finally {
+        if (!plaidWindowOpen) {
+          setBankBusy(false);
+          renderBank();
+        }
+      }
+    }
+
+    async function syncBank() {
+      if (!appAccessReady || bankBusy || bankPromptOpen || !bankService.hasConnection || !bankService.canView) return;
+      clearEphemeralBankData();
+      renderBank();
+      try {
+        const confirmation = await confirmAndRun("view", false, async (pinResult) => {
+          setBankBusy(true, bankService.mode === "demo" ? "Opening demo balances…" : "Opening bank balances…");
+          return fetchBankAccounts(pinResult.pin);
+        });
+        if (confirmation.cancelled) return;
+        showToast(bankService.mode === "demo" ? "Showing sample demo balances for this visit." : "Bank balances are visible for this visit.");
+      } catch (error) {
+        if (error?.status === 401) clearEphemeralBankData();
+        if (error?.code !== "bank_request_cancelled") {
+          const reconciled = await reconcileBankState(error);
+          showToast(reconciled && !bankService.hasConnection
+            ? "This bank was disconnected in another tab."
+            : (error.message || "Bank balances could not be opened."));
+        }
+      } finally {
+        setBankBusy(false);
+        renderBank();
+      }
+    }
+
+    async function disconnectBank() {
+      if (!appAccessReady || bankBusy || bankPromptOpen || !bankService.hasConnection || !bankService.canDisconnect) return;
+      clearEphemeralBankData();
+      renderBank();
+      try {
+        const confirmation = await confirmAndRun("disconnect", !bankService.pinConfigured, async (pinResult) => {
+          setBankBusy(true, "Disconnecting the bank…");
+          return apiPost("/api/bank/disconnect", pinPayload(pinResult));
+        });
+        if (confirmation.cancelled) return;
+        const wasDemo = bankService.mode === "demo";
+        clearEphemeralBankData();
+        bankService.hasConnection = false;
+        bankService.institution = "";
+        await loadBankStatus();
+        renderBank();
+        showToast(confirmation.value?.providerRevocationConfirmed === false
+          ? "Removed from KiddoSprout. The bank provider could not confirm its side of the disconnection."
+          : (wasDemo ? "Demo bank disconnected." : "Bank disconnected."));
+      } catch (error) {
+        if (error?.status === 401) clearEphemeralBankData();
+        if (error?.code !== "bank_request_cancelled") {
+          const reconciled = await reconcileBankState(error);
+          showToast(reconciled && !bankService.hasConnection
+            ? "Bank is disconnected."
+            : (error.message || "Bank could not be disconnected."));
+        }
+      } finally {
+        setBankBusy(false);
+        renderBank();
+      }
+    }
+
+    function normalizedBankPin(value) {
+      return String(value ?? "").replace(/\s/g, "");
+    }
+
+    [bankPinInput, bankPinConfirmInput].forEach((input) => {
+      input.addEventListener("input", () => {
+        input.value = normalizedBankPin(input.value);
+        input.removeAttribute("aria-invalid");
+        bankPinError.textContent = "";
+      });
+    });
+
+    bankAccountPasswordInput.addEventListener("input", () => {
+      bankAccountPasswordInput.removeAttribute("aria-invalid");
+      bankPinError.textContent = "";
+    });
+
+    viewBankPin.addEventListener("change", (event) => {
+      const type = event.currentTarget.checked ? "text" : "password";
+      bankPinInput.type = type;
+      bankPinConfirmInput.type = type;
+    });
+
+    bankPinForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const pin = normalizedBankPin(bankPinInput.value);
+      const confirmPin = normalizedBankPin(bankPinConfirmInput.value);
+      bankPinInput.value = pin;
+      bankPinConfirmInput.value = confirmPin;
+      if (!/^\d{4,8}$/.test(pin)) {
+        bankPinError.textContent = "Enter a PIN containing 4–8 digits.";
+        bankPinInput.setAttribute("aria-invalid", "true");
+        bankPinInput.focus();
+        return;
+      }
+      if (!bankPinConfirmField.hidden && pin !== confirmPin) {
+        bankPinError.textContent = "The PINs do not match.";
+        bankPinConfirmInput.setAttribute("aria-invalid", "true");
+        bankPinConfirmInput.focus();
+        return;
+      }
+      const needsEnrollment = !bankEnrollmentFields.hidden;
+      const accountPassword = bankAccountPasswordInput.value;
+      if (needsEnrollment && !accountPassword) {
+        bankPinError.textContent = "Enter the parent account password.";
+        bankAccountPasswordInput.setAttribute("aria-invalid", "true");
+        bankAccountPasswordInput.focus();
+        return;
+      }
+      const captchaToken = needsEnrollment
+        ? (bankCaptchaToken || bankHumanCheckController?.getToken?.() || "")
+        : "";
+      if (needsEnrollment && !captchaToken) {
+        bankPinError.textContent = "Complete the safety check first.";
+        bankHumanCheckStatus.hidden = false;
+        bankHumanCheckStatus.textContent = "Confirm you are human before continuing.";
+        bankHumanCheckStatus.dataset.state = "error";
+        bankHumanCheck.scrollIntoView({ block: "nearest" });
+        return;
+      }
+      closeBankPin({
+        pin,
+        confirmPin: bankPinConfirmField.hidden ? "" : confirmPin,
+        accountPassword: needsEnrollment ? accountPassword : "",
+        captchaToken
+      });
+    });
+
+    document.querySelector("#cancelBankPin").addEventListener("click", () => closeBankPin(null));
+    bankPinDialog.addEventListener("cancel", (event) => {
+      event.preventDefault();
+      closeBankPin(null);
+    });
+    bankPinDialog.addEventListener("close", () => {
+      settleBankPin(null);
+      cleanBankPinDialog();
+    });
+
+    document.querySelector("#addAllowance").addEventListener("click", () => {
+      const previousBalance = state.balance;
+      state.balance = boundedMoney(state.balance + state.allowance);
+      const amount = state.balance - previousBalance;
+      if (amount <= 0) {
+        showToast("The practice balance is already at its limit.");
+        return;
+      }
+      addHistory("Weekly allowance", amount, "earn");
+      render();
+      showToast("Allowance added.");
+    });
+
+    document.querySelector("#saveFive").addEventListener("click", () => {
+      const amount = Math.min(5, Math.max(0, state.balance - state.savedWeek));
+      if (amount <= 0) {
+        showToast("All of this practice balance is already counted as saved.");
+        return;
+      }
+      state.savedWeek = boundedMoney(state.savedWeek + amount);
+      addHistory("Saved toward goal", amount, "save");
+      render();
+      showToast("Savings updated.");
+    });
+
+    document.querySelector("#earnTwo").addEventListener("click", () => {
+      const previousBalance = state.balance;
+      state.balance = boundedMoney(state.balance + 2);
+      const amount = state.balance - previousBalance;
+      if (amount <= 0) {
+        showToast("The practice balance is already at its limit.");
+        return;
+      }
+      addHistory("Helpful task credit", amount, "earn");
+      render();
+      showToast("Task credit added.");
+    });
+
+    async function submitSpendRequest(event) {
+      event.preventDefault();
+      if (!appAccessReady || spendRequestBusy) return;
+      const name = safeText(itemNameInput.value, 80);
+      const cost = parsePracticeRequestAmount(itemCostInput.value);
+      itemNameInput.removeAttribute("aria-invalid");
+      itemCostInput.removeAttribute("aria-invalid");
+      spendRequestError.textContent = "";
+      if (!name) {
+        spendRequestError.textContent = "Enter what you want to buy.";
+        itemNameInput.setAttribute("aria-invalid", "true");
+        itemNameInput.focus();
+        return;
+      }
+      if (cost === null) {
+        spendRequestError.textContent = "Enter a cost from 1 to 1,000,000 with no more than two decimal places.";
+        itemCostInput.setAttribute("aria-invalid", "true");
+        itemCostInput.focus();
+        return;
+      }
+      spendRequestBusy = true;
+      requestSpendButton.disabled = true;
+      let requestResult = "unavailable";
+      try {
+        requestResult = await enqueueDashboardRequest([
+          name,
+          `Spend request for ${formatMoney(cost)} from Smart Spending`,
+          "$",
+          "spendRequest",
+          String(cost)
+        ]);
+      } finally {
+        spendRequestBusy = false;
+        requestSpendButton.disabled = !appAccessReady;
+      }
+      if (requestResult === "sent" || requestResult === "preview") {
+        state.parentStatus = "Waiting";
+        addHistoryNote("Requested: " + name, `${formatMoney(cost)} pending`, "request");
+      } else if (requestResult === "access-changed") {
+        stopForChangedAppAccess();
+        return;
+      } else {
+        refreshParentStatusFromDashboard();
+      }
+      render();
+      showToast(dashboardRequestMessage(requestResult, "Request sent to the parent dashboard."));
+    }
+
+    [itemNameInput, itemCostInput].forEach((input) => {
+      input.addEventListener("input", () => {
+        input.removeAttribute("aria-invalid");
+        spendRequestError.textContent = "";
+      });
+    });
+    spendRequestForm.addEventListener("submit", submitSpendRequest);
+
+    requestApprovalButton.addEventListener("click", async () => {
+      if (!appAccessReady || parentReviewBusy) return;
+      parentReviewBusy = true;
+      requestApprovalButton.disabled = true;
+      let requestResult = "unavailable";
+      try {
+        requestResult = await enqueueDashboardRequest([
+          "Smart Spending review",
+          "Parent review requested from Smart Spending",
+          "$",
+          "spendReview"
+        ]);
+      } finally {
+        parentReviewBusy = false;
+        requestApprovalButton.disabled = !appAccessReady;
+      }
+      if (requestResult === "sent" || requestResult === "preview") {
+        state.parentStatus = "Asked";
+        addHistoryNote("Asked parent to review", "Waiting", "request");
+      } else if (requestResult === "access-changed") {
+        stopForChangedAppAccess();
+        return;
+      } else {
+        refreshParentStatusFromDashboard();
+      }
+      render();
+      showToast(dashboardRequestMessage(requestResult, "Parent review request sent."));
+    });
+
+    document.querySelector("#connectBank").addEventListener("click", connectBank);
+    document.querySelector("#syncBank").addEventListener("click", syncBank);
+    document.querySelector("#disconnectBank").addEventListener("click", disconnectBank);
+
+    async function refreshFamilyContext() {
+      if (READ_ONLY_DEMO) return true;
+      if (cloudRefreshInFlight) return cloudRefreshInFlight;
+      const refreshRevision = familyContextRevision;
+      // A returning tab must not keep working from an old parent decision while
+      // the current family rule is being checked.
+      setAppAccessReady(false);
+      render();
+      cloudRefreshInFlight = (async () => {
+        try {
+          const previousChildId = safeText(loadedFamily?.activeChild, 160);
+          const context = await fetchVerifiedFamily(verifiedOwnerId);
+          if (refreshRevision !== familyContextRevision || document.hidden) return false;
+          const nextChildId = safeText(context.family?.activeChild, 160);
+          if (!previousChildId || !nextChildId || nextChildId !== previousChildId) {
+            stopBankRequests();
+            clearEphemeralBankData();
+            window.location.reload();
+            return false;
+          }
+          verifiedSession = context.session;
+          verifiedOwnerId = context.ownerId;
+          loadedFamily = context.family;
+          if (currentPracticeScope() !== PRACTICE_SCOPE) {
+            stopBankRequests();
+            clearEphemeralBankData();
+            window.location.reload();
+            return false;
+          }
+          if (!await canOpenKiddoSproutApp("spending", "Smart Spending")) {
+            stopBankRequests();
+            clearEphemeralBankData();
+            setAppAccessReady(false);
+            return false;
+          }
+          if (refreshRevision !== familyContextRevision || document.hidden) return false;
+          refreshParentStatusFromDashboard();
+          setAppAccessReady(true);
+          render();
+          // Returning to the tab also refreshes server-side connection state so
+          // a connect or disconnect completed in another tab cannot leave stale
+          // controls or previously revealed account information behind.
+          await refreshBankService("Refreshing secure bank status…", false);
+          return true;
+        } catch (error) {
+          stopBankRequests();
+          clearEphemeralBankData();
+          setAppAccessReady(false);
+          verifiedSession = null;
+          verifiedOwnerId = "";
+          loadedFamily = null;
+          showKiddoSproutGate(
+            "Parent check needed",
+            "Smart Spending could not securely verify this family. Return to KiddoSprout and sign in again."
+          );
+          return false;
+        }
+      })().finally(() => {
+        cloudRefreshInFlight = null;
+      });
+      return cloudRefreshInFlight;
+    }
+
+    window.addEventListener("pagehide", () => {
+      familyContextRevision += 1;
+      stopBankRequests();
+      clearEphemeralBankData();
+    });
+    document.addEventListener("visibilitychange", async () => {
+      if (document.hidden) {
+        familyContextRevision += 1;
+        stopBankRequests();
+        clearEphemeralBankData();
+        if (bankPanel.isConnected) renderBank();
+        return;
+      }
+      if (!READ_ONLY_DEMO && verifiedOwnerId) {
+        const refreshed = await refreshFamilyContext();
+        // A show event can arrive while the cancelled hidden-tab refresh is
+        // still settling. Retry once after that promise releases its slot.
+        if (!refreshed && !document.hidden && verifiedOwnerId) await refreshFamilyContext();
+      }
+    });
+    window.addEventListener("storage", (event) => {
+      if (!bankPanel.isConnected) return;
+      if (AUTH_SESSION_KEYS.has(event.key)) {
+        familyContextRevision += 1;
+        stopBankRequests("The parent sign-in changed. Reopen Smart Spending before using Bank Link.");
+        clearEphemeralBankData();
+        setAppAccessReady(false);
+        bankService = {
+          ...bankService,
+          checked: true,
+          authenticated: false,
+          configured: false,
+          hasConnection: false,
+          connectionIssue: false,
+          canConnect: false,
+          canView: false,
+          canDisconnect: false,
+          institution: ""
+        };
+        renderBank();
+        return;
+      }
+      if (event.key === STORAGE_KEY) {
+        stopBankRequests();
+        clearEphemeralBankData();
+        window.location.reload();
+      }
+    });
+
+    function closeGoalDialog() {
+      if (goalDialog.open) goalDialog.close();
+    }
+
+    changeGoalButton.addEventListener("click", () => {
+      if (!appAccessReady) return;
+      goalNameInput.value = state.goalName;
+      goalAmountInput.value = String(state.goal);
+      goalFormError.textContent = "";
+      goalNameInput.removeAttribute("aria-invalid");
+      goalAmountInput.removeAttribute("aria-invalid");
+      if (typeof goalDialog.showModal !== "function") {
+        showToast("This browser cannot open the goal editor. Update the browser and try again.");
+        return;
+      }
+      try {
+        goalDialog.showModal();
+      } catch (error) {
+        showToast("The goal editor could not open. Refresh and try again.");
+        return;
+      }
+      goalNameInput.focus();
+      goalNameInput.select();
+    });
+
+    document.querySelector("#cancelGoal").addEventListener("click", closeGoalDialog);
+    goalDialog.addEventListener("cancel", (event) => {
+      event.preventDefault();
+      closeGoalDialog();
+    });
+    goalDialog.addEventListener("close", () => {
+      goalDialog.setAttribute("aria-busy", "false");
+      goalFormError.textContent = "";
+      goalNameInput.removeAttribute("aria-invalid");
+      goalAmountInput.removeAttribute("aria-invalid");
+      window.requestAnimationFrame(() => {
+        if (changeGoalButton.isConnected && !changeGoalButton.disabled) changeGoalButton.focus();
+      });
+    });
+
+    goalForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!appAccessReady) {
+        goalFormError.textContent = "Smart Spending access is being checked. Wait a moment, then try again.";
+        return;
+      }
+      const nextGoalName = safeText(goalNameInput.value, 32);
+      if (!nextGoalName) {
+        goalFormError.textContent = "Add a name for the goal.";
+        goalNameInput.setAttribute("aria-invalid", "true");
+        goalNameInput.focus();
+        return;
+      }
+      goalNameInput.removeAttribute("aria-invalid");
+      const goalAmount = parsePracticeRequestAmount(goalAmountInput.value);
+      if (goalAmount === null) {
+        goalFormError.textContent = `Use an amount between ${formatMoney(1)} and ${formatMoney(MAX_PRACTICE_AMOUNT)} with no more than two decimal places.`;
+        goalAmountInput.setAttribute("aria-invalid", "true");
+        goalAmountInput.focus();
+        return;
+      }
+      goalAmountInput.removeAttribute("aria-invalid");
+      state.goalName = nextGoalName;
+      state.goal = boundedMoney(goalAmount, DEFAULT_STATE.goal, 1);
+      render();
+      closeGoalDialog();
+      showToast("Goal updated.");
+    });
+
+    async function startApp() {
+      if (READ_ONLY_DEMO) {
+        PRACTICE_SCOPE = "preview";
+        state = normalizePracticeState(loadState());
+        if (!await canOpenKiddoSproutApp("spending", "Smart Spending")) return;
+        refreshParentStatusFromDashboard();
+        setAppAccessReady(true);
+        render();
+        return;
+      }
+
+      let context;
+      try {
+        context = await fetchVerifiedFamily();
+      } catch (error) {
+        showKiddoSproutGate(
+          "Parent check needed",
+          "Smart Spending needs a verified KiddoSprout parent login and secure family profile before it can open."
+        );
+        return;
+      }
+      verifiedSession = context.session;
+      verifiedOwnerId = context.ownerId;
+      loadedFamily = context.family;
+      PRACTICE_SCOPE = currentPracticeScope();
+      state = normalizePracticeState(loadState());
+      if (!await canOpenKiddoSproutApp("spending", "Smart Spending")) return;
+      refreshParentStatusFromDashboard();
+      setAppAccessReady(true);
+      render();
+      if (!familyMatchesSession(loadedFamily, verifiedSession, verifiedOwnerId)) {
+        showKiddoSproutGate(
+          "Different parent account",
+          "The secure family profile does not match this parent login."
+        );
+        return;
+      }
+
+      await refreshBankService();
+    }
+
+    startApp();
+  </script>
+</body>
+</html>
