@@ -6,7 +6,7 @@ const KIDDOSPROUT_SCOPE_PATH = KIDDOSPROUT_SCOPE_URL.pathname.endsWith("/")
   : `${KIDDOSPROUT_SCOPE_URL.pathname}/`;
 const KIDDOSPROUT_CACHE_PREFIX = `kiddosprout-app-${encodeURIComponent(KIDDOSPROUT_SCOPE_PATH)}-`;
 // Change this version whenever a public runtime page or shared stylesheet changes.
-const KIDDOSPROUT_CACHE_VERSION = "shell-v109";
+const KIDDOSPROUT_CACHE_VERSION = "shell-v110";
 const KIDDOSPROUT_CACHE = `${KIDDOSPROUT_CACHE_PREFIX}${KIDDOSPROUT_CACHE_VERSION}`;
 // Runtime content deliberately survives shell upgrades. Keeping it separate
 // avoids downloading a second copy of every viewed story before an update can
@@ -49,6 +49,7 @@ const KIDDOSPROUT_ASSETS = [
 ];
 
 const KIDDOSPROUT_RUNTIME_ASSETS = [
+  "/language-packs.js",
   "/blocker-setup.html",
   "/blocker-setup.css",
   "/blocker-setup.js",
@@ -72,6 +73,34 @@ const KIDDOSPROUT_RUNTIME_ASSETS = [
   "/games/index.html",
   "/games/arcade-access.js",
   "/games/arcade-shell.css",
+  "/games/pattern-painter/index.html",
+  "/games/pattern-painter/style.css",
+  "/games/pattern-painter/engine.js",
+  "/games/pattern-painter/game.js",
+  "/games/melody-meadow/index.html",
+  "/games/melody-meadow/style.css",
+  "/games/melody-meadow/music.js",
+  "/games/melody-meadow/game.js",
+  "/games/compass-quest/index.html",
+  "/games/compass-quest/style.css",
+  "/games/compass-quest/engine.js",
+  "/games/compass-quest/game.js",
+  "/games/science-sorter/index.html",
+  "/games/science-sorter/style.css",
+  "/games/science-sorter/labs.js",
+  "/games/science-sorter/game.js",
+  "/games/robot-routes/index.html",
+  "/games/robot-routes/style.css",
+  "/games/robot-routes/engine.js",
+  "/games/robot-routes/game.js",
+  "/games/word-builder/index.html",
+  "/games/word-builder/style.css",
+  "/games/word-builder/engine.js",
+  "/games/word-builder/game.js",
+  "/games/learning-world/index.html",
+  "/games/learning-world/style.css",
+  "/games/learning-world/subjects.js",
+  "/games/learning-world/game.js",
   "/games/brick-breaker/index.html",
   "/games/brick-breaker/style.css",
   "/games/brick-breaker/engine.js",
@@ -120,9 +149,9 @@ const KIDDOSPROUT_ASSET_PATHS = new Set([
 // old JavaScript or CSS just because the paths happen to match.
 const KIDDOSPROUT_SHELL_QUERY_VERSIONS = new Map([
   ["/style.css", "32"],
-  ["/js.js", "39"],
+  ["/js.js", "40"],
   ["/human-check.js", "4"],
-  ["/language-settings.js", "7"],
+  ["/language-settings.js", "8"],
   ["/demo-mode.js", "2"],
   ["/auth-session.js", "7"],
   ["/family-state-cloud.js", "2"],

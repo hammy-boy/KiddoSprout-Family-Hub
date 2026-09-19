@@ -36,26 +36,22 @@
       function applyTheme() {
         const state = readActiveState();
         const selectedTheme = ["auto", "day", "night"].includes(state?.themeMode) ? state.themeMode : "auto";
-        const selectedLanguage = state?.languageMode === "es" ? "es" : "en-GB";
+        const supportedLanguages = ["en-GB", "es", "fr", "pt", "de"];
+        const selectedLanguage = supportedLanguages.includes(state?.languageMode) ? state.languageMode : "en-GB";
         const hour = new Date().getHours();
         const resolvedTheme = selectedTheme === "auto" ? (hour >= 19 || hour < 7 ? "night" : "day") : selectedTheme;
         document.documentElement.classList.toggle("theme-night", resolvedTheme === "night");
         document.documentElement.classList.toggle("theme-day", resolvedTheme === "day");
         document.documentElement.dataset.themeMode = selectedTheme;
         document.documentElement.lang = selectedLanguage;
-        const copy = selectedLanguage === "es" ? {
-          title: "Página no encontrada · KiddoSprout",
-          skip: "Saltar al contenido principal",
-          heading: "Esta página no brotó",
-          message: "Puede que la dirección esté mal escrita o que esta página de KiddoSprout se haya movido.",
-          home: "Volver a KiddoSprout"
-        } : {
-          title: "Page not found · KiddoSprout",
-          skip: "Skip to main content",
-          heading: "That page didn’t sprout",
-          message: "The address may be mistyped, or this KiddoSprout page may have moved.",
-          home: "Back to KiddoSprout"
+        const copyByLanguage = {
+          "en-GB": { title: "Page not found · KiddoSprout", skip: "Skip to main content", heading: "That page didn’t sprout", message: "The address may be mistyped, or this KiddoSprout page may have moved.", home: "Back to KiddoSprout" },
+          es: { title: "Página no encontrada · KiddoSprout", skip: "Saltar al contenido principal", heading: "Esta página no brotó", message: "Puede que la dirección esté mal escrita o que esta página de KiddoSprout se haya movido.", home: "Volver a KiddoSprout" },
+          fr: { title: "Page introuvable · KiddoSprout", skip: "Aller au contenu principal", heading: "Cette page n’a pas germé", message: "L’adresse est peut-être incorrecte ou cette page KiddoSprout a été déplacée.", home: "Retour à KiddoSprout" },
+          pt: { title: "Página não encontrada · KiddoSprout", skip: "Ir para o conteúdo principal", heading: "Esta página não brotou", message: "O endereço pode estar incorreto ou esta página KiddoSprout pode ter mudado.", home: "Voltar ao KiddoSprout" },
+          de: { title: "Seite nicht gefunden · KiddoSprout", skip: "Zum Hauptinhalt springen", heading: "Diese Seite ist nicht gewachsen", message: "Die Adresse ist möglicherweise falsch oder diese KiddoSprout-Seite wurde verschoben.", home: "Zurück zu KiddoSprout" }
         };
+        const copy = copyByLanguage[selectedLanguage];
         document.title = copy.title;
         const skip = document.getElementById("not-found-skip");
         const heading = document.getElementById("not-found-heading");

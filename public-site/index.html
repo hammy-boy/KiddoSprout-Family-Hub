@@ -37,7 +37,8 @@
       const state = demoActive
         ? demoState
         : safePreferences;
-      const language = state?.languageMode === "es" ? "es" : "en-GB";
+      const supportedLanguages = ["en-GB", "es", "fr", "pt", "de"];
+      const language = supportedLanguages.includes(state?.languageMode) ? state.languageMode : "en-GB";
       document.documentElement.lang = language;
       const choice = ["auto", "day", "night"].includes(state?.themeMode) ? state.themeMode : "auto";
       const hour = new Date().getHours();
@@ -116,6 +117,9 @@
             <select id="quickLanguageModeSetting" data-language-setting aria-describedby="quickLanguageModeHelp">
               <option value="en-GB" data-i18n="settings.language.english">English (UK)</option>
               <option value="es" data-i18n="settings.language.spanish">Spanish</option>
+              <option value="fr" data-i18n="settings.language.french">French</option>
+              <option value="pt" data-i18n="settings.language.portuguese">Portuguese</option>
+              <option value="de" data-i18n="settings.language.german">German</option>
             </select>
           </label>
           <p class="settings-field-help" id="quickLanguageModeHelp" data-i18n="settings.language.help">Changes dashboard navigation, account controls, and settings. Activity content stays in its original language.</p>
@@ -610,6 +614,9 @@
             <select id="languageModeSetting" data-language-setting aria-describedby="languageModeHelp">
               <option value="en-GB" data-i18n="settings.language.english">English (UK)</option>
               <option value="es" data-i18n="settings.language.spanish">Spanish</option>
+              <option value="fr" data-i18n="settings.language.french">French</option>
+              <option value="pt" data-i18n="settings.language.portuguese">Portuguese</option>
+              <option value="de" data-i18n="settings.language.german">German</option>
             </select>
             <span class="settings-field-help" id="languageModeHelp" data-i18n="settings.language.help">Changes dashboard navigation, account controls, and settings. Activity content stays in its original language.</span>
           </label>
@@ -822,7 +829,7 @@
           <article class="hub-card arcade" data-kind="play">
             <span class="hub-label" data-app-status-label="arcade">Needs parent approval</span>
             <strong>Sprout Arcade</strong>
-            <p>Choose from Math Runner, Chess, racing, memory, Snake, and more family games.</p>
+            <p>Explore English, maths, science, geography, computing, art, music, Chess, and more family games.</p>
             <button data-open-app="arcade">Choose a Game</button>
           </article>
           <article class="hub-card flyer" data-kind="play">
@@ -1466,11 +1473,12 @@
 
   <script src="supabase-config.js?v=7"></script>
   <script src="human-check.js?v=4"></script>
-  <script src="language-settings.js?v=7"></script>
+  <script src="language-packs.js?v=1"></script>
+  <script src="language-settings.js?v=8"></script>
   <script src="demo-mode.js?v=2"></script>
   <script src="auth-session.js?v=7"></script>
   <script src="family-state-cloud.js?v=2"></script>
   <script src="passcode-security.js?v=1"></script>
-  <script src="js.js?v=39"></script>
+  <script src="js.js?v=40"></script>
 </body>
 </html>

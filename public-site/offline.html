@@ -36,30 +36,22 @@
       function applyTheme() {
         const state = readActiveState();
         const selectedTheme = ["auto", "day", "night"].includes(state?.themeMode) ? state.themeMode : "auto";
-        const selectedLanguage = state?.languageMode === "es" ? "es" : "en-GB";
+        const supportedLanguages = ["en-GB", "es", "fr", "pt", "de"];
+        const selectedLanguage = supportedLanguages.includes(state?.languageMode) ? state.languageMode : "en-GB";
         const hour = new Date().getHours();
         const resolvedTheme = selectedTheme === "auto" ? (hour >= 19 || hour < 7 ? "night" : "day") : selectedTheme;
         document.documentElement.classList.toggle("theme-night", resolvedTheme === "night");
         document.documentElement.classList.toggle("theme-day", resolvedTheme === "day");
         document.documentElement.dataset.themeMode = selectedTheme;
         document.documentElement.lang = selectedLanguage;
-        const copy = selectedLanguage === "es" ? {
-          title: "Página no disponible de KiddoSprout",
-          skip: "Saltar al contenido principal",
-          heading: "Esta página se está tomando un descanso",
-          message: "Puede que no tengas conexión o que KiddoSprout no esté disponible temporalmente. Comprueba la conexión e inténtalo de nuevo.",
-          options: "Opciones sin conexión",
-          retry: "Volver a intentar esta página",
-          home: "Abrir vista previa sin conexión"
-        } : {
-          title: "KiddoSprout page unavailable",
-          skip: "Skip to main content",
-          heading: "This page is taking a break",
-          message: "You may be offline, or KiddoSprout may be temporarily unavailable. Check your connection, then try again.",
-          options: "Offline options",
-          retry: "Try this page again",
-          home: "Open offline preview"
+        const copyByLanguage = {
+          "en-GB": { title: "KiddoSprout page unavailable", skip: "Skip to main content", heading: "This page is taking a break", message: "You may be offline, or KiddoSprout may be temporarily unavailable. Check your connection, then try again.", options: "Offline options", retry: "Try this page again", home: "Open offline preview" },
+          es: { title: "Página no disponible de KiddoSprout", skip: "Saltar al contenido principal", heading: "Esta página se está tomando un descanso", message: "Puede que no tengas conexión o que KiddoSprout no esté disponible temporalmente. Comprueba la conexión e inténtalo de nuevo.", options: "Opciones sin conexión", retry: "Volver a intentar esta página", home: "Abrir vista previa sin conexión" },
+          fr: { title: "Page KiddoSprout indisponible", skip: "Aller au contenu principal", heading: "Cette page fait une pause", message: "Vous êtes peut-être hors ligne ou KiddoSprout est temporairement indisponible. Vérifiez la connexion, puis réessayez.", options: "Options hors ligne", retry: "Réessayer cette page", home: "Ouvrir l’aperçu hors ligne" },
+          pt: { title: "Página KiddoSprout indisponível", skip: "Ir para o conteúdo principal", heading: "Esta página está a fazer uma pausa", message: "Pode estar sem ligação ou o KiddoSprout pode estar temporariamente indisponível. Verifique a ligação e tente novamente.", options: "Opções offline", retry: "Tentar esta página novamente", home: "Abrir pré-visualização offline" },
+          de: { title: "KiddoSprout-Seite nicht verfügbar", skip: "Zum Hauptinhalt springen", heading: "Diese Seite macht gerade Pause", message: "Du bist möglicherweise offline oder KiddoSprout ist vorübergehend nicht verfügbar. Prüfe die Verbindung und versuche es erneut.", options: "Offline-Optionen", retry: "Diese Seite erneut versuchen", home: "Offline-Vorschau öffnen" }
         };
+        const copy = copyByLanguage[selectedLanguage];
         document.title = copy.title;
         const skip = document.getElementById("offline-skip");
         const heading = document.getElementById("offline-heading");

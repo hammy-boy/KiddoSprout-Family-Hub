@@ -2434,7 +2434,7 @@
         const saved = JSON.parse(readBrowserStorage(window.localStorage, FAMILY_PREFERENCES_KEY, "null"));
         return window.KiddoSproutFamilyState?.safeLocalState?.(saved) || {
           themeMode: ["auto", "day", "night"].includes(saved?.themeMode) ? saved.themeMode : "auto",
-          languageMode: saved?.languageMode === "es" ? "es" : "en-GB"
+          languageMode: window.KiddoSproutLanguage?.normalize?.(saved?.languageMode) || "en-GB"
         };
       } catch (error) {
         return { themeMode: "auto", languageMode: "en-GB" };
@@ -2444,7 +2444,7 @@
     function persistSafeFamilyPreferences(value = state) {
       const preferences = window.KiddoSproutFamilyState?.safeLocalState?.(value) || {
         themeMode: ["auto", "day", "night"].includes(value?.themeMode) ? value.themeMode : "auto",
-        languageMode: value?.languageMode === "es" ? "es" : "en-GB"
+        languageMode: window.KiddoSproutLanguage?.normalize?.(value?.languageMode) || "en-GB"
       };
       const saved = writeBrowserStorage(window.localStorage, FAMILY_PREFERENCES_KEY, JSON.stringify(preferences));
       return saved;
@@ -3324,9 +3324,7 @@
     async function saveLanguageMode(choice = languageModeSetting?.value || "en-GB") {
       const generation = ++displayPreferenceSaveGeneration;
       const language = applyLanguageMode(choice);
-      const label = language === "es"
-        ? translate("settings.language.spanish", {}, "Spanish")
-        : translate("settings.language.english", {}, "English (UK)");
+      const label = window.KiddoSproutLanguage?.label?.(language) || language;
       const saved = await saveDisplayPreferences();
       if (generation !== displayPreferenceSaveGeneration) return saved;
       showToast(saved

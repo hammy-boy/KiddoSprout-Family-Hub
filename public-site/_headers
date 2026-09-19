@@ -37,6 +37,9 @@
 /human-check.js
   Cache-Control: no-cache, must-revalidate
 
+/language-packs.js
+  Cache-Control: no-cache, must-revalidate
+
 /language-settings.js
   Cache-Control: no-cache, must-revalidate
 
@@ -68,6 +71,48 @@
   Cache-Control: no-cache, must-revalidate
 
 /games/arcade-access.js
+  Cache-Control: no-cache, must-revalidate
+
+/games/pattern-painter/engine.js
+  Cache-Control: no-cache, must-revalidate
+
+/games/pattern-painter/game.js
+  Cache-Control: no-cache, must-revalidate
+
+/games/melody-meadow/music.js
+  Cache-Control: no-cache, must-revalidate
+
+/games/melody-meadow/game.js
+  Cache-Control: no-cache, must-revalidate
+
+/games/compass-quest/engine.js
+  Cache-Control: no-cache, must-revalidate
+
+/games/compass-quest/game.js
+  Cache-Control: no-cache, must-revalidate
+
+/games/science-sorter/labs.js
+  Cache-Control: no-cache, must-revalidate
+
+/games/science-sorter/game.js
+  Cache-Control: no-cache, must-revalidate
+
+/games/robot-routes/engine.js
+  Cache-Control: no-cache, must-revalidate
+
+/games/robot-routes/game.js
+  Cache-Control: no-cache, must-revalidate
+
+/games/word-builder/engine.js
+  Cache-Control: no-cache, must-revalidate
+
+/games/word-builder/game.js
+  Cache-Control: no-cache, must-revalidate
+
+/games/learning-world/subjects.js
+  Cache-Control: no-cache, must-revalidate
+
+/games/learning-world/game.js
   Cache-Control: no-cache, must-revalidate
 
 /games/brick-breaker/engine.js

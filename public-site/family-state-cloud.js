@@ -15,7 +15,7 @@
   const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   const TEMPORARY_KINDS = new Set(["offline", "network", "timeout", "unavailable"]);
   const SAFE_THEMES = new Set(["auto", "day", "night"]);
-  const SAFE_LANGUAGES = new Set(["en-GB", "es"]);
+  const SAFE_LANGUAGES = new Set(["en-GB", "es", "fr", "pt", "de"]);
   const UNSAFE_OBJECT_KEYS = new Set(["__proto__", "constructor", "prototype"]);
   const SENSITIVE_KEYS = new Set([
     "accesstoken",
