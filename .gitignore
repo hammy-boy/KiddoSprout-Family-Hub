@@ -3,3 +3,4 @@ __pycache__/
 *.pyc
 .env
 supabase-config.js
+!public-site/supabase-config.js
