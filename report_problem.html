@@ -1,8 +1,49 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-GB">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f7fff6">
+  <script src="local-docker-redirect.js?v=1"></script>
+  <script>
+    (function () {
+      "use strict";
+      function readState(storage, key) {
+        try {
+          const value = JSON.parse(storage.getItem(key) || "null");
+          return value && typeof value === "object" && !Array.isArray(value) ? value : null;
+        } catch (error) {
+          return null;
+        }
+      }
+      let demoState = null;
+      let preferences = null;
+      let demoActive = false;
+      try {
+        demoState = readState(window.sessionStorage, "kiddosprout.demo.v1.family");
+        demoActive = Boolean(demoState) || window.sessionStorage.getItem("kiddosprout.demo.v1.active") === "1";
+      } catch (error) {
+        // Storage can be unavailable in restricted browser contexts.
+      }
+      try {
+        preferences = readState(window.localStorage, "kiddosproutPreferences");
+      } catch (error) {
+        // Fall back to the operating-system preference.
+      }
+      const state = demoActive ? demoState : preferences;
+      const selectedTheme = ["auto", "day", "night"].includes(state?.themeMode) ? state.themeMode : "auto";
+      const hour = new Date().getHours();
+      const resolvedTheme = selectedTheme === "auto" ? (hour >= 19 || hour < 7 ? "night" : "day") : selectedTheme;
+      document.documentElement.classList.toggle("theme-night", resolvedTheme === "night");
+      document.documentElement.classList.toggle("theme-day", resolvedTheme === "day");
+      document.documentElement.dataset.themeMode = selectedTheme;
+      document.querySelector('meta[name="theme-color"]')?.setAttribute(
+        "content",
+        resolvedTheme === "night" ? "#061a25" : "#f7fff6"
+      );
+    }());
+  </script>
   <title>Report a Problem - KiddoSprout</title>
   <link rel="icon" type="image/png" href="kiddosprout_logo_128.png">
   <link rel="apple-touch-icon" href="kiddosprout_logo_128.png">
@@ -13,11 +54,14 @@
       --line: #dce8df;
       --teal: #168b8b;
       --leaf: #6aaa45;
-      --coral: #df604a;
+      --coral: #bd4938;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     * { box-sizing: border-box; }
+
+    html { color-scheme: light; }
+    html.theme-night { color-scheme: dark; }
 
     body {
       margin: 0;
@@ -27,6 +71,32 @@
         radial-gradient(circle at 18% 16%, rgba(240, 184, 63, 0.22), transparent 26%),
         radial-gradient(circle at 84% 18%, rgba(52, 111, 159, 0.18), transparent 26%),
         linear-gradient(135deg, #f7fff6, #eef8ff 52%, #fff8ea);
+    }
+
+    .skip-link {
+      position: fixed;
+      top: max(8px, env(safe-area-inset-top));
+      left: max(8px, env(safe-area-inset-left));
+      z-index: 1000;
+      display: inline-flex;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 14px;
+      border: 2px solid #173148;
+      border-radius: 10px;
+      color: #12202b;
+      background: #fff;
+      box-shadow: 0 8px 24px rgba(7, 28, 36, .28);
+      font-weight: 900;
+      text-decoration: none;
+      transform: translateY(calc(-100% - 20px));
+    }
+
+    .skip-link:focus,
+    .skip-link:focus-visible {
+      transform: translateY(0);
+      box-shadow: 0 0 0 6px #5b3a82, 0 8px 24px rgba(7, 28, 36, .28);
     }
 
     main {
@@ -79,11 +149,13 @@
     textarea,
     select {
       width: 100%;
-      border: 1px solid var(--line);
+      min-height: 44px;
+      border: 2px solid var(--line);
       border-radius: 8px;
       padding: 12px;
       font: inherit;
       background: white;
+      color: var(--ink);
     }
 
     textarea {
@@ -125,98 +197,489 @@
       color: var(--teal);
       font-weight: 850;
     }
+
+    .status[data-state="error"] { color: #b43f2f; }
+    .status[data-state="success"] { color: #0f716b; }
+
+    .counter {
+      display: block;
+      margin-top: -10px;
+      color: var(--muted);
+      text-align: right;
+      font-size: 14px;
+      font-weight: 750;
+    }
+
+    :is(button, a, textarea, select):focus-visible {
+      outline: 3px solid #fff;
+      outline-offset: 2px;
+      box-shadow: 0 0 0 6px #5b3a82;
+    }
+
+    button:hover,
+    a:hover { filter: brightness(0.96); }
+
+    button:disabled,
+    textarea:disabled,
+    select:disabled {
+      cursor: not-allowed;
+      border-color: #b7c9c4;
+      color: #40565e;
+      background: #e4ece9;
+      opacity: 1;
+      -webkit-text-fill-color: #40565e;
+    }
+
+    @media (max-width: 520px) {
+      main {
+        width: min(100% - 16px, 760px);
+        margin: 8px auto;
+        padding: 20px;
+      }
+
+      .brand { align-items: flex-start; }
+      h1 { font-size: clamp(30px, 11vw, 44px); }
+      .actions > * { width: 100%; }
+    }
+
+    html.theme-night body {
+      --ink: #f4fbff;
+      --muted: #bed2dc;
+      --line: #376675;
+      --teal: #64e5dd;
+      background:
+        radial-gradient(circle at 14% 12%, rgba(91, 211, 199, 0.2), transparent 28%),
+        radial-gradient(circle at 86% 17%, rgba(157, 112, 211, 0.2), transparent 30%),
+        linear-gradient(145deg, #061a25, #0c3038 58%, #1d2638);
+    }
+
+    html.theme-night main {
+      border-color: #376675;
+      background: rgba(9, 34, 44, 0.96);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+    }
+
+    html.theme-night :is(textarea, select) {
+      border-color: #467485;
+      background: #08222d;
+      color: #f4fbff;
+    }
+
+    html.theme-night :is(button, a, textarea, select):focus-visible {
+      outline-color: #071c24;
+      box-shadow: 0 0 0 6px #ffda7b;
+    }
+
+    html.theme-night button:not(.send),
+    html.theme-night a {
+      background: #173e49;
+      color: #f4fbff;
+    }
+
+    html.theme-night .skip-link {
+      color: #071c24;
+      background: #ffedaa;
+      border-color: #fff8db;
+    }
+
+    html.theme-night .send {
+      background: #bd4938;
+    }
+
+    html.theme-night .status[data-state="error"] { color: #ffad9d; }
+    html.theme-night .status[data-state="success"] { color: #8ee7d7; }
+
+    html.theme-night :is(button, textarea, select):disabled {
+      border-color: #668590;
+      color: #edf7f9;
+      background: #3b5660;
+      -webkit-text-fill-color: #edf7f9;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+
+    @media (prefers-contrast: more) {
+      main,
+      textarea,
+      select,
+      button,
+      a { border-width: 2px; }
+      :is(button, a, textarea, select):focus-visible { outline-width: 4px; }
+    }
+
+    @media (forced-colors: active) {
+      body,
+      main {
+        color: CanvasText;
+        background: Canvas;
+        background-image: none;
+        box-shadow: none;
+      }
+      main { border-color: CanvasText; }
+      :is(button, textarea, select) { border: 2px solid ButtonText; }
+      :is(button, textarea, select):disabled {
+        border-color: GrayText;
+        color: GrayText;
+        background: Canvas;
+        -webkit-text-fill-color: GrayText;
+      }
+      :is(button, a, textarea, select):focus-visible {
+        outline: 3px solid Highlight !important;
+        box-shadow: none !important;
+      }
+      a { color: LinkText; }
+    }
   </style>
 </head>
 <body>
-  <main>
-    <div class="brand">
-      <img class="mark" src="kiddosprout_logo_128.png" alt="" aria-hidden="true">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <main id="main-content" tabindex="-1">
+    <header class="brand">
+      <img class="mark" src="kiddosprout_logo_128.png" width="128" height="128" alt="" aria-hidden="true" decoding="async">
       <div>
         <h1>KiddoSprout Report Page</h1>
-        <p>Type what happened here. This separate page sends the message straight to the parent dashboard.</p>
+        <p id="reportIntro">Type what happened here. This separate page saves the message for the current KiddoSprout parent dashboard.</p>
       </div>
-    </div>
+    </header>
 
-    <label>
-      Type the problem
-      <textarea id="problemText" placeholder="Type what happened here"></textarea>
-    </label>
+    <form id="reportForm" aria-describedby="reportIntro" aria-busy="true">
+      <label for="problemText">Type the problem</label>
+      <textarea id="problemText" name="problem" maxlength="2000" required aria-describedby="problemCounter" placeholder="Type what happened here" spellcheck="true" disabled></textarea>
+      <output class="counter" id="problemCounter" for="problemText">0 / 2000</output>
 
-    <label>
-      How urgent?
-      <select id="problemUrgency">
+      <label for="problemUrgency">How urgent?</label>
+      <select id="problemUrgency" name="urgency" disabled>
         <option value="Needs help now">Needs help now</option>
         <option value="Today">Today</option>
         <option value="Can wait">Can wait</option>
       </select>
-    </label>
 
-    <p class="status" id="status"></p>
+      <p class="status" id="status" role="status" aria-live="polite" aria-atomic="true">Checking family access…</p>
 
-    <div class="actions">
-      <button class="send" id="sendReport">Send Problem Report</button>
-      <button id="clearReport">Clear</button>
-      <a href="index.html#child">Back to Child Site</a>
-    </div>
+      <div class="actions">
+        <button class="send" id="sendReport" type="submit" disabled>Send Problem Report</button>
+        <button id="clearReport" type="button" disabled>Clear</button>
+        <a href="index.html#child">Back to Child Site</a>
+      </div>
+    </form>
   </main>
 
+  <script src="supabase-config.js?v=7"></script>
+  <script src="demo-mode.js?v=2"></script>
+  <script src="auth-session.js?v=7"></script>
+  <script src="family-state-cloud.js?v=2"></script>
   <script>
-    const STORAGE_KEY = "kiddosproutState";
+    const FAMILY_PREFERENCES_KEY = "kiddosproutPreferences";
+    const DEMO_ACTIVE_KEY = "kiddosprout.demo.v1.active";
+    const DEMO_STATE_KEY = "kiddosprout.demo.v1.family";
+    const MAX_REPORT_LENGTH = 2000;
+    const MAX_SAVED_REPORTS = 100;
     const status = document.querySelector("#status");
+    const reportIntro = document.querySelector("#reportIntro");
+    const reportForm = document.querySelector("#reportForm");
+    const problemText = document.querySelector("#problemText");
+    const problemUrgency = document.querySelector("#problemUrgency");
+    const problemCounter = document.querySelector("#problemCounter");
+    const sendReportButton = document.querySelector("#sendReport");
+    const clearReportButton = document.querySelector("#clearReport");
+    let reportState = null;
+    let reportOwnerId = "";
+    let reportReady = false;
+    let reportSaving = false;
 
-    function loadState() {
+    function demoActive() {
+      if (window.KIDDO_SPROUT_SUPABASE?.publicDemoOnly === true) return true;
+      if (window.KiddoSproutDemo?.active?.() === true) return true;
       try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || {};
+        return window.sessionStorage.getItem(DEMO_ACTIVE_KEY) === "1";
       } catch (error) {
-        return {};
+        return false;
       }
     }
 
-    function saveState(state) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    function loadDemoState() {
+      try {
+        const state = window.KiddoSproutDemo?.read?.()
+          || JSON.parse(window.sessionStorage.getItem(DEMO_STATE_KEY) || "null");
+        return state && typeof state === "object" && !Array.isArray(state) ? state : null;
+      } catch (error) {
+        return null;
+      }
     }
 
-    function currentChildName(state) {
-      const child = state.children?.[state.activeChild];
-      return child?.name || "Child";
+    function saveDemoState(state) {
+      if (!state || typeof state !== "object" || Array.isArray(state)) return false;
+      try {
+        if (window.KiddoSproutDemo?.write) return window.KiddoSproutDemo.write(state) === true;
+        window.sessionStorage.setItem(DEMO_STATE_KEY, JSON.stringify(state));
+        return true;
+      } catch (error) {
+        return false;
+      }
     }
 
-    function sendReport() {
-      const state = loadState();
-      const child = currentChildName(state);
-      const note = document.querySelector("#problemText").value.trim();
-      const urgency = document.querySelector("#problemUrgency").value;
-      if (!note) {
-        status.textContent = "Type what happened first.";
+    function readThemeState() {
+      if (demoActive()) return loadDemoState();
+      try {
+        const preferences = JSON.parse(window.localStorage.getItem(FAMILY_PREFERENCES_KEY) || "null");
+        return preferences && typeof preferences === "object" && !Array.isArray(preferences) ? preferences : null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    async function saveState(state) {
+      if (!state || typeof state !== "object" || Array.isArray(state)) return null;
+      if (demoActive()) return saveDemoState(state) ? state : null;
+      if (typeof window.KiddoSproutFamilyState?.save !== "function") return null;
+      const session = await window.KiddoSproutSession?.validate?.();
+      const currentOwnerId = String(session?.user?.id || "").trim().toLowerCase();
+      if (!reportOwnerId || currentOwnerId !== reportOwnerId || !session?.access_token) {
+        const authError = new Error("The parent session changed while this report page was open.");
+        authError.kind = "auth";
+        throw authError;
+      }
+      const saved = await window.KiddoSproutFamilyState.save(state, { expectedOwnerId: reportOwnerId });
+      return saved && typeof saved === "object" && !Array.isArray(saved) ? saved : null;
+    }
+
+    function currentChildIdentity(state) {
+      const childId = typeof state?.activeChild === "string" ? state.activeChild.trim() : "";
+      const children = state?.children;
+      if (!/^[a-z0-9](?:[a-z0-9_-]{0,159})$/.test(childId)
+          || !children
+          || typeof children !== "object"
+          || Array.isArray(children)
+          || !Object.prototype.hasOwnProperty.call(children, childId)) {
+        return null;
+      }
+      const child = children[childId];
+      if (!child || typeof child !== "object" || Array.isArray(child)) return null;
+      const name = String(child.name || "").replace(/\s+/gu, " ").trim().slice(0, 80);
+      return name ? { childId, child: name } : null;
+    }
+
+    function setStatus(message, state = "notice") {
+      status.textContent = message;
+      if (status.dataset) status.dataset.state = state;
+      else status.setAttribute?.("data-state", state);
+    }
+
+    function updateCounter() {
+      if (problemCounter) {
+        problemCounter.textContent = `${problemText.value.length} / ${MAX_REPORT_LENGTH}`;
+      }
+    }
+
+    function setReportingAvailable(available) {
+      const enabled = available === true && !reportSaving;
+      problemText.disabled = !enabled;
+      problemUrgency.disabled = !enabled;
+      sendReportButton.disabled = !enabled;
+      clearReportButton.disabled = !enabled;
+    }
+
+    function setBusy(busy) {
+      reportForm?.setAttribute?.("aria-busy", String(Boolean(busy)));
+    }
+
+    function applySavedTheme() {
+      const savedChoice = String(readThemeState()?.themeMode || "auto");
+      const choice = ["auto", "day", "night"].includes(savedChoice) ? savedChoice : "auto";
+      const hour = new Date().getHours();
+      const useNight = choice === "night" || (choice === "auto" && (hour >= 19 || hour < 7));
+      document.documentElement?.classList?.toggle("theme-night", useNight);
+      document.documentElement?.classList?.toggle("theme-day", !useNight);
+      if (document.documentElement?.dataset) document.documentElement.dataset.themeMode = choice;
+      document.querySelector?.('meta[name="theme-color"]')?.setAttribute(
+        "content",
+        useNight ? "#061a25" : "#f7fff6"
+      );
+    }
+
+    async function sendReport(event) {
+      event?.preventDefault?.();
+      if (!reportReady || !reportState || reportSaving) {
+        setStatus(demoActive()
+          ? "Open the main KiddoSprout demo and choose its fictional child profile first. No real parent was contacted."
+          : "KiddoSprout has not securely connected to the parent dashboard. No report was sent.", "error");
         return;
       }
-      const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      state.problemReports ??= [];
-      state.safetyAlerts ??= [];
-      state.problemReports.unshift({
-        child,
+      const note = problemText.value.trim();
+      const allowedUrgencies = new Set(["Needs help now", "Today", "Can wait"]);
+      const urgency = allowedUrgencies.has(problemUrgency.value) ? problemUrgency.value : "Today";
+      if (!note) {
+        setStatus("Type what happened first.", "error");
+        problemText.focus?.();
+        return;
+      }
+      if (note.length > MAX_REPORT_LENGTH) {
+        setStatus(`Keep the report under ${MAX_REPORT_LENGTH} characters.`, "error");
+        problemText.focus?.();
+        return;
+      }
+      const childIdentity = currentChildIdentity(reportState);
+      if (!childIdentity) {
+        setStatus(demoActive()
+          ? "Open the main KiddoSprout demo and choose its fictional child profile first. No real parent was contacted."
+          : "Open KiddoSprout and choose a child profile first. No parent report was sent.", "error");
+        return;
+      }
+      const createdAt = new Date();
+      const time = createdAt.toLocaleString([], {
+        day: "numeric",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+      let nextState;
+      try {
+        nextState = JSON.parse(JSON.stringify(reportState));
+      } catch (error) {
+        setStatus("The family report could not be prepared safely. No report was sent.", "error");
+        return;
+      }
+      nextState.problemReports = Array.isArray(nextState.problemReports) ? nextState.problemReports : [];
+      nextState.safetyAlerts = Array.isArray(nextState.safetyAlerts) ? nextState.safetyAlerts : [];
+      nextState.problemReports.unshift({
+        id: `report-${createdAt.getTime()}-${Math.random().toString(36).slice(2, 9)}`,
+        childId: childIdentity.childId,
+        child: childIdentity.child,
         type: note.slice(0, 48),
         urgency,
         note,
         time,
+        createdAt: createdAt.toISOString(),
         status: "New"
       });
-      state.safetyAlerts.unshift({
-        child,
+      nextState.safetyAlerts.unshift({
+        childId: childIdentity.childId,
+        child: childIdentity.child,
         message: note.slice(0, 48) + " reported" + (urgency === "Needs help now" ? " - urgent" : ""),
-        time
+        time,
+        createdAt: createdAt.toISOString()
       });
-      saveState(state);
-      status.textContent = "Sent to parent dashboard.";
-      document.querySelector("#problemText").value = "";
+      nextState.problemReports = nextState.problemReports.slice(0, MAX_SAVED_REPORTS);
+      nextState.safetyAlerts = nextState.safetyAlerts.slice(0, MAX_SAVED_REPORTS);
+      reportSaving = true;
+      setReportingAvailable(false);
+      setBusy(true);
+      setStatus(demoActive() ? "Saving this practice report…" : "Sending securely to the parent dashboard…");
+      let savedState = null;
+      let saveFailure = null;
+      try {
+        savedState = await saveState(nextState);
+      } catch (error) {
+        saveFailure = error;
+        if (!demoActive() && ["auth", "conflict"].includes(error?.kind)) {
+          reportReady = false;
+          reportState = null;
+          reportOwnerId = "";
+        }
+        savedState = null;
+      } finally {
+        reportSaving = false;
+        setBusy(false);
+        setReportingAvailable(reportReady && Boolean(reportState));
+      }
+      if (!savedState) {
+        setStatus(demoActive()
+          ? "The practice report could not be saved. No real parent was contacted."
+          : saveFailure?.kind === "auth"
+            ? "The parent login changed or expired. Return to KiddoSprout and log in again. No report was sent."
+            : saveFailure?.kind === "conflict"
+              ? "The parent dashboard changed in another tab. Return to KiddoSprout and reopen this report page. No report was sent."
+            : "The report could not be securely saved. Reconnect and try again. No report was sent.", "error");
+        return;
+      }
+      reportState = savedState;
+      setStatus(demoActive()
+        ? "Practice report saved in this demo tab. No real parent was contacted."
+        : "Sent to parent dashboard.", "success");
+      problemText.value = "";
+      updateCounter();
+      problemText.focus?.();
     }
 
-    document.querySelector("#sendReport").addEventListener("click", sendReport);
-    document.querySelector("#clearReport").addEventListener("click", () => {
-      document.querySelector("#problemText").value = "";
-      document.querySelector("#problemUrgency").value = "Needs help now";
-      status.textContent = "Cleared.";
+    async function initializeReportPage() {
+      setBusy(true);
+      setReportingAvailable(false);
+      if (demoActive()) {
+        reportIntro.textContent = "This is a practice report. It stays in this demo tab and never contacts a real parent.";
+        reportState = loadDemoState();
+        reportReady = Boolean(currentChildIdentity(reportState));
+        setBusy(false);
+        setReportingAvailable(reportReady);
+        setStatus(reportReady
+          ? "Practice report ready. Nothing here contacts a real parent."
+          : "Open the main KiddoSprout demo and choose its fictional child profile first. No real parent was contacted.", reportReady ? "notice" : "error");
+        return reportReady;
+      }
+      if (
+        typeof window.KiddoSproutSession?.validate !== "function"
+        || typeof window.KiddoSproutFamilyState?.load !== "function"
+        || typeof window.KiddoSproutFamilyState?.save !== "function"
+      ) {
+        setBusy(false);
+        setStatus("Secure family access is unavailable. Return to KiddoSprout and try again. No report was sent.", "error");
+        return false;
+      }
+      try {
+        const session = await window.KiddoSproutSession.validate();
+        if (!session?.access_token || !session?.user?.id || !session?.user?.email) {
+          setStatus("A parent must log in to KiddoSprout before a report can be sent. No report was sent.", "error");
+          return false;
+        }
+        const ownerId = String(session.user.id).trim().toLowerCase();
+        const state = await window.KiddoSproutFamilyState.load({ expectedOwnerId: ownerId });
+        if (!state || typeof state !== "object" || Array.isArray(state) || !currentChildIdentity(state)) {
+          setStatus("Open KiddoSprout and choose a child profile before sending a report. No report was sent.", "error");
+          return false;
+        }
+        reportState = state;
+        reportOwnerId = ownerId;
+        reportReady = true;
+        setStatus("Securely connected to the parent dashboard.", "success");
+        return true;
+      } catch (error) {
+        const signedOut = error?.kind === "auth";
+        setStatus(signedOut
+          ? "A parent must log in to KiddoSprout before a report can be sent. No report was sent."
+          : "KiddoSprout could not securely reach the parent dashboard. Reconnect and try again. No report was sent.", "error");
+        return false;
+      } finally {
+        setBusy(false);
+        setReportingAvailable(reportReady && Boolean(reportState));
+      }
+    }
+
+    applySavedTheme();
+    if (typeof window.setInterval === "function") window.setInterval(applySavedTheme, 60000);
+    window.addEventListener?.("pageshow", applySavedTheme);
+    document.addEventListener?.("visibilitychange", () => {
+      if (document.visibilityState === "visible") applySavedTheme();
     });
+    window.addEventListener?.("storage", (event) => {
+      if (event?.key === "kiddosproutPreferences") applySavedTheme();
+    });
+    updateCounter();
+    problemText.addEventListener("input", updateCounter);
+    reportForm?.addEventListener("submit", sendReport);
+    document.querySelector("#clearReport").addEventListener("click", () => {
+      problemText.value = "";
+      problemUrgency.value = "Needs help now";
+      updateCounter();
+      setStatus("Cleared.");
+      problemText.focus?.();
+    });
+    window.KiddoSproutProblemReports = Object.freeze({ ready: initializeReportPage() });
   </script>
 </body>
 </html>

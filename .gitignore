@@ -2,4 +2,13 @@
 __pycache__/
 *.pyc
 .env
+docker-compose.override.yml
 supabase-config.js
+node_modules/
+mac-blocker/build/
+windows-blocker/kiddosprout-blocker.exe
+windows-blocker/.kiddosprout-windows-build.*/
+supabase/.temp/
+supabase/.branches/
+.cloudflare/
+.wrangler/

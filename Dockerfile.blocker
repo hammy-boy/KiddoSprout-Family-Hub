@@ -1,0 +1,16 @@
+FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32
+ENV NODE_ENV=production
+WORKDIR /app
+COPY server/blocker-api.mjs /app/blocker-api.mjs
+COPY server/account-service-config.mjs /app/account-service-config.mjs
+COPY mac-blocker/dist/KiddoSproutBlocker-macOS.zip /app/downloads/KiddoSproutBlocker-macOS.zip
+COPY windows-blocker/dist/KiddoSproutBlocker-Windows-x64.zip /app/downloads/KiddoSproutBlocker-Windows-x64.zip
+COPY windows-blocker/dist/KiddoSproutBlocker-Windows-arm64.zip /app/downloads/KiddoSproutBlocker-Windows-arm64.zip
+RUN mkdir -p /data && chown -R node:node /data && chmod 0700 /data
+USER node
+EXPOSE 8788
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD ["node", "-e", "fetch('http://127.0.0.1:8788/health').then((response)=>process.exit(response.ok?0:1)).catch(()=>process.exit(1))"]
+
+CMD ["node", "/app/blocker-api.mjs"]

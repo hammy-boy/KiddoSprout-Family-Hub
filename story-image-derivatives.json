@@ -1,0 +1,450 @@
+{
+  "version": 1,
+  "images": {
+    "story-ethan-leo-c01-s01.jpg": {
+      "sourceSha256": "9f7b7517549a62b264337218c13e7d870752601fb0e37d64247eb123accf150c",
+      "derivative": "story-ethan-leo-c01-s01-v11b75f2d2a35.webp",
+      "derivativeSha256": "11b75f2d2a35efbbb29504e83a224ec575714f0ba01d8879fb404b35449eb896"
+    },
+    "story-ethan-leo-c01-s02.jpg": {
+      "sourceSha256": "6c3017f06b11b6fb1e8d3878bc9c2c80f45b382273bd98b6df5a2e9a9f2ddf62",
+      "derivative": "story-ethan-leo-c01-s02-va95d72732eb2.webp",
+      "derivativeSha256": "a95d72732eb21f813ebf3e70dd5b59d320fb2512b34e14c17b7d8eb23e1e5c20"
+    },
+    "story-ethan-leo-c01-s03.jpg": {
+      "sourceSha256": "87953ea9023bda33b7c5ffe14497002b34897d2de1cdb3c1395aba47345d30c5",
+      "derivative": "story-ethan-leo-c01-s03-vd433c47f8831.webp",
+      "derivativeSha256": "d433c47f8831e0c00fca7b35b0b16cba94041a24c706bd56b721e0cd3d61d708"
+    },
+    "story-ethan-leo-c01-s04.jpg": {
+      "sourceSha256": "30c89b0148a496b2fbbb50d5c79aeddbef81b6cfa20dc0cb2aee85c4529678bb",
+      "derivative": "story-ethan-leo-c01-s04-v6cc101a926c4.webp",
+      "derivativeSha256": "6cc101a926c4ef3e6edd129840f7028897cc5168814c6cda56fc4917b1698219"
+    },
+    "story-ethan-leo-c01-s05.jpg": {
+      "sourceSha256": "844c7f42854326e3082e83562e6a8f0b0e11759ac60f34eea08e7fa08dc9d61b",
+      "derivative": "story-ethan-leo-c01-s05-vec6c0a7cb530.webp",
+      "derivativeSha256": "ec6c0a7cb53045d3b2cb3ceb01a423d4a9fc5d9c4cd4d3095c346fa73ebc7459"
+    },
+    "story-ethan-leo-c01-s06.jpg": {
+      "sourceSha256": "4be91eaa4dff8f1c7e72d23183453c4d6260cf595b9b8702144544b0972e691c",
+      "derivative": "story-ethan-leo-c01-s06-v2df5a15cb358.webp",
+      "derivativeSha256": "2df5a15cb358de176e63fbaa82e05d29fa2d3501c7db1b254a2791b02bcc61f8"
+    },
+    "story-ethan-leo-c01-s07.jpg": {
+      "sourceSha256": "19560956df4b6a74d00e4d69c504e6221b9a38c652fbeb9d46cc01e5f1a88e1d",
+      "derivative": "story-ethan-leo-c01-s07-v687fb12334da.webp",
+      "derivativeSha256": "687fb12334da41e8faaa0f9634aaa72c0ab2f6a92d52050f554af3390768f182"
+    },
+    "story-ethan-leo-c01-s08.jpg": {
+      "sourceSha256": "e8e794034e7e53afe1e779d693ecb69a12b945673c5c4e28063eb01d2b193a0e",
+      "derivative": "story-ethan-leo-c01-s08-v075c95ed12c9.webp",
+      "derivativeSha256": "075c95ed12c928a038fb2bf007ac89dc66f664f9b797a06c360f5490b0d7d91a"
+    },
+    "story-ethan-leo-c01-s09.jpg": {
+      "sourceSha256": "4bb4250a8626ff132372f700656fcf94fcb0cac012f9941be6bf939a7b5df87e",
+      "derivative": "story-ethan-leo-c01-s09-vb9ca94371bf0.webp",
+      "derivativeSha256": "b9ca94371bf0615ae8b9269dc06bd822b6c7e27bdaa901d960387a80d17c198f"
+    },
+    "story-ethan-leo-c02-s01.jpg": {
+      "sourceSha256": "4c8e519c5a0a66e82ee62985b803f9781a1a3013a737876d8bcdb138681bfa8a",
+      "derivative": "story-ethan-leo-c02-s01-v7d7b7811c8ab.webp",
+      "derivativeSha256": "7d7b7811c8ab1bcb58765e600f12ac99429d75079265a51a52fbc0323a970442"
+    },
+    "story-ethan-leo-c02-s02.jpg": {
+      "sourceSha256": "e37f3fa34b3b499223c85b4de30a5ef98b7fcb5fd59c2c6e7879f77154c53031",
+      "derivative": "story-ethan-leo-c02-s02-v94d75015df32.webp",
+      "derivativeSha256": "94d75015df322c126272239c198992f693776180a9167bd8cb86767a2c58c83f"
+    },
+    "story-ethan-leo-c02-s03.jpg": {
+      "sourceSha256": "ca7514c6b296f5f007a0d6b9f3be5f8cfb7d00d647c72222f4b36e20096e7aa4",
+      "derivative": "story-ethan-leo-c02-s03-v65702f971c16.webp",
+      "derivativeSha256": "65702f971c16fabcbc40bb8c3fd5d1deeae1e8cbbebac9cfc9dfaa851b903a78"
+    },
+    "story-ethan-leo-c02-s04.jpg": {
+      "sourceSha256": "676f9e3043783ea9506073fac136462afd1a0e65bf425dd9862149d058733277",
+      "derivative": "story-ethan-leo-c02-s04-va3ee55a53ac3.webp",
+      "derivativeSha256": "a3ee55a53ac34531fd63582b09f9f26174e82f97c04fde5cadb540a35d96eb08"
+    },
+    "story-ethan-leo-c02-s05.jpg": {
+      "sourceSha256": "b4116dcd079d4bf9c569d73f21b20738e035fd6d8a938853eefa264af50a8589",
+      "derivative": "story-ethan-leo-c02-s05-v6df8714a19cc.webp",
+      "derivativeSha256": "6df8714a19cc1d1f392597887db9eb93c94d375bbe3bfb3cb4197b714150e391"
+    },
+    "story-ethan-leo-c02-s06.jpg": {
+      "sourceSha256": "a5e2137057e68877fc2d000e117d14ab6108e71ddaa7e57779a06a9359579ef5",
+      "derivative": "story-ethan-leo-c02-s06-v711073e00c08.webp",
+      "derivativeSha256": "711073e00c0824802381a2865d18f12e0a9c0362a8ff2c9922fe4bbb09b64be3"
+    },
+    "story-ethan-leo-c02-s07.jpg": {
+      "sourceSha256": "cedc7a2ecabf6fb40b5fe967152f433a72d35f6edf897a1b6551ddf0295e3e3f",
+      "derivative": "story-ethan-leo-c02-s07-v98325a01bfed.webp",
+      "derivativeSha256": "98325a01bfed639c03e717972509619e7259d2c35b904fc0e984b594dc1ed9e8"
+    },
+    "story-ethan-leo-c02-s08.jpg": {
+      "sourceSha256": "a8f8c299652faa3a8741e88989539510673605335ecc9187c4dc48d3f5db2550",
+      "derivative": "story-ethan-leo-c02-s08-v5b67ece3bcff.webp",
+      "derivativeSha256": "5b67ece3bcff246bf49550a266afb29f0d61772d626462c192c5fffffb6b81e2"
+    },
+    "story-ethan-leo-c02-s09.jpg": {
+      "sourceSha256": "c33daeb8e12e899bf0cf63effb3e61b459852437ab1df9ed512ae2406838741a",
+      "derivative": "story-ethan-leo-c02-s09-v3e300dbaa8be.webp",
+      "derivativeSha256": "3e300dbaa8be81d8da4d5a07499ded8d41e54e15a3cce64c91edc6755291fa60"
+    },
+    "story-ethan-leo-c03-s02.jpg": {
+      "sourceSha256": "66032a7d8cabbec0af140542531cfce65ef27d1d3df99513f179dc6b48c99add",
+      "derivative": "story-ethan-leo-c03-s02-v591124705d57.webp",
+      "derivativeSha256": "591124705d57e75d2e5f907292670cc775a5be064923bdc919994fdb2167740a"
+    },
+    "story-ethan-leo-c03-s03.jpg": {
+      "sourceSha256": "32911c219adb8da690eb385fd878d40038c90c311cbce920c2acae44679e8b0a",
+      "derivative": "story-ethan-leo-c03-s03-v8402dbba3381.webp",
+      "derivativeSha256": "8402dbba3381fdda688ffe69405c9abb44986015c1341be67c061579e9208c45"
+    },
+    "story-ethan-leo-c03-s04.jpg": {
+      "sourceSha256": "bd7f2c67c28b3bb1145fa8cb73f20e5fa2735827c0f53eb4b45e564b85f64664",
+      "derivative": "story-ethan-leo-c03-s04-va297474c085a.webp",
+      "derivativeSha256": "a297474c085a574178c136a2cbc8b41d73a4cd19d8c1bde0f5c7c8fc920d0734"
+    },
+    "story-ethan-leo-c03-s05.jpg": {
+      "sourceSha256": "ce546ab1ce0e102b1d0a8aa9cad336a301eecdc3c67f24a148ff90c60a8e4e12",
+      "derivative": "story-ethan-leo-c03-s05-vbfebc4f40b68.webp",
+      "derivativeSha256": "bfebc4f40b68ea226c2eeed45a1a0f7ce90a5fae859c0a87169aed6da4d02739"
+    },
+    "story-ethan-leo-c03-s06.jpg": {
+      "sourceSha256": "ac79b11bddb6c3b4452d57117da1365695debff90ea5bfa2613bddb7f43a7089",
+      "derivative": "story-ethan-leo-c03-s06-vf072524981d3.webp",
+      "derivativeSha256": "f072524981d37cd497d12b3a2eb4a1ee56a5845f6515bcc7a8b92551196ade0e"
+    },
+    "story-ethan-leo-c03-s07.jpg": {
+      "sourceSha256": "33161925b4a311ee60d5a781e93c2b20e5f71edf62e24e8443576eaf01c875f3",
+      "derivative": "story-ethan-leo-c03-s07-vd2150fccf48b.webp",
+      "derivativeSha256": "d2150fccf48b686ba1f217f756da1e3d2f60747ab173c1052de21fc31816eee9"
+    },
+    "story-ethan-leo-c03-s08.jpg": {
+      "sourceSha256": "2e761bb5a14f37443f43f7989e1b7e8b31eaefd0cc49420634d5f13f185f8145",
+      "derivative": "story-ethan-leo-c03-s08-v9aad5c1299e4.webp",
+      "derivativeSha256": "9aad5c1299e47759aef10e0ae839d295492668dd28bf2c7e09aa21f6d38175e2"
+    },
+    "story-ethan-leo-c03-s09.jpg": {
+      "sourceSha256": "722c2016e21dd0d03578d3dd6ce2cbb513a5edca7d1cae1dee91b954744b874d",
+      "derivative": "story-ethan-leo-c03-s09-v8763aff534e3.webp",
+      "derivativeSha256": "8763aff534e31a2a5765790ff28d7a66f04c9ea34246cd41d51fdbe16d499be5"
+    },
+    "story-ethan-leo-c04-s01.jpg": {
+      "sourceSha256": "15d359707bc9734ea1d3a00311b5d4fdbfdd8b2bce629377d01bf6e97f11a8cd",
+      "derivative": "story-ethan-leo-c04-s01-vd74c26670594.webp",
+      "derivativeSha256": "d74c26670594ad2edef97cd26606cbfc71726eb28a98c2c53a804608b6afee4b"
+    },
+    "story-ethan-leo-c04-s02.jpg": {
+      "sourceSha256": "87cf4d631032987352169612cf0e35777c85f8e618d5e89c45f7ffbfa0c62533",
+      "derivative": "story-ethan-leo-c04-s02-v216225b05598.webp",
+      "derivativeSha256": "216225b05598e377785bb3d3fef9d64fd1dad7dd45036e5335f57cb919ef4d69"
+    },
+    "story-ethan-leo-c04-s03.jpg": {
+      "sourceSha256": "1e1337f5404b9e67b13c87a8e9c98c87cc26e1c33c56d88f64aec5a3b923a7ff",
+      "derivative": "story-ethan-leo-c04-s03-vdef9ced881a5.webp",
+      "derivativeSha256": "def9ced881a57ae8568569e14e2ae93e3ec2f3a8efb57d503a5b3793ca6e3c18"
+    },
+    "story-ethan-leo-c04-s04.jpg": {
+      "sourceSha256": "135d35b12d4a6812ed2ab12df5d4c6d658031a651b0cae663970acae0683d573",
+      "derivative": "story-ethan-leo-c04-s04-v29321d4e1905.webp",
+      "derivativeSha256": "29321d4e190574050dd22594bf20c5146fe9ca47a7ff1cfe226059c00e658c7f"
+    },
+    "story-ethan-leo-c04-s05.jpg": {
+      "sourceSha256": "1739f277c59d7fb837ae2292935891d4f2f3afc86a41ef8c085772998eb2129b",
+      "derivative": "story-ethan-leo-c04-s05-v448bf27a6bb8.webp",
+      "derivativeSha256": "448bf27a6bb88f437e1267e36a44b97650c1d13f311d9af16cdfdebf18cef49a"
+    },
+    "story-ethan-leo-c04-s06.jpg": {
+      "sourceSha256": "6ceec192fc7d1d98c530602746eadffa4a027677faacd7a4929a291f2a9857c3",
+      "derivative": "story-ethan-leo-c04-s06-v1e5a167c51bf.webp",
+      "derivativeSha256": "1e5a167c51bf3a311def449231ab4b5ba39d4d2318bdd8d4336704d2786b585b"
+    },
+    "story-ethan-leo-c04-s07.jpg": {
+      "sourceSha256": "fa9cd5249497f7cfaf48becc5cfb67e08535130edfcf57149f92b0be623bf890",
+      "derivative": "story-ethan-leo-c04-s07-vde8081cc4e1f.webp",
+      "derivativeSha256": "de8081cc4e1faecc94eb01c432415cbbe6363928f73e3170ce2f6fd2230f13fa"
+    },
+    "story-ethan-leo-c04-s08.jpg": {
+      "sourceSha256": "33608f7d43ab9c4fbf83987e9886ec49626159c6a36b6ca5465bddc794868e10",
+      "derivative": "story-ethan-leo-c04-s08-v22ca6ae832cf.webp",
+      "derivativeSha256": "22ca6ae832cfe220ce2a1d54a6ef0de4fab60a4fcf628fe8ebd21ecc113067d4"
+    },
+    "story-ethan-leo-c04-s09.jpg": {
+      "sourceSha256": "920380486a42164842904b18109b1808afedee2e7927985a31c760ee25099f67",
+      "derivative": "story-ethan-leo-c04-s09-vac3f27900a22.webp",
+      "derivativeSha256": "ac3f27900a229a4ee8fb19a0f6840b22174901ed125ba7ffadb10e3edda223a1"
+    },
+    "story-ethan-leo-c05-s01.jpg": {
+      "sourceSha256": "522bbfa8a5cdd084684a3d46f0e67cb407ddd450d688f98ae6a17b11ad9153c8",
+      "derivative": "story-ethan-leo-c05-s01-ve29941e88179.webp",
+      "derivativeSha256": "e29941e8817975decb18a14ae18092651d73f14ce66451eb9f3bc2a923550df4"
+    },
+    "story-ethan-leo-c05-s02.jpg": {
+      "sourceSha256": "e75f7b1430933de684235ef4f088a9ed2c9e59dcf019988b53c979583d72a979",
+      "derivative": "story-ethan-leo-c05-s02-v866b66b393f5.webp",
+      "derivativeSha256": "866b66b393f551f35400a4c33c310282a66dc70e7e5bf61142491ee97f5a98fb"
+    },
+    "story-ethan-leo-c05-s03.jpg": {
+      "sourceSha256": "dd40fd0f5440b83ab3552adee519f21f2b3340004f31b0a1ee63c957e43f109e",
+      "derivative": "story-ethan-leo-c05-s03-vc3c70dbd3494.webp",
+      "derivativeSha256": "c3c70dbd3494b5bf60bb10d3adf425c0cc5ca24c987c7aee95f4a927c67d1ad1"
+    },
+    "story-ethan-leo-c05-s04.jpg": {
+      "sourceSha256": "74853e81a7466f03c539d1f1829e55556d3885dca3b0798997a5f60beb3f5e38",
+      "derivative": "story-ethan-leo-c05-s04-v82c86b5d774b.webp",
+      "derivativeSha256": "82c86b5d774b417132c0661572af4fd16bdf08334c3a082d4c504fd22c979485"
+    },
+    "story-ethan-leo-c05-s05.jpg": {
+      "sourceSha256": "b365f11971e9b2a881b5e9686b44838f7e8450c494cc5d786ea1e344c5e80f9f",
+      "derivative": "story-ethan-leo-c05-s05-v31081fcc4a42.webp",
+      "derivativeSha256": "31081fcc4a4217e2b907f164a49e9a05c9ff0d2363242009709243cf90562c0c"
+    },
+    "story-ethan-leo-c05-s06.jpg": {
+      "sourceSha256": "acb5e8ebf7863bb4502657148648e62be350721c86fd3b4492d6c4154f86928f",
+      "derivative": "story-ethan-leo-c05-s06-v827b361053fc.webp",
+      "derivativeSha256": "827b361053fc3147eeb2157336d306854e41c1dda72b1f5bdc63b0d93a7b9d5c"
+    },
+    "story-ethan-leo-c05-s07.jpg": {
+      "sourceSha256": "bafc177e4ee59c997336ca3f0ae62326a00d803a0d41da9e45d4cc0c3d12030f",
+      "derivative": "story-ethan-leo-c05-s07-v1f28ead24fc3.webp",
+      "derivativeSha256": "1f28ead24fc3da86f57a074fa1883e2a50aecd29456ba4fda75b717d31428246"
+    },
+    "story-ethan-leo-c05-s08.jpg": {
+      "sourceSha256": "17828ba277641f09cbc3e9be0637d6bf454b6ad119da1265d8d71c2d8e49eb21",
+      "derivative": "story-ethan-leo-c05-s08-vf8b81c17a161.webp",
+      "derivativeSha256": "f8b81c17a161ff0836cb188b32ea0abce42fcd440d3ea63221c8df2f15d3f285"
+    },
+    "story-ethan-leo-c05-s09.jpg": {
+      "sourceSha256": "4e1a46416bd4f5a358812895a0de0440d36af57170009d1029e55319e9b44752",
+      "derivative": "story-ethan-leo-c05-s09-v1aab950c6401.webp",
+      "derivativeSha256": "1aab950c640102df9342d9d2a54cd5327e4ec8f4ca22446886d722d4d7f0c090"
+    },
+    "story-ethan-leo-c06-s01.jpg": {
+      "sourceSha256": "61f6e27b8b23bea37ce5b04d27d89cdcc01706b373f60c3d8b8bf18ec49a804e",
+      "derivative": "story-ethan-leo-c06-s01-vb4a0c3bb0658.webp",
+      "derivativeSha256": "b4a0c3bb0658131bd4dece7431bc656bd93387d649173f97ead526cc9eda526f"
+    },
+    "story-ethan-leo-c06-s02.jpg": {
+      "sourceSha256": "232879c700bf62b5b3a098686033228032c3fe22f845f39a3cc722bd440d8311",
+      "derivative": "story-ethan-leo-c06-s02-v9c0c509374dc.webp",
+      "derivativeSha256": "9c0c509374dca62b2b1584f26b17defda7b65fc9db42861ee5c61608a46cbcbd"
+    },
+    "story-ethan-leo-c06-s03.jpg": {
+      "sourceSha256": "20e9721a62b3dd81acc0ee3955f77fba8d9382832526410f1ddadc19231c2f24",
+      "derivative": "story-ethan-leo-c06-s03-vda8b54243898.webp",
+      "derivativeSha256": "da8b542438988484e176ce7f3ffbbb28c60b1d6b5b9bf4e34ee2e1f432021de8"
+    },
+    "story-ethan-leo-c06-s04.jpg": {
+      "sourceSha256": "04709eae4fe97999a5d07769e12c0967fef14eb65a7519eff8d9354e215e29d3",
+      "derivative": "story-ethan-leo-c06-s04-v5416faf26d65.webp",
+      "derivativeSha256": "5416faf26d657ec32cebc331cf9013534f3a96d10d0f58fe2fa30f7784e5ba44"
+    },
+    "story-ethan-leo-c06-s05.jpg": {
+      "sourceSha256": "1ade84bb2399e6bbe932d417dae3faba5339948f9a833b22d9d774d97c8a38d0",
+      "derivative": "story-ethan-leo-c06-s05-v462d84adf1dd.webp",
+      "derivativeSha256": "462d84adf1dd8d8a55dcfc6b0f3fbfa57fa90c143bea8f69718f4258de4e9d82"
+    },
+    "story-ethan-leo-c06-s06.jpg": {
+      "sourceSha256": "34416e894389bc33e81cb6ab50c7b49a184a9b88f2316e9adc5a48d420d6367f",
+      "derivative": "story-ethan-leo-c06-s06-v1ff05a1cfe24.webp",
+      "derivativeSha256": "1ff05a1cfe248297c66c29abda0db16537efb83d5aaae5bd62c07f88f19c281e"
+    },
+    "story-ethan-leo-c06-s07.jpg": {
+      "sourceSha256": "b481d9c2eb4f5fb3ad1861c0b1bc958d32d5482d3d540604cd2e1971854a4662",
+      "derivative": "story-ethan-leo-c06-s07-vd6b07672b2ae.webp",
+      "derivativeSha256": "d6b07672b2ae17dd369641a815e292d0dba9bc77a50e7ed626f64dc0dfb2593f"
+    },
+    "story-ethan-leo-c06-s08.jpg": {
+      "sourceSha256": "d19d27ac62049c73888d23db832fd796a6acdba12df87c01ff4658c9ff102710",
+      "derivative": "story-ethan-leo-c06-s08-vc727c4b5c420.webp",
+      "derivativeSha256": "c727c4b5c420611b319a8532edb341f15f63728c914eba1fd58428c10ea3475e"
+    },
+    "story-ethan-leo-c06-s09.jpg": {
+      "sourceSha256": "0fc3e8d8b20245d0be586be6c0b6a1878a7ab1afeefc0b6a08a420f3f7a88b03",
+      "derivative": "story-ethan-leo-c06-s09-vb295adf0f843.webp",
+      "derivativeSha256": "b295adf0f843670ab6c03a366e9fbb145a6178a73bb2729e9aacc92bdac99c9f"
+    },
+    "story-ethan-leo-c06-s10.jpg": {
+      "sourceSha256": "af868567f5ff774a44939ee7aa034b7e2cf39ad3616a85c2dd0a5a89377229dd",
+      "derivative": "story-ethan-leo-c06-s10-v340014590b47.webp",
+      "derivativeSha256": "340014590b47afb77338a88b1a661aa04fc0018e4d2156b3d3ce851e71600234"
+    },
+    "story-ethan-leo-c06-s11.jpg": {
+      "sourceSha256": "8714c57354ee78e6b8bfda0e4e3aa7d39bdc6307408a369d7db5a256e838254d",
+      "derivative": "story-ethan-leo-c06-s11-v2a6506a00676.webp",
+      "derivativeSha256": "2a6506a006768dc748d9018bef8a246528ae199d4d460baadec2ae645c370424"
+    },
+    "story-ethan-leo-c06-s12.jpg": {
+      "sourceSha256": "dff0c581d8b50cefb16b6c7e9e11a2aa135180c7496590e8c514a874f1bcd7b4",
+      "derivative": "story-ethan-leo-c06-s12-vad5708ce805c.webp",
+      "derivativeSha256": "ad5708ce805c62a2770e4efbeb2d008a7d20459f898731a5bc59670b99436fd8"
+    },
+    "story-ethan-leo-c06-s13.jpg": {
+      "sourceSha256": "2624e3865e934e82c47d3c53f058a6f0331d30460cac65e01bfcb9ecbd6c86f6",
+      "derivative": "story-ethan-leo-c06-s13-v9f8365e6e9a5.webp",
+      "derivativeSha256": "9f8365e6e9a5a41c186ab5a5bcddecaa5dbfa25d4a0e4cac5285d9b4db1947ed"
+    },
+    "story-ethan-leo-c06-s14.jpg": {
+      "sourceSha256": "45306bebb07e52484b84bd15b1e48549d9491992d8ee8a87fdf558a979793afc",
+      "derivative": "story-ethan-leo-c06-s14-v8b69b3611002.webp",
+      "derivativeSha256": "8b69b3611002681b2efc43da1abbaf730a6fa8656fbdd8d38350b448b71fb78d"
+    },
+    "story-ethan-leo-lost-map-cover.jpg": {
+      "sourceSha256": "7c855ea3edb4812938fb429f05d2974053a55b8d7d56754c9195e6daf9b6b72e",
+      "derivative": "story-ethan-leo-lost-map-cover-vb5004dd4955b.webp",
+      "derivativeSha256": "b5004dd4955b0216feb118410a7329858a747f22d0fb63d374d831aee65d7405"
+    },
+    "story-living-ink-attic.jpg": {
+      "sourceSha256": "a109d3bf73fee01d87a47650af447ab3afc3ba62e1fa45edd04fd42ce9cbf68b",
+      "derivative": "story-living-ink-attic-v0c3699b67546.webp",
+      "derivativeSha256": "0c3699b675466ed564ecf91a495a2ba2cbb40f9dd14eb929fef268f1e38975a7"
+    },
+    "story-living-ink-butterfly.jpg": {
+      "sourceSha256": "1ce450fae490b394470da18ac16590391c802d49b69536aedae9f9062848ea57",
+      "derivative": "story-living-ink-butterfly-v4445a9e0cb34.webp",
+      "derivativeSha256": "4445a9e0cb340f5289e1677856573d8d4369b3d947daa0fcc50e47ed96625096"
+    },
+    "story-living-ink-keepers-1.jpg": {
+      "sourceSha256": "44d973cceb662271336c169e8922f2145b430d47c4824c653c3b6812de1531ea",
+      "derivative": "story-living-ink-keepers-1-vb84000b3e2f7.webp",
+      "derivativeSha256": "b84000b3e2f713780a0255d8056e43c33ececefeccc9fc8da4e6dbdee80eee42"
+    },
+    "story-living-ink-keepers-2.jpg": {
+      "sourceSha256": "c2e59fa2a144ebba9e3c6a595f8a3d0fab175f4a3563721457c3bd08604a7a28",
+      "derivative": "story-living-ink-keepers-2-vf6ded8515697.webp",
+      "derivativeSha256": "f6ded8515697130f68d818ff65ba2e544af234bf49db6f9b1552efb1b65ba22b"
+    },
+    "story-living-ink-keepers-3.jpg": {
+      "sourceSha256": "761a48babf80093e6630345e4007680396f30376a10828be4c69a3c212eb187a",
+      "derivative": "story-living-ink-keepers-3-vd8d0c0ddf23e.webp",
+      "derivativeSha256": "d8d0c0ddf23e61ba777163dd760698bb5ba754317d7fc52259f59e0e08358e71"
+    },
+    "story-living-ink-keepers-4.jpg": {
+      "sourceSha256": "7194ccba3c0c1b568f8d0147b945ed09eb86c03ca334bc7e55022b51727ad845",
+      "derivative": "story-living-ink-keepers-4-vdce411840787.webp",
+      "derivativeSha256": "dce41184078792150301a03a808c9f557e583122edfe2f770ca8e15b47079e2f"
+    },
+    "story-living-ink-keepers-5.jpg": {
+      "sourceSha256": "5405ca8421822b2e81548e6ba4765c131f26732f855d90e31cd17a88931a124f",
+      "derivative": "story-living-ink-keepers-5-v69ad7878a26a.webp",
+      "derivativeSha256": "69ad7878a26ac018d3ddede499ed0acc695b5fa582f8d65113a2a2dff751d86f"
+    },
+    "story-living-ink-keepers-6.jpg": {
+      "sourceSha256": "8704f25db1e8fb8b60e42ba0ed9ffa860b77c0e8755f252d08806cedf2981648",
+      "derivative": "story-living-ink-keepers-6-vb2ddb39b2af6.webp",
+      "derivativeSha256": "b2ddb39b2af6efa3fae18f84b355251db60d20887fa618eab3610c0e10537e8b"
+    },
+    "story-living-ink-keepers-7.jpg": {
+      "sourceSha256": "585066c899afd50fa99dd8bd19dbb33df1cc3dc3410cac9ad8529df8965ed5c4",
+      "derivative": "story-living-ink-keepers-7-v5816e72987da.webp",
+      "derivativeSha256": "5816e72987da93158a1524767978d4fc3e6aa64db2cf748aca6f138122651ae1"
+    },
+    "story-living-ink-keepers-8.jpg": {
+      "sourceSha256": "44d973cceb662271336c169e8922f2145b430d47c4824c653c3b6812de1531ea",
+      "derivative": "story-living-ink-keepers-8-vb84000b3e2f7.webp",
+      "derivativeSha256": "b84000b3e2f713780a0255d8056e43c33ececefeccc9fc8da4e6dbdee80eee42"
+    },
+    "story-living-ink-keepers-cover.jpg": {
+      "sourceSha256": "9ec9e4d7991a6c773632d166add85ff0cafde623ef781518c77417c7926b3006",
+      "derivative": "story-living-ink-keepers-cover-v74d57d9c08e4.webp",
+      "derivativeSha256": "74d57d9c08e450c964a44c737831038ac872560d04f10e6d6d7ac53daf7ebccd"
+    },
+    "story-living-ink-lion.jpg": {
+      "sourceSha256": "9f5c83762425a47be9aacf3342156b45c957d237f9fda2437e633e9d70450b5b",
+      "derivative": "story-living-ink-lion-vbd6cf5b82545.webp",
+      "derivativeSha256": "bd6cf5b82545d2c35076712f9b5acee66bf356ce1c285465379bdb2045ce54ce"
+    },
+    "story-living-ink-secrets-1.jpg": {
+      "sourceSha256": "77244d7d5df563e0e9c4dfac0be4ab37a08b2623cdfaec3112add8ea2a81a164",
+      "derivative": "story-living-ink-secrets-1-v669d52181298.webp",
+      "derivativeSha256": "669d52181298af3e1dd26947ec95111085a9a8e05e512e7f14a1c5789b3a9e87"
+    },
+    "story-living-ink-secrets-2.jpg": {
+      "sourceSha256": "c2e59fa2a144ebba9e3c6a595f8a3d0fab175f4a3563721457c3bd08604a7a28",
+      "derivative": "story-living-ink-secrets-2-vf6ded8515697.webp",
+      "derivativeSha256": "f6ded8515697130f68d818ff65ba2e544af234bf49db6f9b1552efb1b65ba22b"
+    },
+    "story-living-ink-secrets-3.jpg": {
+      "sourceSha256": "761a48babf80093e6630345e4007680396f30376a10828be4c69a3c212eb187a",
+      "derivative": "story-living-ink-secrets-3-vd8d0c0ddf23e.webp",
+      "derivativeSha256": "d8d0c0ddf23e61ba777163dd760698bb5ba754317d7fc52259f59e0e08358e71"
+    },
+    "story-living-ink-secrets-4.jpg": {
+      "sourceSha256": "5405ca8421822b2e81548e6ba4765c131f26732f855d90e31cd17a88931a124f",
+      "derivative": "story-living-ink-secrets-4-v69ad7878a26a.webp",
+      "derivativeSha256": "69ad7878a26ac018d3ddede499ed0acc695b5fa582f8d65113a2a2dff751d86f"
+    },
+    "story-living-ink-secrets-5.jpg": {
+      "sourceSha256": "7194ccba3c0c1b568f8d0147b945ed09eb86c03ca334bc7e55022b51727ad845",
+      "derivative": "story-living-ink-secrets-5-vdce411840787.webp",
+      "derivativeSha256": "dce41184078792150301a03a808c9f557e583122edfe2f770ca8e15b47079e2f"
+    },
+    "story-living-ink-secrets-6.jpg": {
+      "sourceSha256": "8704f25db1e8fb8b60e42ba0ed9ffa860b77c0e8755f252d08806cedf2981648",
+      "derivative": "story-living-ink-secrets-6-vb2ddb39b2af6.webp",
+      "derivativeSha256": "b2ddb39b2af6efa3fae18f84b355251db60d20887fa618eab3610c0e10537e8b"
+    },
+    "story-living-ink-secrets-7.jpg": {
+      "sourceSha256": "585066c899afd50fa99dd8bd19dbb33df1cc3dc3410cac9ad8529df8965ed5c4",
+      "derivative": "story-living-ink-secrets-7-v5816e72987da.webp",
+      "derivativeSha256": "5816e72987da93158a1524767978d4fc3e6aa64db2cf748aca6f138122651ae1"
+    },
+    "story-living-ink-secrets-8.jpg": {
+      "sourceSha256": "44d973cceb662271336c169e8922f2145b430d47c4824c653c3b6812de1531ea",
+      "derivative": "story-living-ink-secrets-8-vb84000b3e2f7.webp",
+      "derivativeSha256": "b84000b3e2f713780a0255d8056e43c33ececefeccc9fc8da4e6dbdee80eee42"
+    },
+    "story-living-ink-secrets-cover.jpg": {
+      "sourceSha256": "8dc2ab0a8a50164ad6067443b8724008bdb717a045616d6ffd8893a226ae3aaf",
+      "derivative": "story-living-ink-secrets-cover-v4321d4122c4e.webp",
+      "derivativeSha256": "4321d4122c4e2f825ec1e880374b27c801400ff25c7e6e6348e4f12fa5c35563"
+    },
+    "story-living-ink-together.jpg": {
+      "sourceSha256": "1eabd6b882f928512be895a729cd8e26595f2942ea36d921c4fda0370ff473f4",
+      "derivative": "story-living-ink-together-vf714884bdce2.webp",
+      "derivativeSha256": "f714884bdce20343d05fd1937ed4cab27f5af4f093e6575a71f579fb6b2a0e3b"
+    },
+    "story-rainbow-shoes-cover.jpg": {
+      "sourceSha256": "cb2954a370bbebac5e30c9b283074a81503c98c1a5e3f9ba98c0dc4afbeababe",
+      "derivative": "story-rainbow-shoes-cover-v8f3127fea773.webp",
+      "derivativeSha256": "8f3127fea77399b94a4fd75b3b7a5c5183c8aac6cdf0f16ca3328b24b89ab36b"
+    },
+    "story-rainbow-shoes-page-1.jpg": {
+      "sourceSha256": "5a225a2a17c31bec40f4f679b2b6aa393d4cb1af1b4d8a19e28b2cb0b8176a7a",
+      "derivative": "story-rainbow-shoes-page-1-v6f63a2f6bbbb.webp",
+      "derivativeSha256": "6f63a2f6bbbb5a0bc32734c9e9ca8e50759378d3b3cce9405c01dde1fa8c12a8"
+    },
+    "story-rainbow-shoes-page-2.jpg": {
+      "sourceSha256": "edaf963ea4b0ace7ce96fa86bdc1880ab5c65e5264b62c9629261e4371f498eb",
+      "derivative": "story-rainbow-shoes-page-2-v072ae969f018.webp",
+      "derivativeSha256": "072ae969f018c07c73e779a136c7a0e65a82206e979b1e55e5a7b43cbc397c74"
+    },
+    "story-rainbow-shoes-page-3.jpg": {
+      "sourceSha256": "7532eb16fa0f187c86c3631a36e284cd1018be266ed8a9ba2ac05812bb1de922",
+      "derivative": "story-rainbow-shoes-page-3-v1834bcc1084f.webp",
+      "derivativeSha256": "1834bcc1084fabf0d155e3880afd405da0aa933d5a8429c7052cde3929fe186d"
+    },
+    "story-rainbow-shoes-page-4.jpg": {
+      "sourceSha256": "e677bca9d38a0233c9344f0bba7f8b8d5eb562ac4c4fa88a909761e91e72f448",
+      "derivative": "story-rainbow-shoes-page-4-va16507de590e.webp",
+      "derivativeSha256": "a16507de590edaf1d8687fb7245c929486a84a90a08e1918c3732923fe697ffc"
+    },
+    "story-rainbow-shoes-page-5.jpg": {
+      "sourceSha256": "8e8d1e2150148fe17cb0591d8841559c8d0b9ba2f2e821909918af9b3445ce43",
+      "derivative": "story-rainbow-shoes-page-5-v9c4677074576.webp",
+      "derivativeSha256": "9c4677074576168e9ba6d559cd127b5cad82949cecadec9013af79bc00198c0c"
+    },
+    "story-rainbow-shoes-page-6.jpg": {
+      "sourceSha256": "119e73f8dad561493225eae82a046805176766b52a72172de115f7187b9b602e",
+      "derivative": "story-rainbow-shoes-page-6-vae90e8ff560a.webp",
+      "derivativeSha256": "ae90e8ff560a4068f37cf2659de2b7622cb194b57dd57a5247146e6846e88191"
+    },
+    "story-rainbow-shoes-page-7.jpg": {
+      "sourceSha256": "4171e17ea99542c0086a86778f040c12f0c7f61fe5a2a84a91fb95e15581cf28",
+      "derivative": "story-rainbow-shoes-page-7-v636fb205b188.webp",
+      "derivativeSha256": "636fb205b188a869d39294d7d953bc2e9e2d42694b7230cc5a120ada14814fec"
+    }
+  }
+}

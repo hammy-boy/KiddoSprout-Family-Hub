@@ -1,0 +1,51 @@
+[
+  {
+    "sceneNumber": 1,
+    "title": "The Depths",
+    "filename": "assets/story-ethan-leo-c06-s01.jpg",
+    "alt": "Ethan follows his glowing map while Leo lights a steep spiral passage beneath the island.",
+    "caption": "The glowing spirals guide Ethan and Leo farther beneath the island."
+  },
+  {
+    "sceneNumber": 2,
+    "title": "The Abyss",
+    "filename": "assets/story-ethan-leo-c06-s02.jpg",
+    "alt": "Ethan and Leo stand at the edge of a vast blue cavern filled with glowing spiral carvings.",
+    "caption": "At the edge of the abyss, the brothers discover how deep the island's secrets reach."
+  },
+  {
+    "sceneNumber": 3,
+    "title": "The Echoes",
+    "filename": "assets/story-ethan-leo-c06-s03.jpg",
+    "alt": "Golden memory figures and blue sound trails surround Ethan and Leo in an ancient cavern.",
+    "caption": "Voices from the past flow through the cavern walls and into the glowing map."
+  },
+  {
+    "sceneNumber": 4,
+    "title": "The Mirror Pool",
+    "filename": "assets/story-ethan-leo-c06-s04.jpg",
+    "alt": "Ethan and Leo peer into a glowing mirror pool that shows magical versions of themselves.",
+    "caption": "The mirror pool reveals not only who the brothers are, but who they might become."
+  },
+  {
+    "sceneNumber": 5,
+    "title": "The Crossing",
+    "filename": "assets/story-ethan-leo-c06-s05.jpg",
+    "alt": "Ethan studies the map as Leo points across a bottomless chasm toward a spiral-lit doorway.",
+    "caption": "With no bridge in sight, Ethan and Leo must trust the hidden route on the map."
+  },
+  {
+    "sceneNumber": 6,
+    "title": "The Bridge of Light",
+    "filename": "assets/story-ethan-leo-c06-s06.jpg",
+    "alt": "Leo reaches for Ethan while they cross a glowing bridge woven from blue and golden light.",
+    "caption": "A bridge of pure light appears when the brothers choose to cross together."
+  },
+  {
+    "sceneNumber": 7,
+    "title": "The Descent Below",
+    "filename": "assets/story-ethan-leo-c06-s07.jpg",
+    "alt": "Ethan and Leo descend wet spiral stairs while their map and torch illuminate the stone walls.",
+    "caption": "Beyond the bridge, the brothers descend below the island itself."
+  }
+]

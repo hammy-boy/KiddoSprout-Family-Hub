@@ -1,0 +1,144 @@
+{
+  "bookId": "ethan-leo-lost-map",
+  "series": "Adventures of Ethan and Leo",
+  "bookTitle": "Adventures of Ethan and Leo: The Lost Map",
+  "chapters": [3, 4],
+  "scenes": [
+    {
+      "chapterNumber": 3,
+      "sceneNumber": 2,
+      "title": "The First Clue",
+      "filename": "assets/story-ethan-leo-c03-s02.jpg",
+      "alt": "Ethan points from the old map toward a jagged island while Leo looks on excitedly from their rowboat at sunset.",
+      "caption": "The first clue on the map guides Ethan and Leo toward the island's jagged peaks."
+    },
+    {
+      "chapterNumber": 3,
+      "sceneNumber": 3,
+      "title": "The Journal’s Warning",
+      "filename": "assets/story-ethan-leo-c03-s03.jpg",
+      "alt": "Ethan reads their grandfather's worn journal as Leo watches anxiously beside the map in a boat surrounded by dark cliffs.",
+      "caption": "Grandpa's journal warns the brothers that not every symbol leads to treasure."
+    },
+    {
+      "chapterNumber": 3,
+      "sceneNumber": 4,
+      "title": "The Spiral Symbol",
+      "filename": "assets/story-ethan-leo-c03-s04.jpg",
+      "alt": "Ethan touches a glowing spiral on the map while Leo watches and a matching spiral constellation shines above their boat.",
+      "caption": "A spiral on the parchment matches the pattern glowing among the stars."
+    },
+    {
+      "chapterNumber": 3,
+      "sceneNumber": 5,
+      "title": "Doubt and Resolve",
+      "filename": "assets/story-ethan-leo-c03-s05.jpg",
+      "alt": "Leo rests a reassuring hand on Ethan's shoulder as Ethan holds the map and journal in their boat near the rocky island.",
+      "caption": "Leo's confidence helps Ethan choose courage despite the warning ahead."
+    },
+    {
+      "chapterNumber": 3,
+      "sceneNumber": 6,
+      "title": "The Hidden Pattern",
+      "filename": "assets/story-ethan-leo-c03-s06.jpg",
+      "alt": "Ethan traces a network of glowing golden points across the map while Leo leans closer and the island rises beyond their boat.",
+      "caption": "Separate markings connect to reveal a hidden route across the map."
+    },
+    {
+      "chapterNumber": 3,
+      "sceneNumber": 7,
+      "title": "The Omen",
+      "filename": "assets/story-ethan-leo-c03-s07.jpg",
+      "alt": "Leo rows hard through steep storm waves while Ethan protects the map and a lantern swings above their small boat.",
+      "caption": "A sudden storm tests the brothers as the island looms through the waves."
+    },
+    {
+      "chapterNumber": 3,
+      "sceneNumber": 8,
+      "title": "The Revelation",
+      "filename": "assets/story-ethan-leo-c03-s08.jpg",
+      "alt": "Ethan holds a glowing map whose bright trail points toward the island as Leo pauses at the oar beneath a brilliant dawn sky.",
+      "caption": "The map finally reveals one clear trail leading straight to the mysterious island."
+    },
+    {
+      "chapterNumber": 3,
+      "sceneNumber": 9,
+      "title": "The Journey Ahead",
+      "filename": "assets/story-ethan-leo-c03-s09.jpg",
+      "alt": "Ethan rows toward a towering green island while Leo holds the map open in their weathered boat under the morning sun.",
+      "caption": "With their destination in sight, the brothers row toward the adventure waiting ashore."
+    },
+    {
+      "chapterNumber": 4,
+      "sceneNumber": 1,
+      "title": "Landfall",
+      "filename": "assets/story-ethan-leo-c04-s01.jpg",
+      "alt": "Leo bounds joyfully across the island beach while Ethan walks carefully with the rolled map and their boat rests by the shore.",
+      "caption": "Ethan and Leo take their first steps onto the island at sunrise."
+    },
+    {
+      "chapterNumber": 4,
+      "sceneNumber": 2,
+      "title": "The Shoreline",
+      "filename": "assets/story-ethan-leo-c04-s02.jpg",
+      "alt": "Ethan kneels on a shell-strewn beach holding a spiral-marked stone shard while Leo examines it beside their boat and dark sea caves.",
+      "caption": "A carved shard proves that the island itself is part of Grandpa's puzzle."
+    },
+    {
+      "chapterNumber": 4,
+      "sceneNumber": 3,
+      "title": "Into the Caves",
+      "filename": "assets/story-ethan-leo-c04-s03.jpg",
+      "alt": "Ethan studies the map while Leo lights spiral and starburst carvings with a torch just inside a wet cave entrance.",
+      "caption": "The brothers leave the bright shore and follow matching symbols into the caves."
+    },
+    {
+      "chapterNumber": 4,
+      "sceneNumber": 4,
+      "title": "The Echoes",
+      "filename": "assets/story-ethan-leo-c04-s04.jpg",
+      "alt": "Ethan and Leo pause to listen in a wet tunnel where blue spiral reflections ripple across the carved walls and puddles.",
+      "caption": "Mysterious echoes and glowing ripples seem to guide them farther underground."
+    },
+    {
+      "chapterNumber": 4,
+      "sceneNumber": 5,
+      "title": "The Hidden Chamber",
+      "filename": "assets/story-ethan-leo-c04-s05.jpg",
+      "alt": "Ethan and Leo stand in awe before a vast ancient chamber filled with towering spiral-carved stones and warm torchlight.",
+      "caption": "The narrow cave opens into a sanctuary hidden in the heart of the cliffs."
+    },
+    {
+      "chapterNumber": 4,
+      "sceneNumber": 6,
+      "title": "The Symbols Awaken",
+      "filename": "assets/story-ethan-leo-c04-s06.jpg",
+      "alt": "Turquoise and gold symbols flare across the wall and map as Ethan reaches toward them and Leo raises the torch in amazement.",
+      "caption": "The chamber awakens when its carvings align with the symbols on the map."
+    },
+    {
+      "chapterNumber": 4,
+      "sceneNumber": 7,
+      "title": "The Guardian’s Shadow",
+      "filename": "assets/story-ethan-leo-c04-s07.jpg",
+      "alt": "Ethan and Leo stand together with their map and torch as a huge spiral-covered stone guardian forms from blue mist behind them.",
+      "caption": "The island's ancient guardian rises from the chamber to face the brothers."
+    },
+    {
+      "chapterNumber": 4,
+      "sceneNumber": 8,
+      "title": "The Trial",
+      "filename": "assets/story-ethan-leo-c04-s08.jpg",
+      "alt": "Ethan presses one hand to a bright turquoise spiral while Leo raises his torch and the guardian watches from the glowing chamber wall.",
+      "caption": "Ethan and Leo meet the guardian's challenge with caution, courage, and trust."
+    },
+    {
+      "chapterNumber": 4,
+      "sceneNumber": 9,
+      "title": "The Choice",
+      "filename": "assets/story-ethan-leo-c04-s09.jpg",
+      "alt": "Ethan holds the map while Leo reaches toward a glowing blue spiral path and a pale escape stairway rises on the opposite side.",
+      "caption": "Together, the brothers choose the spiral path leading deeper into the island."
+    }
+  ]
+}

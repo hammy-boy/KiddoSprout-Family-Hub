@@ -5,7 +5,7 @@ This document carries the useful context from the original local Codex conversat
 ## Project identity
 
 - Product name: **KiddoSprout**. Do not rename it to SJD or another project name.
-- Repository: `hammy-boy/SafeSprout-Family-Hub`
+- Repository: `hammy-boy/KiddoSprout-Family-Hub`
 - Main branch: `main`
 - This directory is the repository root.
 - KiddoSprout is a family hub with parent controls, child experiences, stories, recipes, smart-spending features, and browser/native game-blocker test companions.

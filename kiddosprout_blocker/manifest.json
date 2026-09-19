@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "KiddoSprout Browser Blocker",
-  "version": "1.0.1",
-  "description": "Blocks websites that parents mark as blocked in KiddoSprout.",
+  "version": "1.1.5",
+  "description": "Blocks parent-selected game sites and supported playable Google game panels in this browser profile.",
   "icons": {
     "128": "icon128.png"
   },
@@ -12,11 +12,17 @@
     "default_title": "KiddoSprout Blocker",
     "default_popup": "popup.html"
   },
+  "web_accessible_resources": [
+    {
+      "resources": ["blocked.html"],
+      "matches": ["http://*/*", "https://*/*"]
+    }
+  ],
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
       "js": ["content.js"],
-      "run_at": "document_idle",
+      "run_at": "document_start",
       "all_frames": true
     }
   ]

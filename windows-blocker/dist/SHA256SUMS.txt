@@ -1,0 +1,2 @@
+7eff46a8f8321c82bd8487326eb0ce5e0badc7bf49975a8b91dce7eec21d41ed  KiddoSproutBlocker-Windows-arm64.zip
+981cb22e46d7939716045076ffa9bbfca076489842f1a11ec755f75bfbbfd4ce  KiddoSproutBlocker-Windows-x64.zip

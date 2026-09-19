@@ -1,0 +1,78 @@
+{
+  "documentId": "10NHthIIlONxJ0wqIvyvrZgQ29VqPl2kkHGcyIV8z8-8",
+  "documentTitle": "Adventures of Ethan and Leo - The Lost Map",
+  "referenceAsset": "assets/story-ethan-leo-lost-map-cover.jpg",
+  "generatedWith": "built-in image generator",
+  "chapters": [
+    {
+      "chapter": 5,
+      "chapterTitle": "The Descent",
+      "sourceTabId": "t.cj860lmwemoc",
+      "images": [
+        {
+          "scene": 1,
+          "title": "The Descent",
+          "filename": "assets/story-ethan-leo-c05-s01.jpg",
+          "alt": "Ethan studies a glowing map while Leo raises a torch at the top of a wet spiral staircase descending beneath the island.",
+          "caption": "Ethan and Leo begin the spiral descent into the island."
+        },
+        {
+          "scene": 2,
+          "title": "The Labyrinth",
+          "filename": "assets/story-ethan-leo-c05-s02.jpg",
+          "alt": "Ethan kneels over the glowing map as Leo points through a vast maze of branching, spiral-carved stone tunnels.",
+          "caption": "The map must guide the brothers through the labyrinth."
+        },
+        {
+          "scene": 3,
+          "title": "The Shifting Walls",
+          "filename": "assets/story-ethan-leo-c05-s03.jpg",
+          "alt": "Carved stone walls grind and rotate around Ethan and Leo while the route on Ethan's glowing map changes.",
+          "caption": "The living maze rearranges itself around the brothers."
+        },
+        {
+          "scene": 4,
+          "title": "The Illusion",
+          "filename": "assets/story-ethan-leo-c05-s04.jpg",
+          "alt": "A glowing vision of the moonlit shore, their boat, and a treasure chest appears in the wall as Leo points Ethan back toward the real corridor.",
+          "caption": "A beautiful illusion tries to lure Ethan away from the true path."
+        },
+        {
+          "scene": 5,
+          "title": "The Heart of the Maze",
+          "filename": "assets/story-ethan-leo-c05-s05.jpg",
+          "alt": "Ethan and Leo enter an immense circular chamber filled with fallen carved stones and a tall spiral-marked monument.",
+          "caption": "At last, the brothers reach the glowing heart of the maze."
+        },
+        {
+          "scene": 6,
+          "title": "The Awakening",
+          "filename": "assets/story-ethan-leo-c05-s06.jpg",
+          "alt": "Golden and blue rings of light race across the ancient chamber as Ethan's map and Leo's torch blaze together.",
+          "caption": "The chamber awakens in a whirl of starlight and spirals."
+        },
+        {
+          "scene": 7,
+          "title": "The Guardian's Return",
+          "filename": "assets/story-ethan-leo-c05-s07.jpg",
+          "alt": "A towering ancient stone guardian with calm amber eyes rises from mist before Ethan and Leo in the cavern.",
+          "caption": "The island's stone guardian returns to face the brothers."
+        },
+        {
+          "scene": 8,
+          "title": "The Final Trial",
+          "filename": "assets/story-ethan-leo-c05-s08.jpg",
+          "alt": "Ethan and Leo stand side by side before the moss-covered guardian as a golden spiral path shines between them.",
+          "caption": "Together, Ethan and Leo step forward for the final trial."
+        },
+        {
+          "scene": 9,
+          "title": "The Passage Beyond",
+          "filename": "assets/story-ethan-leo-c05-s09.jpg",
+          "alt": "Ethan and Leo gaze into a newly opened passage filled with soft white-blue light between enormous spiral-carved doors.",
+          "caption": "A hidden passage opens, revealing the way beyond the maze."
+        }
+      ]
+    }
+  ]
+}

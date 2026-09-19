@@ -1,0 +1,6 @@
+(function(root){
+ const notes=[{name:'C',label:'Do',midi:60,colour:'#eac5b2',icon:'🌷'},{name:'D',label:'Re',midi:62,colour:'#f0df9b',icon:'🌼'},{name:'E',label:'Mi',midi:64,colour:'#cbdcaf',icon:'🌿'},{name:'G',label:'Sol',midi:67,colour:'#cbd8e9',icon:'🪻'}];
+ const levels=[{name:'First notes',sequence:[0,1,2],lesson:'Pitch tells us how high or low a note sounds. This tune climbs from C to E.'},{name:'Up and down',sequence:[0,1,2,1],lesson:'A melody is a sequence of notes. This one rises, then takes one step down.'},{name:'A little repeat',sequence:[0,0,2,2,3],lesson:'The same note can appear more than once. Listen for the repeated pairs.'},{name:'Skipping stones',sequence:[0,2,1,3,2,0],lesson:'Notes can move by steps or jump over other notes. Listen for the bigger jumps.'},{name:'Call and echo',sequence:[0,1,3,0,1,3,2],lesson:'Repeated patterns help us remember music. The first three notes return before the ending.'},{name:'Meadow melody',sequence:[0,2,3,2,1,0,1,0],lesson:'A tune can move up, down and back to its starting note. Try hearing the shape of this melody.'}];
+ function frequency(midi){return 440*Math.pow(2,(midi-69)/12)}
+ const api={notes,levels,frequency};if(typeof module==='object')module.exports=api;else root.MelodyMeadow=api;
+})(typeof window==='object'?window:globalThis);

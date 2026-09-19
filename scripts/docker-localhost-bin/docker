@@ -1,0 +1,51 @@
+#!/bin/zsh
+set -eu
+
+# Supabase CLI publishes development ports as HOST_PORT:CONTAINER_PORT.
+# Docker Desktop for macOS may expose that shorthand on every host interface,
+# even when the selected bridge requests a localhost-only default. This wrapper
+# makes the address explicit for this project. Other commands pass through.
+REAL_DOCKER=${KIDDOSPROUT_REAL_DOCKER:-/Applications/Docker.app/Contents/Resources/bin/docker}
+
+if [[ ! -x "$REAL_DOCKER" ]]; then
+  print -u2 "KiddoSprout could not find the Docker Desktop command-line tool."
+  exit 1
+fi
+
+if [[ "${1:-}" != "run" ]]; then
+  exec "$REAL_DOCKER" "$@"
+fi
+
+shift
+rewritten_args=()
+rewrite_publish_value=false
+
+for arg in "$@"; do
+  if [[ "$rewrite_publish_value" == true ]]; then
+    case "$arg" in
+      *:*:*) rewritten_args+=("$arg") ;;
+      *:*) rewritten_args+=("127.0.0.1:$arg") ;;
+      *) rewritten_args+=("$arg") ;;
+    esac
+    rewrite_publish_value=false
+    continue
+  fi
+
+  case "$arg" in
+    -p|--publish)
+      rewritten_args+=("$arg")
+      rewrite_publish_value=true
+      ;;
+    --publish=*)
+      publish_value=${arg#--publish=}
+      case "$publish_value" in
+        *:*:*) rewritten_args+=("$arg") ;;
+        *:*) rewritten_args+=("--publish=127.0.0.1:$publish_value") ;;
+        *) rewritten_args+=("$arg") ;;
+      esac
+      ;;
+    *) rewritten_args+=("$arg") ;;
+  esac
+done
+
+exec "$REAL_DOCKER" run "${rewritten_args[@]}"

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <script src="local-docker-redirect.js?v=1"></script>
+  <script>
+    (function () {
+      "use strict";
+      function readState(storage, key) {
+        try {
+          const value = JSON.parse(storage.getItem(key) || "null");
+          return value && typeof value === "object" && !Array.isArray(value) ? value : null;
+        } catch (error) {
+          return null;
+        }
+      }
+      function readActiveState() {
+        let demoState = null;
+        let safePreferences = null;
+        let demoActive = false;
+        try {
+          demoState = readState(window.sessionStorage, "kiddosprout.demo.v1.family");
+          demoActive = Boolean(demoState) || window.sessionStorage.getItem("kiddosprout.demo.v1.active") === "1";
+        } catch (error) {
+          // Storage can be unavailable in restricted browser contexts.
+        }
+        try {
+          safePreferences = readState(window.localStorage, "kiddosproutPreferences");
+        } catch (error) {
+          // Fall back to automatic day/night mode.
+        }
+        return demoActive ? demoState : safePreferences;
+      }
+      function applyTheme() {
+        const state = readActiveState();
+        const selectedTheme = ["auto", "day", "night"].includes(state?.themeMode) ? state.themeMode : "auto";
+        const hour = new Date().getHours();
+        const resolvedTheme = selectedTheme === "auto" ? (hour >= 19 || hour < 7 ? "night" : "day") : selectedTheme;
+        document.documentElement.classList.toggle("theme-night", resolvedTheme === "night");
+        document.documentElement.classList.toggle("theme-day", resolvedTheme === "day");
+        document.documentElement.dataset.themeMode = selectedTheme;
+      }
+      applyTheme();
+      if (typeof window.setInterval === "function") window.setInterval(applyTheme, 60000);
+      window.addEventListener?.("pageshow", applyTheme);
+      document.addEventListener?.("visibilitychange", () => {
+        if (document.visibilityState === "visible") applyTheme();
+      });
+      window.addEventListener?.("storage", (event) => {
+        if (event?.key === "kiddosproutPreferences") applyTheme();
+      });
+    }());
+  </script>
+  <title>Choose Your Story Sound | KiddoSprout</title>
+  <link rel="icon" type="image/png" href="kiddosprout_logo_128.png">
+  <link rel="stylesheet" href="kid-hubs.css?v=10">
+  <link rel="stylesheet" href="story-voices.css?v=5">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <main class="voice-picker-shell hidden" id="main-content" tabindex="-1" data-hub-page>
+    <nav class="topbar voice-picker-nav" aria-label="Hub navigation">
+      <a class="back-link" href="story-theater.html" data-return-to-story>Back to Story Theater</a>
+      <a class="primary-action" href="story-theater.html" data-return-to-story>Use My Sound</a>
+    </nav>
+
+    <section class="voice-picker-hero" aria-labelledby="voicePickerTitle">
+      <span class="voice-hero-orbit orbit-one" aria-hidden="true">♪</span>
+      <span class="voice-hero-orbit orbit-two" aria-hidden="true">★</span>
+      <div>
+        <span class="voice-eyebrow">Story sound studio</span>
+        <h1 id="voicePickerTitle">Choose a Voice You Love!</h1>
+        <p>Press play to hear a voice, then choose it for every Story Theater adventure.</p>
+      </div>
+      <div class="voice-hero-speaker" aria-hidden="true">🔊</div>
+    </section>
+
+    <section class="voice-picker-panel" aria-labelledby="voiceLibraryTitle">
+      <div class="voice-picker-heading">
+        <div>
+          <h2 id="voiceLibraryTitle">Pick your story sound</h2>
+          <p id="selectedVoiceLabel">Your chosen voice will appear here.</p>
+        </div>
+        <span class="voice-count" id="voiceCount" role="status" aria-live="polite">Finding voices…</span>
+      </div>
+
+      <div class="voice-toolbar">
+        <label class="voice-search">
+          <span aria-hidden="true">🔎</span>
+          <span class="sr-only">Search voices</span>
+          <input id="voiceSearch" type="search" placeholder="Search voices" autocomplete="off" aria-controls="voiceGrid">
+        </label>
+        <div class="voice-source-tabs" role="group" aria-label="Voice source">
+          <button class="active" type="button" data-voice-source="all" aria-pressed="true" aria-controls="voiceGrid">All Sounds</button>
+          <button type="button" data-voice-source="elevenlabs" aria-pressed="false" aria-controls="voiceGrid">Magic Voices</button>
+          <button type="button" data-voice-source="pro" aria-pressed="false" aria-controls="voiceGrid">Pro Voices</button>
+          <button type="button" data-voice-source="device" aria-pressed="false" aria-controls="voiceGrid">Device Voices</button>
+        </div>
+      </div>
+
+      <p class="voice-library-status" id="voiceLibraryStatus" role="status" aria-live="polite">Opening the voice library…</p>
+      <div class="voice-grid" id="voiceGrid" role="list" aria-label="Available story sounds" aria-busy="true"></div>
+    </section>
+
+    <section class="voice-picker-tip">
+      <span aria-hidden="true">💡</span>
+      <div>
+        <strong>Make it your own</strong>
+        <p>After choosing a sound, use Cozy, Cheerful, or Adventure in Story Theater to change its storytelling mood.</p>
+      </div>
+    </section>
+  </main>
+
+  <section class="lock-card hidden" data-hub-lock role="main">
+    <div>
+      <h1 data-lock-title>Story Theater is locked</h1>
+      <p data-lock-message>Ask a parent to open Story Theater first.</p>
+      <a class="primary-action" href="index.html#child">Back to Child Site</a>
+    </div>
+  </section>
+
+  <script src="supabase-config.js?v=7"></script>
+  <script src="demo-mode.js?v=2"></script>
+  <script src="auth-session.js?v=7"></script>
+  <script src="family-state-cloud.js?v=2"></script>
+  <script src="story-voice-choice.js?v=6"></script>
+  <script src="story-storage.js?v=5"></script>
+  <script src="kid-hub-gate.js?v=9"></script>
+  <script src="story-voices.js?v=14"></script>
+  <script>
+    window.KiddoSproutStoryVoices.start(
+      window.KiddoHubGate.protect("story", "Story Theater")
+    );
+  </script>
+</body>
+</html>

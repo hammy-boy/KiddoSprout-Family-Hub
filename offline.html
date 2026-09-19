@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#147d7f">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    (function () {
+      "use strict";
+      function readState(storage, key) {
+        try {
+          const value = JSON.parse(storage.getItem(key) || "null");
+          return value && typeof value === "object" && !Array.isArray(value) ? value : null;
+        } catch (error) {
+          return null;
+        }
+      }
+      function readActiveState() {
+        let demoState = null;
+        let safePreferences = null;
+        let demoActive = false;
+        try {
+          demoState = readState(window.sessionStorage, "kiddosprout.demo.v1.family");
+          demoActive = Boolean(demoState) || window.sessionStorage.getItem("kiddosprout.demo.v1.active") === "1";
+        } catch (error) {
+          // Storage can be unavailable in restricted browser contexts.
+        }
+        try {
+          safePreferences = readState(window.localStorage, "kiddosproutPreferences");
+        } catch (error) {
+          // Fall back to automatic day/night mode.
+        }
+        return demoActive ? demoState : safePreferences;
+      }
+      function applyTheme() {
+        const state = readActiveState();
+        const selectedTheme = ["auto", "day", "night"].includes(state?.themeMode) ? state.themeMode : "auto";
+        const supportedLanguages = ["en-GB", "es", "fr", "pt", "de"];
+        const selectedLanguage = supportedLanguages.includes(state?.languageMode) ? state.languageMode : "en-GB";
+        const hour = new Date().getHours();
+        const resolvedTheme = selectedTheme === "auto" ? (hour >= 19 || hour < 7 ? "night" : "day") : selectedTheme;
+        document.documentElement.classList.toggle("theme-night", resolvedTheme === "night");
+        document.documentElement.classList.toggle("theme-day", resolvedTheme === "day");
+        document.documentElement.dataset.themeMode = selectedTheme;
+        document.documentElement.lang = selectedLanguage;
+        const copyByLanguage = {
+          "en-GB": { title: "KiddoSprout page unavailable", skip: "Skip to main content", heading: "This page is taking a break", message: "You may be offline, or KiddoSprout may be temporarily unavailable. Check your connection, then try again.", options: "Offline options", retry: "Try this page again", home: "Open offline preview" },
+          es: { title: "Página no disponible de KiddoSprout", skip: "Saltar al contenido principal", heading: "Esta página se está tomando un descanso", message: "Puede que no tengas conexión o que KiddoSprout no esté disponible temporalmente. Comprueba la conexión e inténtalo de nuevo.", options: "Opciones sin conexión", retry: "Volver a intentar esta página", home: "Abrir vista previa sin conexión" },
+          fr: { title: "Page KiddoSprout indisponible", skip: "Aller au contenu principal", heading: "Cette page fait une pause", message: "Vous êtes peut-être hors ligne ou KiddoSprout est temporairement indisponible. Vérifiez la connexion, puis réessayez.", options: "Options hors ligne", retry: "Réessayer cette page", home: "Ouvrir l’aperçu hors ligne" },
+          pt: { title: "Página KiddoSprout indisponível", skip: "Ir para o conteúdo principal", heading: "Esta página está a fazer uma pausa", message: "Pode estar sem ligação ou o KiddoSprout pode estar temporariamente indisponível. Verifique a ligação e tente novamente.", options: "Opções offline", retry: "Tentar esta página novamente", home: "Abrir pré-visualização offline" },
+          de: { title: "KiddoSprout-Seite nicht verfügbar", skip: "Zum Hauptinhalt springen", heading: "Diese Seite macht gerade Pause", message: "Du bist möglicherweise offline oder KiddoSprout ist vorübergehend nicht verfügbar. Prüfe die Verbindung und versuche es erneut.", options: "Offline-Optionen", retry: "Diese Seite erneut versuchen", home: "Offline-Vorschau öffnen" }
+        };
+        const copy = copyByLanguage[selectedLanguage];
+        document.title = copy.title;
+        const skip = document.getElementById("offline-skip");
+        const heading = document.getElementById("offline-heading");
+        const message = document.getElementById("offline-message");
+        const options = document.getElementById("offline-options");
+        const retry = document.getElementById("retry-page");
+        const home = document.getElementById("offline-home");
+        if (skip) skip.textContent = copy.skip;
+        if (heading) heading.textContent = copy.heading;
+        if (message) message.textContent = copy.message;
+        if (options) options.setAttribute("aria-label", copy.options);
+        if (retry) retry.textContent = copy.retry;
+        if (home) home.textContent = copy.home;
+      }
+      applyTheme();
+      document.addEventListener?.("DOMContentLoaded", applyTheme);
+      if (typeof window.setInterval === "function") window.setInterval(applyTheme, 60000);
+      window.addEventListener?.("pageshow", applyTheme);
+      document.addEventListener?.("visibilitychange", () => {
+        if (document.visibilityState === "visible") applyTheme();
+      });
+      window.addEventListener?.("storage", (event) => {
+        if (event?.key === "kiddosproutPreferences") applyTheme();
+      });
+    }());
+  </script>
+  <title>KiddoSprout page unavailable</title>
+  <link id="offline-icon" rel="icon" type="image/png" href="kiddosprout_logo_128.png">
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #effaf7;
+      color: #142131;
+    }
+    * { box-sizing: border-box; }
+    .skip-link {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 2;
+      min-height: 44px;
+      transform: translateY(-160%);
+    }
+    .skip-link:focus { transform: translateY(0); }
+    body {
+      min-height: 100vh;
+      min-height: 100svh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 12% 16%, rgba(255, 198, 84, .34), transparent 28%),
+        radial-gradient(circle at 88% 82%, rgba(83, 216, 204, .28), transparent 32%),
+        #effaf7;
+    }
+    main {
+      width: min(100%, 620px);
+      padding: clamp(28px, 7vw, 56px);
+      border: 2px solid #b9d8d3;
+      border-radius: 28px;
+      background: rgba(255, 255, 255, .94);
+      box-shadow: 0 24px 70px rgba(20, 53, 62, .14);
+      text-align: center;
+    }
+    img {
+      width: 88px;
+      height: 88px;
+      border-radius: 22px;
+      box-shadow: 0 10px 28px rgba(20, 125, 127, .2);
+    }
+    h1 {
+      margin: 22px 0 10px;
+      font-size: clamp(2rem, 7vw, 3.25rem);
+      line-height: 1.05;
+    }
+    p {
+      margin: 0 auto;
+      max-width: 46ch;
+      color: #53667a;
+      font-size: 1.1rem;
+      line-height: 1.55;
+    }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 28px;
+    }
+    a,
+    button {
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 20px;
+      border: 2px solid #147d7f;
+      border-radius: 14px;
+      color: #0d6264;
+      background: #fff;
+      font: inherit;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    button {
+      color: #fff;
+      background: #147d7f;
+    }
+    a:focus-visible,
+    button:focus-visible {
+      outline: 4px solid #ffc654;
+      outline-offset: 3px;
+    }
+    html.theme-night { background: #061d27; color: #f4fbff; }
+    html.theme-night body {
+      background:
+        radial-gradient(circle at 12% 16%, rgba(255, 198, 84, .2), transparent 28%),
+        radial-gradient(circle at 88% 82%, rgba(83, 216, 204, .18), transparent 32%),
+        #061d27;
+    }
+    html.theme-night main { border-color: #346574; background: rgba(10, 48, 60, .96); }
+    html.theme-night p { color: #c8dce5; }
+    html.theme-night a { color: #b8fffa; background: #0d3441; border-color: #55d9cd; }
+    html.theme-night button { color: #06262e; background: #55d9cd; border-color: #55d9cd; }
+    @media (prefers-color-scheme: dark) {
+      html:not(.theme-day):not(.theme-night) { background: #061d27; color: #f4fbff; }
+      html:not(.theme-day):not(.theme-night) body {
+        background:
+          radial-gradient(circle at 12% 16%, rgba(255, 198, 84, .2), transparent 28%),
+          radial-gradient(circle at 88% 82%, rgba(83, 216, 204, .18), transparent 32%),
+          #061d27;
+      }
+      html:not(.theme-day):not(.theme-night) main { border-color: #346574; background: rgba(10, 48, 60, .96); }
+      html:not(.theme-day):not(.theme-night) p { color: #c8dce5; }
+      html:not(.theme-day):not(.theme-night) a { color: #b8fffa; background: #0d3441; border-color: #55d9cd; }
+      html:not(.theme-day):not(.theme-night) button { color: #06262e; background: #55d9cd; border-color: #55d9cd; }
+    }
+  </style>
+</head>
+<body>
+  <a id="offline-skip" class="skip-link" href="#offline-content">Skip to main content</a>
+  <main id="offline-content" tabindex="-1">
+    <img id="offline-logo" src="kiddosprout_logo_128.png" width="88" height="88" alt="">
+    <h1 id="offline-heading">This page is taking a break</h1>
+    <p id="offline-message">You may be offline, or KiddoSprout may be temporarily unavailable. Check your connection, then try again.</p>
+    <nav id="offline-options" aria-label="Offline options">
+      <button id="retry-page" type="button">Try this page again</button>
+      <a id="offline-home" href="./">Open offline preview</a>
+    </nav>
+  </main>
+  <script>
+    function kiddoSproutDeploymentRoot() {
+      const workerUrl = navigator.serviceWorker?.controller?.scriptURL;
+      if (workerUrl) return new URL("./", workerUrl);
+      const pathParts = window.location.pathname.split("/").filter(Boolean);
+      if (window.location.hostname.endsWith(".github.io") && pathParts.length) {
+        return new URL(`/${pathParts[0]}/`, window.location.origin);
+      }
+      return new URL("/", window.location.origin);
+    }
+    const kiddoRoot = kiddoSproutDeploymentRoot();
+    document.getElementById("offline-home").href = kiddoRoot.href;
+    document.getElementById("offline-logo").src = new URL("kiddosprout_logo_128.png", kiddoRoot).href;
+    document.getElementById("offline-icon").href = new URL("kiddosprout_logo_128.png", kiddoRoot).href;
+    document.getElementById("retry-page").addEventListener("click", () => window.location.reload());
+  </script>
+</body>
+</html>

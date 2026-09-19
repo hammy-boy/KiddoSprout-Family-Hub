@@ -1,0 +1,65 @@
+[
+  {
+    "sceneNumber": 1,
+    "title": "The Kitchen Table",
+    "filename": "assets/story-ethan-leo-c02-s01.jpg",
+    "alt": "Ethan and Leo study a glowing old map beneath a warm kitchen lamp after the storm.",
+    "caption": "Under the kitchen lamp, the brothers discover that Grandpa's map is more than an old piece of parchment."
+  },
+  {
+    "sceneNumber": 2,
+    "title": "First Arguments",
+    "filename": "assets/story-ethan-leo-c02-s02.jpg",
+    "alt": "Ethan and Leo point to different clues on the map during their first disagreement.",
+    "caption": "With the mysterious map between them, Ethan's caution clashes with Leo's eagerness for adventure."
+  },
+  {
+    "sceneNumber": 3,
+    "title": "Grandpa's Journal",
+    "filename": "assets/story-ethan-leo-c02-s03.jpg",
+    "alt": "Ethan opens Grandpa's weathered journal while Leo peers at its ship and constellation sketches.",
+    "caption": "Grandpa's journal links ships, stars, and the map to a secret life the brothers never knew."
+  },
+  {
+    "sceneNumber": 4,
+    "title": "Symbols and Stars",
+    "filename": "assets/story-ethan-leo-c02-s04.jpg",
+    "alt": "Ethan holds the map toward the window as Leo points to matching constellations in the sky.",
+    "caption": "The brothers realize that the map's symbols only make sense when matched with the stars."
+  },
+  {
+    "sceneNumber": 5,
+    "title": "The Decision",
+    "filename": "assets/story-ethan-leo-c02-s05.jpg",
+    "alt": "Ethan carefully packs the folded map while Leo gives him an encouraging thumbs-up.",
+    "caption": "Ethan agrees to follow the map, as long as the brothers plan carefully and stay together."
+  },
+  {
+    "sceneNumber": 6,
+    "title": "Gathering Supplies",
+    "filename": "assets/story-ethan-leo-c02-s06.jpg",
+    "alt": "Ethan packs rope and a flashlight while Leo adds snacks to their backpacks in the attic.",
+    "caption": "Morning preparation combines Ethan's practical planning with Leo's cheerful adventurous spirit."
+  },
+  {
+    "sceneNumber": 7,
+    "title": "The Boat",
+    "filename": "assets/story-ethan-leo-c02-s07.jpg",
+    "alt": "The brothers proudly inspect their patched blue rowboat in the golden sunset.",
+    "caption": "After careful repairs, Grandpa's forgotten rowboat is ready to carry them toward the unknown."
+  },
+  {
+    "sceneNumber": 8,
+    "title": "The Farewell",
+    "filename": "assets/story-ethan-leo-c02-s08.jpg",
+    "alt": "Backpacks on, Ethan looks back at the warm house while Leo guides him toward the moonlit boat.",
+    "caption": "The brothers leave the safety of home behind and step into the clear, star-filled night."
+  },
+  {
+    "sceneNumber": 9,
+    "title": "Setting Out",
+    "filename": "assets/story-ethan-leo-c02-s09.jpg",
+    "alt": "Leo rows their patched boat into the golden dawn while Ethan checks the map and supplies.",
+    "caption": "With the shore fading behind them, Ethan and Leo begin their journey across the open water."
+  }
+]

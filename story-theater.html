@@ -1,115 +1,1822 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <script src="local-docker-redirect.js?v=1"></script>
+  <script>
+    (function () {
+      "use strict";
+      function readState(storage, key) {
+        try {
+          const value = JSON.parse(storage.getItem(key) || "null");
+          return value && typeof value === "object" && !Array.isArray(value) ? value : null;
+        } catch (error) {
+          return null;
+        }
+      }
+      function readActiveState() {
+        let demoState = null;
+        let safePreferences = null;
+        let demoActive = false;
+        try {
+          demoState = readState(window.sessionStorage, "kiddosprout.demo.v1.family");
+          demoActive = Boolean(demoState) || window.sessionStorage.getItem("kiddosprout.demo.v1.active") === "1";
+        } catch (error) {
+          // Storage can be unavailable in restricted browser contexts.
+        }
+        try {
+          safePreferences = readState(window.localStorage, "kiddosproutPreferences");
+        } catch (error) {
+          // Fall back to automatic day/night mode.
+        }
+        return demoActive ? demoState : safePreferences;
+      }
+      function applyTheme() {
+        const state = readActiveState();
+        const selectedTheme = ["auto", "day", "night"].includes(state?.themeMode) ? state.themeMode : "auto";
+        const hour = new Date().getHours();
+        const resolvedTheme = selectedTheme === "auto" ? (hour >= 19 || hour < 7 ? "night" : "day") : selectedTheme;
+        document.documentElement.classList.toggle("theme-night", resolvedTheme === "night");
+        document.documentElement.classList.toggle("theme-day", resolvedTheme === "day");
+        document.documentElement.dataset.themeMode = selectedTheme;
+      }
+      applyTheme();
+      if (typeof window.setInterval === "function") window.setInterval(applyTheme, 60000);
+      window.addEventListener?.("pageshow", applyTheme);
+      document.addEventListener?.("visibilitychange", () => {
+        if (document.visibilityState === "visible") applyTheme();
+      });
+      window.addEventListener?.("storage", (event) => {
+        if (event?.key === "kiddosproutPreferences") applyTheme();
+      });
+    }());
+  </script>
   <title>Story Theater | KiddoSprout</title>
   <link rel="icon" type="image/png" href="kiddosprout_logo_128.png">
-  <link rel="stylesheet" href="kid-hubs.css">
+  <link rel="stylesheet" href="kid-hubs.css?v=10">
 </head>
 <body>
-  <main class="hub-shell hidden" data-hub-page>
-    <nav class="topbar"><a class="back-link" href="index.html#child">Back to Child Site</a><button class="primary-action" id="save-bookmark" type="button">Save Bookmark</button></nav>
-    <section class="hero story-hero"><h1>Story Theater</h1><p>Original KiddoSprout books made for quiet reading, parent read-aloud time, and tiny confidence wins.</p></section>
-    <section class="book-layout" aria-label="Original KiddoSprout book">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <main class="hub-shell hidden" id="main-content" tabindex="-1" data-hub-page>
+    <nav class="topbar" aria-label="Hub navigation">
+      <a class="back-link" href="index.html#child">Back to Child Site</a>
+      <div class="story-top-actions">
+        <a class="kid-link" href="#series-library" data-show-series>Choose a Series</a>
+        <button class="primary-action" id="save-bookmark" type="button" hidden>Save Bookmark</button>
+      </div>
+    </nav>
+    <section class="hero story-hero"><h1>Story Theater</h1><p>Pick a series, choose a book, and step into your next adventure.</p></section>
+    <section class="series-library" id="series-library" aria-labelledby="series-library-title" tabindex="-1">
+      <div class="series-library-head">
+        <div>
+          <span class="series-library-label"><span aria-hidden="true">📚</span> Series Shelf</span>
+          <h2 id="series-library-title">Choose a Series</h2>
+          <p>Pick the world you want to explore. Then you can choose a book from that series.</p>
+        </div>
+        <label class="series-search" for="series-search-input">
+          <span><span aria-hidden="true">🔎</span> Search by series or book</span>
+          <input id="series-search-input" type="search" autocomplete="off" enterkeyhint="search" aria-controls="series-library-grid series-empty" placeholder="Try “The Lost Map”">
+        </label>
+      </div>
+      <div class="series-results-head">
+        <strong id="series-results-status" role="status" aria-live="polite">3 series ready to explore</strong>
+        <button class="series-clear" id="series-search-clear" type="button" hidden>Clear search</button>
+      </div>
+      <div class="series-library-grid" id="series-library-grid">
+        <article class="series-card" data-series-card data-series-search="the living ink magic mystery friendship courage secrets of the pen keeper's return book one book two book three pen awakens mirror marks living story final rewrite">
+          <div class="series-cover">
+            <img src="assets/story-living-ink-attic.jpg" width="1400" height="933" loading="lazy" decoding="async" alt="A glowing magical book waiting in the attic">
+            <span>3 books ready</span>
+          </div>
+          <div class="series-card-copy">
+            <span class="series-genre">Magic · Mystery · Friendship</span>
+            <h3>The Living Ink</h3>
+            <p>Follow Lila, Charlotte, and Emma as a mysterious book turns their drawings into real adventures.</p>
+            <button class="series-choose-button" type="button" data-choose-series data-series-name="The Living Ink" aria-expanded="false" aria-controls="living-ink-books">
+              <span aria-hidden="true">✨</span> <span data-series-choose-label>Choose The Living Ink</span>
+            </button>
+            <div class="series-book-list" id="living-ink-books" aria-label="Books in The Living Ink series" hidden>
+              <a class="series-book series-book-ready" href="#story-living-ink-1" data-open-story="living-ink-1">
+                <span>Book 1 · Ready to read</span>
+                <strong>The Living Ink</strong>
+                <em>Read Book 1 <span aria-hidden="true">→</span></em>
+              </a>
+              <a class="series-book series-book-ready series-book-with-cover" href="#story-living-ink-secrets" data-open-story="living-ink-secrets">
+                <img class="series-book-thumbnail" src="assets/story-living-ink-secrets-cover.jpg" width="1086" height="1448" loading="lazy" decoding="async" alt="">
+                <span>Book 2 · Ready to read</span>
+                <strong>The Living Ink Secrets of the Pen</strong>
+                <em>Read Book 2 <span aria-hidden="true">→</span></em>
+              </a>
+              <a class="series-book series-book-ready series-book-new series-book-with-cover" href="#story-living-ink-keepers" data-open-story="living-ink-keepers">
+                <img class="series-book-thumbnail" src="assets/story-living-ink-keepers-cover.jpg" width="1024" height="1536" loading="lazy" decoding="async" alt="">
+                <span>Book 3 · New · Ready to read</span>
+                <strong>The Living Ink: The Keeper’s Return</strong>
+                <em>Read Book 3 <span aria-hidden="true">→</span></em>
+              </a>
+            </div>
+          </div>
+        </article>
+        <article class="series-card series-card-rainbow" data-series-card data-series-search="rainbow shoes picture book feelings kindness mia puppy cat bird colors colours">
+          <div class="series-cover series-cover-poster">
+            <img src="assets/story-rainbow-shoes-cover.jpg" width="1024" height="1536" loading="lazy" decoding="async" alt="Rainbow Shoes cover showing Mia in sparkling rainbow shoes with a puppy, cat, and bird">
+            <span>1 book ready</span>
+          </div>
+          <div class="series-card-copy">
+            <span class="series-genre">Picture Book · Feelings · Kindness</span>
+            <h3>Rainbow Shoes</h3>
+            <p>Walk with Mia as her magical shoes change colour and help her brighten the feelings of every new friend.</p>
+            <button class="series-choose-button" type="button" data-choose-series data-series-name="Rainbow Shoes" aria-expanded="false" aria-controls="rainbow-shoes-books">
+              <span aria-hidden="true">🌈</span> <span data-series-choose-label>Choose Rainbow Shoes</span>
+            </button>
+            <div class="series-book-list" id="rainbow-shoes-books" aria-label="Books in the Rainbow Shoes series" hidden>
+              <a class="series-book series-book-ready series-book-rainbow" href="#story-rainbow-shoes" data-open-story="rainbow-shoes">
+                <span>Book 1 · Ready to read</span>
+                <strong>Rainbow Shoes</strong>
+                <em>Read the picture book <span aria-hidden="true">→</span></em>
+              </a>
+            </div>
+          </div>
+        </article>
+        <article class="series-card series-card-map" data-series-card data-series-search="adventures of ethan and leo the lost map brothers adventure mystery basement treasure grandfather grandpa boat island symbols labyrinth keeper">
+          <div class="series-cover series-cover-poster series-cover-map">
+            <img src="assets/story-ethan-leo-lost-map-cover.jpg" width="1024" height="1536" loading="lazy" decoding="async" alt="Ethan and Leo hold a glowing lost map above an old chest, with a moonlit island and patched boat behind them">
+            <span>1 book · 58 scenes</span>
+          </div>
+          <div class="series-card-copy">
+            <span class="series-genre">Adventure · Mystery · Brothers</span>
+            <h3>Adventures of Ethan and Leo</h3>
+            <p>Follow two brothers from a stormy basement to a mysterious island as their grandfather’s lost map reveals one secret after another.</p>
+            <button class="series-choose-button" type="button" data-choose-series data-series-name="Adventures of Ethan and Leo" aria-expanded="false" aria-controls="ethan-leo-books">
+              <span aria-hidden="true">🗺️</span> <span data-series-choose-label>Choose Ethan and Leo</span>
+            </button>
+            <div class="series-book-list" id="ethan-leo-books" aria-label="Books in the Adventures of Ethan and Leo series" hidden>
+              <a class="series-book series-book-ready series-book-new series-book-with-cover" href="#story-ethan-leo-lost-map" data-open-story="ethan-leo-lost-map">
+                <img class="series-book-thumbnail" src="assets/story-ethan-leo-lost-map-cover.jpg" width="1024" height="1536" loading="lazy" decoding="async" alt="">
+                <span>Book 1 · New · 58 scenes</span>
+                <strong>The Lost Map</strong>
+                <em>Start the adventure <span aria-hidden="true">→</span></em>
+              </a>
+            </div>
+          </div>
+        </article>
+      </div>
+      <div class="series-empty" id="series-empty" hidden>
+        <span aria-hidden="true">🔍</span>
+        <strong>No series found yet</strong>
+        <p>Try “Living Ink”, “The Lost Map”, “Ethan and Leo”, or “Rainbow Shoes”.</p>
+      </div>
+    </section>
+    <section class="book-layout" id="story-reader" aria-label="Story reader" tabindex="-1" hidden>
       <aside class="book-shelf">
-        <span class="shelf-label">Original book</span>
-        <h2>The Lantern List</h2>
-        <p>A short story about two children who turn small helpful actions into a brighter evening at home.</p>
-        <div class="chapter-list" id="chapter-list"></div>
+        <span class="shelf-label" id="reader-series-label">The Living Ink series · Book 1</span>
+        <h2 id="reader-book-name">The Living Ink</h2>
+        <p id="reader-book-description">Three friends discover a forgotten book whose drawings spring to life—and learn that imagination has consequences.</p>
+        <nav class="chapter-list" id="chapter-list" aria-label="Story pages"></nav>
       </aside>
       <article class="book-reader">
         <div class="book-page-meta">
-          <span id="page-count">Page 1 of 6</span>
-          <span id="bookmark-note">Bookmark ready</span>
+          <span id="page-count" role="status" aria-live="polite">Chapter 1 of 8 · Page 1</span>
+          <span id="bookmark-note" role="status" aria-live="polite">Cheerful mood is ready!</span>
         </div>
-        <h2 id="book-title">The Lantern List</h2>
-        <div class="book-page" id="book-page"></div>
+        <h2 id="book-title">The Attic Discovery</h2>
+        <figure class="story-scene" id="story-scene" tabindex="-1" role="group" aria-labelledby="book-title" aria-describedby="story-scene-caption">
+          <img id="story-scene-image" src="assets/story-living-ink-attic.jpg" width="1400" height="933" decoding="async" alt="Lila, Charlotte, and Emma discovering a glowing book in an old attic">
+          <div class="story-scene-fallback" id="story-scene-fallback" role="status" hidden>
+            <span aria-hidden="true">🖼️</span>
+            <strong>Illustration unavailable</strong>
+            <p id="story-scene-fallback-description"></p>
+          </div>
+          <figcaption id="story-scene-caption">A forgotten attic, three curious friends, and one book waiting to wake.</figcaption>
+        </figure>
+        <div class="story-reader-tools" aria-label="Reading tools">
+          <fieldset class="story-voice-moods">
+            <legend>Pick a story mood</legend>
+            <div class="story-voice-options">
+              <button class="story-voice-mood" type="button" data-voice-mood="cozy" aria-pressed="false" aria-label="Cozy mood: soft and slow">
+                <span class="story-voice-emoji" aria-hidden="true">🌙</span>
+                <span><strong>Cozy</strong><small>Soft &amp; slow</small></span>
+              </button>
+              <button class="story-voice-mood active" type="button" data-voice-mood="cheerful" aria-pressed="true" aria-label="Cheerful mood: bright and bouncy">
+                <span class="story-voice-emoji" aria-hidden="true">🌟</span>
+                <span><strong>Cheerful</strong><small>Bright &amp; bouncy</small></span>
+              </button>
+              <button class="story-voice-mood" type="button" data-voice-mood="adventure" aria-pressed="false" aria-label="Adventure mood: bold and lively">
+                <span class="story-voice-emoji" aria-hidden="true">🦁</span>
+                <span><strong>Adventure</strong><small>Bold &amp; lively</small></span>
+              </button>
+            </div>
+            <div class="story-sound-picker">
+              <span class="story-sound-icon" aria-hidden="true">🎧</span>
+              <span class="story-sound-choice">
+                <strong id="selected-story-sound">Pick your favourite voice</strong>
+                <small id="selected-story-sound-note">Hear lots of voices on the Sound Studio page.</small>
+              </span>
+              <a class="choose-sound-button" id="choose-story-sound" href="story-voices.html"><span aria-hidden="true">✨</span> Choose Sound <span aria-hidden="true">→</span></a>
+            </div>
+          </fieldset>
+          <button class="kid-link" id="listen-chapter" type="button" aria-pressed="false" aria-label="Read this page aloud in Cheerful mood"><span id="listen-icon" aria-hidden="true">✨</span> <span id="listen-label">Read to Me!</span></button>
+          <button class="kid-link" id="mark-read" type="button">Mark as Read</button>
+          <div class="reading-meter" aria-live="polite">
+            <span id="reading-progress-label">0 of 8 chapters read</span>
+            <div class="reading-track" aria-hidden="true"><span id="reading-progress-fill"></span></div>
+          </div>
+        </div>
+        <div class="book-page" id="book-page" tabindex="-1" aria-labelledby="book-title"></div>
         <div class="reader-actions">
-          <button class="kid-link" id="prev-page" type="button">Previous</button>
+          <button class="kid-link" id="prev-page" type="button">Previous Page</button>
           <button class="primary-action" id="next-page" type="button">Next Page</button>
         </div>
       </article>
     </section>
-    <section class="grid">
-      <article class="panel"><strong>Read-Aloud Challenge</strong><p>Read one page slowly, then tell a parent the kindest thing a character did.</p></article>
-      <article class="panel"><strong>Word Finder</strong><p>Find one word that feels bright, one word that feels quiet, and one word you want to use tomorrow.</p></article>
-      <article class="panel"><strong>Family Question</strong><p>What is one small helpful action that could go on your own lantern list?</p></article>
+    <section class="grid story-activities" id="story-activities" aria-label="Story activities" hidden>
+      <article class="panel"><h2>Read-Aloud Challenge</h2><p id="activity-read-aloud">Read one scene slowly and give Lila, Charlotte, and Emma their own voices.</p></article>
+      <article class="panel"><h2>Word Finder</h2><p id="activity-word-finder">Look for a word that creates mystery, one that shows courage, and one you want to learn.</p></article>
+      <article class="panel"><h2>Family Question</h2><p id="activity-family-question">If your drawings could come alive, what rule would you make before using the magical pen?</p></article>
     </section>
   </main>
-  <section class="lock-card hidden" data-hub-lock><div><h1 data-lock-title>Parent approval needed</h1><p data-lock-message>A request was sent to the parent dashboard.</p><a class="primary-action" href="index.html#child">Back to Child Site</a></div></section>
-  <script src="kid-hub-gate.js"></script>
+  <section class="lock-card hidden" data-hub-lock role="main"><div><h1 data-lock-title>Parent approval needed</h1><p data-lock-message>A request was sent to the parent dashboard.</p><a class="primary-action" href="index.html#child">Back to Child Site</a></div></section>
+  <script src="supabase-config.js?v=7"></script>
+  <script src="demo-mode.js?v=2"></script>
+  <script src="auth-session.js?v=7"></script>
+  <script src="family-state-cloud.js?v=2"></script>
+  <script src="story-voice-choice.js?v=6"></script>
+  <script src="story-storage.js?v=5"></script>
+  <script src="kid-hub-gate.js?v=9"></script>
+  <script src="story-library-data.js?v=3"></script>
+  <script src="story-ethan-leo-data.js?v=1"></script>
   <script>
-    KiddoHubGate.protect("story", "Story Theater");
+    const storyAccessPromise = Promise.resolve(
+      KiddoHubGate.protect("story", "Story Theater")
+    ).catch(() => false);
+    let storyAccessReady = false;
 
-    const storyPages = [
+    const livingInkBookOnePages = [
       {
-        chapter: "The Blank List",
-        text: "Maya found a folded card on the kitchen table. At the top, in neat green letters, it said: The Lantern List. Underneath were five empty lines. Her little brother Eli tapped the card and whispered, \"Is it a treasure map?\" Maya shook her head. \"Better. It looks like a list waiting for good ideas.\""
+        chapter: "The Attic Discovery",
+        image: "assets/story-living-ink-attic.jpg",
+        imageAlt: "Lila, Charlotte, and Emma discovering a glowing book in an old attic",
+        caption: "A forgotten attic, three curious friends, and one book waiting to wake.",
+        text: `The summer evening was heavy with warmth as Lila, Charlotte, and Emma climbed the narrow staircase to the attic. The wooden steps creaked under their weight, each sound echoing like a secret being revealed.
+
+The attic door groaned open, releasing a puff of dust that shimmered in the fading light. Inside, the space was cluttered with forgotten trunks, faded photographs, and boxes stacked high like towers of memory. Cobwebs stretched across beams, and the air smelled faintly of old paper and lavender.
+
+Charlotte, ever cautious, hesitated at the doorway. “Are you sure we should be up here?” she asked, brushing dust from her skirt. Emma laughed, her adventurous spirit shining. “Of course! This is where the best treasures hide.”
+
+Lila, the dreamer, wandered deeper into the shadows, her eyes scanning the room with curiosity. She paused at a large chest tucked beneath the slanted roof. Its surface was worn, the brass lock tarnished, but something about it seemed to call to her.
+
+Together, the girls pushed the chest open. Inside lay stacks of yellowed letters, brittle lace, and faded journals. Charlotte carefully lifted a bundle of letters tied with ribbon, while Emma rummaged through old trinkets, holding each one up like a prize. Lila’s fingers brushed against something at the very bottom — a book bound in cracked leather, its cover etched with faint, swirling designs.
+
+Across the center, barely visible beneath the dust, was a single word: “Veritas.”
+
+Charlotte tilted her head. “What does it mean?” she whispered. Emma traced the letters with her finger, shivering slightly. “Truth,” Lila murmured, recalling a lesson from school. The attic seemed to grow quieter, as if the word itself carried weight.
+
+The three girls exchanged glances, their curiosity ignited. The book was heavy, its blank pages strangely inviting, as though waiting for them to uncover its secrets. None of them knew yet that this attic discovery would change their lives forever.`
       },
       {
-        chapter: "One Small Light",
-        text: "The first idea came when Dad dropped a basket of clean socks. White socks rolled under chairs. Blue socks hid beside the fridge. Eli picked up three pairs, then four, then six. Maya wrote: Help before being asked. The first line glowed in their minds like a tiny lamp."
+        chapter: "First Creation",
+        image: "assets/story-living-ink-butterfly.jpg",
+        imageAlt: "The three friends watching a glowing butterfly rise from the magical book",
+        caption: "One line of living ink becomes a butterfly made of light.",
+        text: `The next afternoon, the attic called to them again. Sunlight filtered through the small round window, casting golden beams across the dust. The book lay where they had left it, its cracked leather cover still whispering the word “Veritas.”
+
+Charlotte sat cross-legged, flipping through the blank pages. “It’s strange,” she murmured. “Why would someone keep a book with no words?” Emma shrugged, her adventurous grin unfading. “Maybe it’s waiting for us to write the story.”
+
+Lila tilted her head, her imagination already spinning. “What if it’s more than that? What if it’s… magical?”
+
+As if answering her, something glimmered at the bottom of the chest. Emma reached in and pulled out a slender pen with a silver nib, faintly glowing as though it had been dipped in moonlight. The three girls froze, the attic suddenly hushed, as if the air itself was holding its breath.
+
+Charlotte frowned. “It looks… alive.”
+
+Emma twirled it between her fingers. “Alive or not, it’s ours now.”
+
+Lila leaned closer, her voice barely a whisper. “Maybe it belongs with the book.”
+
+They placed the pen on the open page. For a moment, nothing happened. Then, the faint shimmer spread across the paper, like ripples on water. Emma, unable to resist, picked up the pen and drew a small butterfly.
+
+The ink glowed, sinking into the page. The butterfly’s wings trembled, then lifted off the paper with a shimmer of light. It fluttered into the attic air, glowing softly as it circled their heads.
+
+Charlotte gasped, clutching the book tighter. “It’s real…”
+
+Emma laughed, delighted. “We made this!”
+
+Lila’s eyes widened with wonder. “The book isn’t empty. It’s alive.”
+
+The butterfly landed on the window sill, wings sparkling before fading into nothingness. The attic fell silent again, but the girls knew — their summer had just crossed into something extraordinary.`
       },
       {
-        chapter: "The Quiet Fix",
-        text: "After dinner, Maya noticed crumbs on the floor and a cup left on the table. She almost walked past them. Then she remembered the list. She wiped the table, Eli swept the crumbs into a careful pile, and the kitchen looked ready for morning. Maya wrote: Leave a room better than you found it."
+        chapter: "Testing the Limits",
+        image: "assets/story-living-ink-butterfly.jpg",
+        imageAlt: "The friends experimenting with glowing creations around the open magical book",
+        caption: "Every new creation makes the attic feel more magical—and less predictable.",
+        text: `The attic had become their secret haven. Each afternoon, the three girls returned, drawn by the mystery of the book and the shimmering pen. Dust no longer bothered them; the creaks of the old beams felt like familiar whispers.
+
+Charlotte sat near the window, her cautious eyes watching the sunlight shift across the floor. “We shouldn’t keep doing this,” she said firmly. “What if someone finds out? What if it’s dangerous?”
+
+Emma rolled her eyes, twirling the pen between her fingers. “Dangerous? It’s incredible! We can make anything we want. Think about it — no limits.”
+
+Lila hugged the book to her chest, her imagination already racing. “Maybe it has rules,” she said softly. “The butterfly disappeared. What if creations don’t last?”
+
+Emma grinned. “Then let’s find out.”
+
+She leaned over the book and sketched a small flower. The ink shimmered, and a delicate bloom rose from the page, petals glowing faintly. It smelled faintly of lavender, filling the attic with sweetness. Charlotte gasped despite herself. “It’s beautiful…”
+
+But Emma wasn’t satisfied. “Too easy.” She drew a bird — a sparrow with outstretched wings. The creature burst from the page, fluttering wildly around the attic rafters. Its chirps echoed, startling them. Charlotte ducked, alarmed. “Emma, stop! What if it escapes?”
+
+The sparrow darted toward the window, wings beating frantically. Lila rushed forward, slamming the shutters closed just in time. The bird circled, then dissolved into shimmering dust, vanishing like the butterfly.
+
+Silence fell. Charlotte’s voice trembled. “See? It’s unpredictable. We don’t know how long they last, or what happens if they get out.”
+
+Emma’s eyes sparkled with defiance. “That’s the fun of it. We’re discovering something no one else knows.”
+
+Lila placed her hand gently on the book. “Maybe it’s not about fun. Maybe it’s about truth. Veritas.” Her words hung in the air, heavy with meaning.
+
+The three girls exchanged glances. The attic no longer felt like a dusty room of forgotten things. It was becoming a laboratory of secrets, a place where imagination could reshape reality. But beneath the wonder, a shadow of unease lingered — the sense that the book was testing them as much as they were testing it.`
       },
       {
-        chapter: "The Brave Sorry",
-        text: "The third light was harder. Eli had snapped at Maya when his tower fell. Maya had rolled her eyes. Both of them felt prickly and quiet. At last Eli said, \"I was upset, but I should not shout.\" Maya answered, \"I should not roll my eyes.\" They wrote: Make peace while the day is still young."
+        chapter: "The Warning",
+        image: "assets/story-living-ink-butterfly.jpg",
+        imageAlt: "The friends gathered cautiously around the book as its ink glows",
+        caption: "Wonder turns into a warning when the friends begin to question the book's rules.",
+        text: `The attic had transformed from a dusty storage space into their secret world. Each day, the three girls returned, eager to test the book’s power. Yet with every creation, the air seemed heavier, as though the attic itself was watching.
+
+Charlotte sat stiffly on an old trunk, arms folded. Her eyes followed Emma, who was already sketching another figure with the glowing pen. “Emma, stop,” Charlotte said sharply. “We don’t know what this thing is. We don’t know what it wants.”
+
+Emma smirked, her adventurous spirit undimmed. “It doesn’t want anything. It’s just a tool. And we’re the ones who get to use it.” She finished her drawing — a small fox with bright eyes. The creature shimmered into existence, padding across the attic floor with a soft growl.
+
+Lila gasped, enchanted. “It’s beautiful…” She reached out, but the fox dissolved into dust before her fingers touched its fur.
+
+Charlotte stood, her voice trembling with urgency. “Don’t you see? They vanish. They’re not meant to stay. What if one doesn’t disappear? What if it escapes into the world?”
+
+Emma rolled her eyes. “You worry too much. That’s why nothing exciting ever happens to you.”
+
+Charlotte’s face flushed, but she held her ground. “This isn’t about excitement. It’s about danger. The word on the cover — Veritas. Truth. Maybe the book shows us what we want, but it also shows us consequences.”
+
+Silence fell. Lila hugged the book closer, her imagination torn between wonder and fear. She whispered, “Maybe Charlotte’s right. Maybe the book is testing us.”
+
+The attic seemed to creak in agreement, the beams groaning as if alive. A draft swept through, scattering dust across the pages. The girls exchanged uneasy glances.
+
+Emma broke the silence, her grin faltering. “Fine. We’ll be careful. But I’m not stopping. This is too important.”
+
+Charlotte sighed, frustration etched across her face. “Then at least promise me one thing — don’t draw anything bigger than us. Not yet.”
+
+Emma hesitated, then nodded reluctantly. Lila’s eyes lingered on the glowing pen, her heart pounding. She knew Charlotte’s warning was more than fear — it was a glimpse of the storm that was coming.`
       },
       {
-        chapter: "A Note Under the Door",
-        text: "Before bedtime, they slipped a note under Mum's door. It said: Thank you for making our home feel safe. They heard Mum laugh softly on the other side. The fourth line did not need fancy words. It only needed true ones. Maya wrote: Say the kind thing out loud, or write it down."
+        chapter: "Chaos Unleashed",
+        image: "assets/story-living-ink-lion.jpg",
+        imageAlt: "A majestic golden ink lion rising from the book as the three friends stand together",
+        caption: "The biggest drawing yet steps out of the page in a storm of golden ink.",
+        text: `The attic had become their sanctuary, a place where imagination leapt from the page into shimmering reality. Yet with each creation, the air grew heavier, as though the book itself was watching, waiting.
+
+Charlotte sat stiffly on an old trunk, arms folded tight. “You promised,” she reminded Emma, her voice sharp. “Nothing bigger than us.”
+
+Emma twirled the glowing pen between her fingers, her eyes gleaming with defiance. “Promises are boring. Don’t you want to see what this thing can really do?”
+
+Lila hesitated, torn between caution and curiosity. “The book feels… heavier every time we use it,” she whispered, tracing the word on the cover — Veritas. Truth. It seemed to pulse beneath her fingertips.
+
+But Emma leaned over the page, her hand moving quickly. “We’ve made butterflies, birds, foxes. It’s time for something grand.”
+
+The pen scratched across the paper, forming the outline of a massive lion — mane wild, eyes fierce, muscles coiled with power. The ink shimmered, glowing brighter than ever before. The attic filled with a low hum, vibrating through the beams.
+
+Charlotte leapt to her feet. “Emma, stop! That’s too much!”
+
+But it was too late. The lion rose from the page, golden fur rippling, eyes burning with an eerie light. He stood taller than any of them, his shadow stretching across the attic walls.
+
+Emma’s grin faltered. “It worked…”
+
+The lion’s gaze locked onto the girls. For a moment, silence hung heavy. Then, with a sudden roar, the attic shook, dust raining from the rafters. The sound was primal, wild, and terrifying.
+
+Charlotte screamed, pulling Lila back. “This isn’t a game! He’s real!”
+
+The lion prowled forward, claws scraping against the floorboards. His presence grew stronger, the hum of the book deepening into a menacing thrum. Emma’s bravado crumbled. “I didn’t mean— I thought he’d vanish like the others!”
+
+But the lion did not fade. His muscles rippled, his roar echoed again, shaking the attic to its core. Lila clutched the book, her voice trembling. “We have to stop him. The book gave him life — maybe it can take it away.”
+
+The attic was chaos: beams groaning, shadows stretching, the lion’s golden mane glowing in the dim light. For the first time, the girls realized the truth — the book was not just a toy. It was a force, and they had unleashed something far beyond their control.`
       },
       {
-        chapter: "Enough Light",
-        text: "Only one line was left. Maya wanted the final idea to be enormous. Eli yawned and pointed to the window, where their reflections looked sleepy and proud. \"Maybe the last one is rest,\" he said. Maya smiled and wrote: Stop when your body says stop. The Lantern List was full, and the room felt bright enough."
+        chapter: "Friendship Tested",
+        image: "assets/story-living-ink-lion.jpg",
+        imageAlt: "The three friends protecting one another beside a glowing magical lion",
+        caption: "Fear tests their friendship, but standing together gives them a way forward.",
+        text: `The attic was no longer a sanctuary. The lion prowled across the floorboards, its golden mane glowing faintly in the dim light. Each step sent vibrations through the beams, and its low growl echoed like thunder trapped in the rafters.
+
+Charlotte pressed herself against the wall, her heart pounding. “This is exactly what I warned you about!” she shouted, her voice trembling. “Emma, you’ve put us all in danger!”
+
+Emma’s face was pale, her bravado shattered. “I didn’t know it would stay. Everything else vanished. I thought—” Her words broke off as the lion roared, shaking the attic and scattering dust like a storm.
+
+Lila clutched the book tightly, her eyes wide with fear and wonder. “Stop fighting! We need to figure out how to control it.” She traced the word on the cover — Veritas. Truth. The letters seemed to glow brighter, pulsing in rhythm with the lion’s movements.
+
+The beast turned its gaze toward them, eyes burning with an unnatural light. It crouched, muscles rippling, ready to pounce. Charlotte screamed, pulling Emma back. “We have to get rid of it!”
+
+Emma shook her head, desperation in her voice. “No! If we erase it, maybe we lose the chance to understand the book. This is proof of its power!”
+
+Charlotte’s eyes blazed with anger. “Proof? It’s going to kill us!”
+
+The lion lunged, claws scraping against the floorboards. Lila thrust the book forward instinctively. The creature froze mid-stride, its body shimmering as though caught between worlds. The attic filled with a deep hum, vibrating through their bones.
+
+Lila’s voice trembled but carried strength. “The book responds to us. It gave the lion life, and it can take it away. But we have to work together.”
+
+Charlotte’s breathing was ragged, but she nodded. “Fine. Tell us what to do.”
+
+Emma swallowed hard, her defiance fading into guilt. “I’ll listen. I’m sorry.”
+
+The three girls stood shoulder to shoulder, their friendship strained but united by necessity. The lion growled again, its form flickering between solid and dust. The attic seemed alive, waiting for their decision.
+
+For the first time, they realized the truth: the book was not just a gift. It was a test — of imagination, of courage, and of trust. And if they failed, the consequences would be more than they could bear.`
+      },
+      {
+        chapter: "The Resolution Plan",
+        image: "assets/story-living-ink-together.jpg",
+        imageAlt: "The friends guiding one pen together as the golden lion returns to the book",
+        caption: "Three hands guide one pen, turning courage and trust into a plan.",
+        text: `The attic trembled under the lion’s roar, dust swirling in the air like storm clouds. Its golden mane glowed faintly, eyes burning with unnatural fire. The three girls stood frozen, hearts pounding, knowing they had only moments before chaos consumed them.
+
+Charlotte’s voice cut through the noise, sharp and urgent. “We can’t keep running! We need a plan.”
+
+Emma’s hands shook as she clutched the pen. “I don’t know how to stop it. I thought it would vanish like the others…” Her defiance was gone, replaced by guilt.
+
+Lila pressed the book against her chest, her eyes locked on the word etched into its cover — Veritas. Truth. The letters pulsed brighter, as if urging her to understand. “The book responds to us,” she whispered. “It listens. But it needs all of us together.”
+
+The lion prowled closer, claws scraping against the floorboards. Its growl reverberated through the attic, shaking their bones. Charlotte grabbed Emma’s arm. “Then say it. Tell us what to do.”
+
+Lila took a deep breath, her imagination weaving with Charlotte’s logic and Emma’s courage. “We have to write it back. Not just one of us — all three. The book gave it life through our curiosity, and only our unity can take it away.”
+
+Emma hesitated, then nodded. “Fine. Let’s do it.”
+
+Charlotte knelt beside Lila, determination hardening her features. “We’ll need precision. No mistakes.”
+
+Together, the girls placed the book on the floor. Emma held the pen, but this time she didn’t act alone. Lila guided her hand, sketching the outline of the lion fading into dust. Charlotte whispered instructions, ensuring every line was exact.
+
+The ink shimmered, glowing brighter than ever before. The lion roared, thrashing against the attic walls, but its form began to flicker. Dust swirled around it, dissolving its golden mane, its claws, its burning eyes.
+
+The attic filled with a deep hum, vibrating through the beams. The book’s pages glowed, then snapped shut with a final thud. Silence fell. The lion was gone.
+
+The three girls collapsed in relief, breathing hard. Charlotte’s voice was soft but firm. “We can’t let this happen again. We need rules.”
+
+Emma nodded, her eyes wet. “I’m sorry. I wanted adventure, but I didn’t think about the danger.”
+
+Lila placed her hand on theirs, her voice steady. “The book is powerful. It’s not about fun or fear. It’s about truth. And the truth is, we can only handle it together.”
+
+The attic was quiet once more, but the girls knew the silence was temporary. The book still waited, heavy with secrets, ready to test them again.`
+      },
+      {
+        chapter: "The Summer’s End",
+        image: "assets/story-living-ink-together.jpg",
+        imageAlt: "The three friends safely returning the last golden magic to the book at sunset",
+        caption: "The attic is quiet again, but the last spark of living ink promises another story.",
+        text: `The attic was quiet again, the lion gone, its roar fading into memory. Dust settled slowly, drifting like snowflakes in the golden light. The book lay closed on the floor, its cracked leather cover still whispering the word Veritas.
+
+Charlotte sat back against the wall, exhausted but resolute. “We need rules,” she said firmly. “No more reckless drawings. No more surprises.”
+
+Emma lowered her head, guilt shadowing her face. “I know. I wanted adventure, but I didn’t think about the danger. I’m sorry.”
+
+Lila placed the book gently between them, her voice calm but filled with conviction. “The book isn’t just about danger. It’s about truth. It shows us what we want — but also what we fear. And if we’re not careful, it will consume us.”
+
+The three girls exchanged glances, their bond stronger now, forged in chaos. The attic no longer felt like a place of forgotten things. It was a place of power, a place that demanded respect.
+
+Charlotte stood, brushing dust from her skirt. “We’ll keep it hidden. No one else can know.”
+
+Emma nodded reluctantly. “But we’ll come back. We can’t just leave it.”
+
+Lila’s eyes lingered on the book, the faint glow beneath its cover. “It’s not finished with us. This was only the beginning.”
+
+Outside, the summer sun dipped lower, painting the sky in shades of orange and crimson. The girls descended the attic stairs, their footsteps echoing with the weight of secrets. Behind them, the chest creaked softly, as if sighing in relief — or waiting.
+
+The attic door closed, but the story was far from over. The book remained, heavy with silence, its pages yearning for the next touch of ink. And somewhere deep within its cracked leather binding, the word Veritas pulsed faintly, promising that truth would demand to be revealed again.`
       }
     ];
 
-    const bookmarkKey = "kiddosproutStoryTheaterBookmark";
-    let currentPage = Number(localStorage.getItem(bookmarkKey) || 0);
-    if (!Number.isFinite(currentPage) || currentPage < 0 || currentPage >= storyPages.length) currentPage = 0;
+    const livingInkBookOne = {
+      id: "living-ink-1",
+      series: "The Living Ink",
+      bookNumber: 1,
+      title: "The Living Ink",
+      synopsis: "Three friends discover a forgotten book whose drawings spring to life—and learn that imagination has consequences.",
+      genre: "Magic · Mystery · Friendship",
+      cover: "assets/story-living-ink-attic.jpg",
+      coverAlt: "A glowing magical book waiting in the attic.",
+      openingNote: "The Living Ink is open—happy reading!",
+      activities: {
+        readAloud: "Read one scene slowly and give Lila, Charlotte, and Emma their own voices.",
+        wordFinder: "Look for a word that creates mystery, one that shows courage, and one you want to learn.",
+        familyQuestion: "If your drawings could come alive, what rule would you make before using the magical pen?"
+      },
+      pages: livingInkBookOnePages
+    };
+    function isSafeStoryBook(book) {
+      return Boolean(
+        book
+        && typeof book === "object"
+        && typeof book.id === "string"
+        && /^[a-z0-9][a-z0-9-]{0,79}$/.test(book.id)
+        && typeof book.series === "string"
+        && book.series.trim()
+        && typeof book.title === "string"
+        && book.title.trim()
+        && Array.isArray(book.pages)
+        && book.pages.length > 0
+        && book.pages.every((page) => (
+          page
+          && typeof page === "object"
+          && [page.chapter, page.text, page.image, page.imageAlt, page.caption]
+            .every((value) => typeof value === "string" && value.trim())
+          && /^assets\/story-[a-z0-9-]+\.(?:avif|gif|jpe?g|png|webp)$/.test(page.image)
+        ))
+      );
+    }
 
-    function renderStoryPage() {
-      const page = storyPages[currentPage];
-      document.getElementById("page-count").textContent = `Page ${currentPage + 1} of ${storyPages.length}`;
-      document.getElementById("book-title").textContent = page.chapter;
-      document.getElementById("book-page").textContent = page.text;
-      document.getElementById("prev-page").disabled = currentPage === 0;
-      document.getElementById("next-page").textContent = currentPage === storyPages.length - 1 ? "Start Again" : "Next Page";
-      document.getElementById("chapter-list").innerHTML = storyPages.map((item, index) => `
-        <button class="${index === currentPage ? "active" : ""}" type="button" data-page="${index}">
-          <span>Page ${index + 1}</span>
-          <strong>${item.chapter}</strong>
-        </button>
-      `).join("");
-      document.querySelectorAll("[data-page]").forEach((button) => {
-        button.addEventListener("click", () => {
-          currentPage = Number(button.dataset.page);
-          renderStoryPage();
+    const storyAdditions = Array.isArray(window.KiddoSproutStoryAdditions)
+      ? window.KiddoSproutStoryAdditions.filter(isSafeStoryBook)
+      : [];
+    const storyBooks = new Map([[livingInkBookOne.id, livingInkBookOne]]);
+    storyAdditions.forEach((book) => {
+      if (!storyBooks.has(book.id)) storyBooks.set(book.id, book);
+    });
+    const activeBookKey = "kiddosproutActiveStoryBook";
+    const storyStorage = window.KiddoSproutStoryStorage;
+    const friendlyVoiceHints = [
+      "sonia",
+      "libby",
+      "samantha",
+      "google uk english female",
+      "moira",
+      "tessa",
+      "serena",
+      "karen",
+      "victoria",
+      "zira",
+      "aria",
+      "jenny",
+      "ava",
+      "fiona"
+    ];
+    const storyVoiceMoods = {
+      cozy: { label: "Cozy", description: "soft and slow", rate: 0.8, pitch: 0.98, volume: 0.88 },
+      cheerful: { label: "Cheerful", description: "bright and bouncy", rate: 0.92, pitch: 1.12, volume: 0.94 },
+      adventure: { label: "Adventure", description: "bold and lively", rate: 0.98, pitch: 0.92, volume: 0.96 }
+    };
+    let activeBook = livingInkBookOne;
+    let activeBookId = activeBook.id;
+    let storyPages = activeBook.pages;
+    let bookmarkKey = "";
+    let bookmarkPartKey = "";
+    let bookmarkLocationKey = "";
+    let readChaptersKey = "";
+    let currentPage = 0;
+    let currentChapterPage = 0;
+    let chapterPageSets = [];
+    let readChapters = [];
+    let isSpeaking = false;
+    let activeSpeech = null;
+    let activeStoryAudio = null;
+    let activeVoiceRequest = null;
+    let narrationGeneration = 0;
+    let storyVoice = null;
+    let activeVoiceMood = "cheerful";
+    const storyAudioCache = new Map();
+    let storyAudioCacheBytes = 0;
+    const maxStoryAudioCacheEntries = 4;
+    const maxStoryAudioCacheBytes = 20 * 1024 * 1024;
+
+    function childFacingDeviceVoiceName(name, id = "") {
+      const originalName = String(name || "");
+      const identity = `${originalName} ${String(id || "")}`.toLowerCase();
+      return identity.includes("google uk english female") ? "Alexa" : originalName;
+    }
+
+    function storageKeysForBook(book) {
+      if (book.id === livingInkBookOne.id) {
+        return {
+          bookmark: "kiddosproutLivingInkBookmark",
+          read: "kiddosproutLivingInkReadChapters"
+        };
+      }
+      return {
+        bookmark: `kiddosproutStory:${book.id}:bookmark`,
+        read: `kiddosproutStory:${book.id}:read`
+      };
+    }
+
+    function storedReaderIndex(value, itemCount) {
+      const index = typeof value === "number"
+        ? value
+        : typeof value === "string" && /^\d+$/.test(value.trim())
+          ? Number(value)
+          : Number.NaN;
+      return Number.isInteger(index) && index >= 0 && index < itemCount ? index : 0;
+    }
+
+    function storedReadIndexes(value, itemCount) {
+      if (!Array.isArray(value)) return [];
+      return [...new Set(value.filter((index) =>
+        typeof index === "number"
+        && Number.isInteger(index)
+        && index >= 0
+        && index < itemCount
+      ))];
+    }
+
+    function readStoredReadChapters() {
+      const serialized = storyStorage.getItem(readChaptersKey);
+      if (serialized === null) return [];
+      try {
+        const parsed = JSON.parse(serialized);
+        if (!Array.isArray(parsed)) {
+          storyStorage.removeItem(readChaptersKey);
+          return [];
+        }
+        return storedReadIndexes(parsed, storyPages.length);
+      } catch (error) {
+        storyStorage.removeItem(readChaptersKey);
+        return [];
+      }
+    }
+
+    function clampedReaderIndex(value, itemCount) {
+      if (!Number.isInteger(value) || value < 0 || itemCount < 1) return 0;
+      return Math.min(value, itemCount - 1);
+    }
+
+    function isPictureBook(book = activeBook) {
+      return book.pageLabel === "Page";
+    }
+
+    function normalizedStoryHeading(value) {
+      return String(value || "")
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim();
+    }
+
+    function normalizedSeriesSearch(value) {
+      return normalizedStoryHeading(value).replace(/\s+/g, " ");
+    }
+
+    function cleanStoryDraftNotes(value, {
+      book = {},
+      page = {},
+      pageIndex = 0,
+      seenSentences: rememberedSentences = null
+    } = {}) {
+      const lines = String(value || "")
+        .split(/\r?\n/)
+        .filter((line) => {
+          const trimmed = line.trim();
+          const isBlankDraftMarker = /^here(?:['’]?s|\s+is)\s*(?:[:\-–—]\s*)?_{3,}/i.test(trimmed);
+          const isExpansionInstruction = /\b(?:scene|chapter)\b/i.test(trimmed)
+            && /\b(?:expand|expanded|continue|full-length|long-form|novel-style|written as|one scene at a time)\b/i.test(trimmed)
+            && /^(?:excellent|perfect|alright|great|here(?:['’]?s)|let(?:['’]?s)|now)\b/i.test(trimmed);
+          return !isBlankDraftMarker && !isExpansionInstruction;
         });
+
+      const normalizedBookTitle = normalizedStoryHeading(book.title);
+      const normalizedSeriesTitle = normalizedStoryHeading(book.series);
+      const normalizedChapterTitle = normalizedStoryHeading(page.chapter);
+      const normalizedSectionTitle = normalizedStoryHeading(page.section);
+      const normalizedBookSubtitle = normalizedBookTitle.startsWith(`${normalizedSeriesTitle} `)
+        ? normalizedBookTitle.slice(normalizedSeriesTitle.length).trim()
+        : "";
+      const displayedHeadings = new Set([
+        normalizedBookTitle,
+        normalizedSeriesTitle,
+        normalizedBookSubtitle,
+        normalizedChapterTitle,
+        normalizedSectionTitle
+      ].filter(Boolean));
+      const positiveNumber = (value) => {
+        const number = Number(value);
+        return Number.isInteger(number) && number > 0 ? number : null;
+      };
+      const expectedPageNumbers = new Set([pageIndex + 1]);
+      const expectedChapterNumbers = new Set([
+        pageIndex + 1,
+        positiveNumber(page.chapterNumber)
+      ].filter(Boolean));
+      const expectedSceneNumbers = new Set([
+        pageIndex + 1,
+        positiveNumber(page.sceneNumber)
+      ].filter(Boolean));
+
+      const isRepeatedHeading = (line) => {
+        const unwrapped = line.trim()
+          .replace(/^#{1,6}\s*/, "")
+          .replace(/^(\*\*|__)([\s\S]*)\1$/, "$2")
+          .trim();
+        const withoutDraftIntroduction = unwrapped
+          .replace(/^here(?:['’]?s|\s+is)\s*(?:[:\-–—]\s*)?/i, "")
+          .trim();
+        const normalizedLine = normalizedStoryHeading(withoutDraftIntroduction);
+        if (displayedHeadings.has(normalizedLine)) return true;
+
+        const labelledHeading = withoutDraftIntroduction.match(/^(chapter|scene|page)\s+(\d+)\s*(?:(?:[.:\-–—])\s*(.*))?[.!?]?$/i);
+        if (labelledHeading) {
+          const label = labelledHeading[1].toLowerCase();
+          const expectedNumbers = label === "chapter"
+            ? expectedChapterNumbers
+            : label === "scene"
+              ? expectedSceneNumbers
+              : expectedPageNumbers;
+          if (!expectedNumbers.has(Number(labelledHeading[2]))) return false;
+          const suffix = normalizedStoryHeading(labelledHeading[3]);
+          return !suffix || displayedHeadings.has(suffix);
+        }
+
+        const numberedHeading = withoutDraftIntroduction.match(/^(\d+)\s*[.):\-–—]\s*(.+)$/);
+        return Boolean(
+          numberedHeading
+          && [expectedPageNumbers, expectedChapterNumbers, expectedSceneNumbers]
+            .some((numbers) => numbers.has(Number(numberedHeading[1])))
+          && displayedHeadings.has(normalizedStoryHeading(numberedHeading[2]))
+        );
+      };
+
+      const withoutRepeatedHeadings = lines
+        .filter((line) => !isRepeatedHeading(line))
+        .join("\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+      const seenSentences = rememberedSentences instanceof Set ? rememberedSentences : new Set();
+      return withoutRepeatedHeadings
+        .split(/\n\s*\n/)
+        .map((paragraph) => {
+          const sentences = paragraph.match(/[^.!?]+(?:[.!?]+[”"']?|$)/g) || [paragraph];
+          return sentences
+            .filter((sentence) => {
+              const normalizedSentence = normalizedStoryHeading(sentence);
+              if (normalizedSentence.split(" ").filter(Boolean).length < 7) return true;
+              if (seenSentences.has(normalizedSentence)) return false;
+              seenSentences.add(normalizedSentence);
+              return true;
+            })
+            .map((sentence) => sentence.trim())
+            .filter(Boolean)
+            .join(" ");
+        })
+        .filter(Boolean)
+        .join("\n\n")
+        .trim();
+    }
+
+    function wordCount(value) {
+      return String(value || "").trim().split(/\s+/).filter(Boolean).length;
+    }
+
+    function splitChapterIntoReadingPages(text, wordsPerPage = 230) {
+      const cleanText = String(text || "").trim();
+      if (!cleanText) return [""];
+
+      const units = [];
+      cleanText.split(/\n\s*\n/).forEach((paragraph, paragraphIndex) => {
+        const cleanParagraph = paragraph.trim();
+        if (!cleanParagraph) return;
+        const sentences = cleanParagraph.match(/[^.!?]+(?:[.!?]+[”"']?|$)/g) || [cleanParagraph];
+        sentences.forEach((sentence) => {
+          const cleanSentence = sentence.trim();
+          if (!cleanSentence) return;
+          const words = cleanSentence.split(/\s+/);
+          if (words.length <= 300) {
+            units.push({ text: cleanSentence, paragraphIndex, words: words.length });
+            return;
+          }
+          for (let start = 0; start < words.length; start += wordsPerPage) {
+            const section = words.slice(start, start + wordsPerPage).join(" ");
+            units.push({ text: section, paragraphIndex, words: wordCount(section) });
+          }
+        });
+      });
+
+      if (!units.length) return [cleanText];
+      const totalWords = units.reduce((sum, unit) => sum + unit.words, 0);
+      let pageTotal = Math.max(2, Math.ceil(totalWords / wordsPerPage));
+
+      while (units.length < pageTotal) {
+        let longestIndex = 0;
+        for (let index = 1; index < units.length; index += 1) {
+          if (units[index].words > units[longestIndex].words) longestIndex = index;
+        }
+        const longest = units[longestIndex];
+        if (!longest || longest.words < 2) break;
+        const words = longest.text.split(/\s+/);
+        const midpoint = Math.ceil(words.length / 2);
+        const first = words.slice(0, midpoint).join(" ");
+        const second = words.slice(midpoint).join(" ");
+        units.splice(longestIndex, 1,
+          { text: first, paragraphIndex: longest.paragraphIndex, words: wordCount(first) },
+          { text: second, paragraphIndex: longest.paragraphIndex, words: wordCount(second) }
+        );
+      }
+
+      pageTotal = Math.min(pageTotal, units.length);
+      const pages = [];
+      let unitIndex = 0;
+      let wordsRemaining = totalWords;
+
+      for (let pageIndex = 0; pageIndex < pageTotal; pageIndex += 1) {
+        const pagesRemaining = pageTotal - pageIndex;
+        const targetWords = Math.ceil(wordsRemaining / pagesRemaining);
+        const selected = [];
+        let selectedWords = 0;
+
+        while (unitIndex < units.length) {
+          const unit = units[unitIndex];
+          const unitsAfter = units.length - unitIndex - 1;
+          const pagesAfter = pagesRemaining - 1;
+          if (selected.length && unitsAfter < pagesAfter) break;
+          if (selected.length && selectedWords >= targetWords * 0.78 && selectedWords + unit.words > targetWords * 1.18) break;
+          selected.push(unit);
+          selectedWords += unit.words;
+          unitIndex += 1;
+          if (selectedWords >= targetWords && units.length - unitIndex >= pagesAfter) break;
+        }
+
+        const pageText = selected.map((unit, index) => {
+          if (!index) return unit.text;
+          return `${selected[index - 1].paragraphIndex === unit.paragraphIndex ? " " : "\n\n"}${unit.text}`;
+        }).join("");
+        pages.push(pageText);
+        wordsRemaining -= selectedWords;
+      }
+
+      return pages.filter((page) => page.trim());
+    }
+
+    function buildChapterPageSets(book) {
+      const seenBookSentences = new Set();
+      return book.pages.map((page, pageIndex) => {
+        const cleanText = cleanStoryDraftNotes(page.text, {
+          book,
+          page,
+          pageIndex,
+          seenSentences: seenBookSentences
+        });
+        return isPictureBook(book) ? [cleanText] : splitChapterIntoReadingPages(cleanText);
       });
     }
 
-    document.getElementById("prev-page").addEventListener("click", () => {
-      currentPage = Math.max(0, currentPage - 1);
+    function currentReadingPages() {
+      const page = storyPages[currentPage] || {};
+      return chapterPageSets[currentPage]
+        || [cleanStoryDraftNotes(page.text, { book: activeBook, page, pageIndex: currentPage })];
+    }
+
+    function currentReadingPage() {
+      const chapter = storyPages[currentPage];
+      const readingPages = currentReadingPages();
+      return {
+        ...chapter,
+        text: readingPages[currentChapterPage] || readingPages[0] || "",
+        includeChapterTitle: currentChapterPage === 0
+      };
+    }
+
+    function readingLocationKey() {
+      return `${currentPage}:${currentChapterPage}`;
+    }
+
+    function narrationTextForPage(page) {
+      return page.includeChapterTitle ? `${page.chapter}. ${page.text}` : page.text;
+    }
+
+    function loadBookState(bookId, requestedLocation = null) {
+      activeBook = storyBooks.get(bookId) || livingInkBookOne;
+      activeBookId = activeBook.id;
+      storyPages = activeBook.pages;
+      const storageKeys = storageKeysForBook(activeBook);
+      bookmarkKey = storageKeys.bookmark;
+      bookmarkPartKey = `${bookmarkKey}:page`;
+      bookmarkLocationKey = `${bookmarkKey}:location`;
+      readChaptersKey = storageKeys.read;
+      let savedLocation = null;
+      try {
+        const candidate = JSON.parse(storyStorage.getItem(bookmarkLocationKey) || "null");
+        if (candidate && typeof candidate === "object" && !Array.isArray(candidate)) savedLocation = candidate;
+      } catch (error) {
+        storyStorage.removeItem(bookmarkLocationKey);
+        // Older bookmarks are stored as two separate values and remain supported below.
+      }
+      chapterPageSets = buildChapterPageSets(activeBook);
+      currentPage = storedReaderIndex(
+        savedLocation?.chapter ?? storyStorage.getItem(bookmarkKey) ?? 0,
+        storyPages.length
+      );
+      currentChapterPage = storedReaderIndex(
+        savedLocation?.page ?? storyStorage.getItem(bookmarkPartKey) ?? 0,
+        chapterPageSets[currentPage]?.length || 0
+      );
+      readChapters = readStoredReadChapters();
+      if (requestedLocation?.exact && requestedLocation.bookId === activeBookId) {
+        currentPage = clampedReaderIndex(requestedLocation.chapterIndex, storyPages.length);
+        const requestedReadingPages = chapterPageSets[currentPage] || [];
+        currentChapterPage = clampedReaderIndex(requestedLocation.pageIndex, requestedReadingPages.length);
+      }
+      storyStorage.setItem(activeBookKey, activeBookId);
+    }
+
+    const seriesLibrary = document.getElementById("series-library");
+    const storyReader = document.getElementById("story-reader");
+    const storyActivities = document.getElementById("story-activities");
+    const saveBookmarkButton = document.getElementById("save-bookmark");
+    let storySceneImage = document.getElementById("story-scene-image");
+    const storySceneFallback = document.getElementById("story-scene-fallback");
+    const storySceneFallbackDescription = document.getElementById("story-scene-fallback-description");
+    let renderedStorySceneSource = "";
+
+    function setReaderStatus(message, { error = false, imageSource = "" } = {}) {
+      const status = document.getElementById("bookmark-note");
+      status.textContent = message;
+      status.classList.toggle("story-status-error", error);
+      if (imageSource) {
+        status.dataset.storyImageSource = imageSource;
+      } else {
+        delete status.dataset.storyImageSource;
+      }
+    }
+
+    function restoreStorySceneImage(chapter) {
+      const nextSource = String(chapter.image || "");
+      if (nextSource === renderedStorySceneSource) {
+        storySceneImage.alt = chapter.imageAlt;
+        return;
+      }
+
+      const recoveringFromFailure = !storySceneFallback.hidden;
+      const nextImage = storySceneImage.cloneNode(false);
+      nextImage.removeAttribute("src");
+      nextImage.hidden = false;
+      nextImage.alt = chapter.imageAlt;
+      nextImage.addEventListener("load", () => {
+        if (storySceneImage !== nextImage || renderedStorySceneSource !== nextSource) return;
+        if (document.getElementById("bookmark-note").dataset.storyImageSource === nextSource) {
+          setReaderStatus("This page's illustration is ready.");
+        }
+      }, { once: true });
+      nextImage.addEventListener("error", () => showStorySceneFallback(nextImage, nextSource), { once: true });
+
+      storySceneImage.replaceWith(nextImage);
+      storySceneImage = nextImage;
+      renderedStorySceneSource = nextSource;
+      storySceneFallback.hidden = true;
+      storySceneFallbackDescription.textContent = "";
+      if (recoveringFromFailure) {
+        setReaderStatus("Loading this page's illustration…", { imageSource: nextSource });
+      }
+      // Update the text alternative before beginning the next image request.
+      nextImage.src = nextSource;
+    }
+
+    function showStorySceneFallback(failedImage, failedSource) {
+      // A detached image can still finish after the reader has moved to another scene.
+      if (storySceneImage !== failedImage || renderedStorySceneSource !== failedSource) return;
+      failedImage.hidden = true;
+      storySceneFallbackDescription.textContent = failedImage.alt
+        ? `We could not load this illustration: ${failedImage.alt}`
+        : "We could not load this illustration, but the story text is still ready to read.";
+      storySceneFallback.hidden = false;
+      setReaderStatus("This page's illustration could not load, but the story text is still ready to read.", {
+        error: true,
+        imageSource: failedSource
+      });
+    }
+
+    function setSeriesSelected(card, selected) {
+      const button = card.querySelector("[data-choose-series]");
+      const books = document.getElementById(button.getAttribute("aria-controls"));
+      const label = button.querySelector("[data-series-choose-label]");
+      const seriesName = button.dataset.seriesName || "Series";
+      card.classList.toggle("is-selected", selected);
+      button.setAttribute("aria-expanded", String(selected));
+      books.hidden = !selected;
+      label.textContent = selected ? `${seriesName} selected` : `Choose ${seriesName}`;
+    }
+
+    function chooseSeries(card, focusFirstBook = true) {
+      if (!card) return;
+      document.querySelectorAll("[data-series-card]").forEach((seriesCard) => {
+        setSeriesSelected(seriesCard, seriesCard === card);
+      });
+      if (focusFirstBook) {
+        const firstBook = card.querySelector(".series-book-ready");
+        window.setTimeout(() => firstBook?.focus(), 0);
+      }
+    }
+
+    function toggleSeries(card) {
+      if (!card) return;
+      const isOpen = card.querySelector("[data-choose-series]")?.getAttribute("aria-expanded") === "true";
+      if (isOpen) {
+        setSeriesSelected(card, false);
+        card.querySelector("[data-choose-series]")?.focus();
+        return;
+      }
+      chooseSeries(card);
+    }
+
+    function hideStoryReader() {
+      stopReadingAloud("");
+      storyReader.hidden = true;
+      storyActivities.hidden = true;
+      saveBookmarkButton.hidden = true;
+    }
+
+    function showSeriesChooser({ updateUrl = true, scroll = true, focus = true } = {}) {
+      const readerWasVisible = !storyReader.hidden;
+      hideStoryReader();
+      document.querySelectorAll("[data-series-card]").forEach((card) => setSeriesSelected(card, false));
+      if (updateUrl && window.location.hash !== "#series-library") {
+        window.history[readerWasVisible ? "pushState" : "replaceState"](null, "", "#series-library");
+      }
+      if (scroll) {
+        const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+        seriesLibrary.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+      }
+      if (focus) window.setTimeout(() => seriesLibrary.focus({ preventScroll: true }), 0);
+    }
+
+    function storyLocationFromHash(hash = window.location.hash) {
+      if (hash === "#the-living-ink-reader") {
+        return { bookId: livingInkBookOne.id, chapterIndex: null, pageIndex: null, exact: false };
+      }
+      const location = storyStorage.parseReaderHash(hash);
+      return location && storyBooks.has(location.bookId) ? location : null;
+    }
+
+    function syncReaderLocation({ push = false } = {}) {
+      const readerHash = storyStorage.readerHash(activeBookId, currentPage, currentChapterPage);
+      if (!readerHash) return;
+      document.getElementById("choose-story-sound").href = `story-voices.html?return=${encodeURIComponent(readerHash)}`;
+      if (window.location.hash === readerHash) return;
+      window.history[push ? "pushState" : "replaceState"](null, "", readerHash);
+    }
+
+    function updateReaderForActiveBook() {
+      const pageLabel = activeBook.pageLabel || "Chapter";
+      const storyLink = [...document.querySelectorAll("[data-open-story]")]
+        .find((link) => link.dataset.openStory === activeBookId);
+      const card = storyLink?.closest("[data-series-card]");
+      if (card) chooseSeries(card, false);
+      storyReader.setAttribute("aria-label", `Reading ${activeBook.title}`);
+      storyReader.classList.toggle("story-reader-portrait", activeBook.pageLayout === "portrait");
+      storyReader.classList.toggle("story-reader-landscape-5x4", activeBook.imageLayout === "landscape-5x4");
+      document.getElementById("reader-series-label").textContent = `${activeBook.series} series · Book ${activeBook.bookNumber}`;
+      document.getElementById("reader-book-name").textContent = activeBook.title;
+      document.getElementById("reader-book-description").textContent = activeBook.synopsis;
+      document.getElementById("chapter-list").setAttribute("aria-label", `${activeBook.title} ${pageLabel.toLowerCase()} list`);
+      document.getElementById("activity-read-aloud").textContent = activeBook.activities?.readAloud || `Read your favourite ${pageLabel.toLowerCase()} aloud.`;
+      document.getElementById("activity-word-finder").textContent = activeBook.activities?.wordFinder || "Find three interesting words in the story.";
+      document.getElementById("activity-family-question").textContent = activeBook.activities?.familyQuestion || "Which part would you tell your family about?";
+      storyActivities.setAttribute("aria-label", `${activeBook.title} activities`);
+    }
+
+    function openStory(bookId, { updateUrl = true, scroll = true, focus = true, location = null } = {}) {
+      if (!storyBooks.has(bookId)) {
+        showSeriesChooser({ updateUrl, scroll, focus });
+        return;
+      }
+      loadBookState(bookId, location);
+      updateReaderForActiveBook();
+      syncReaderLocation({ push: updateUrl });
       renderStoryPage();
+      storyReader.hidden = false;
+      storyActivities.hidden = false;
+      saveBookmarkButton.hidden = false;
+      storyReader.classList.remove("series-reader-highlight");
+      requestAnimationFrame(() => storyReader.classList.add("series-reader-highlight"));
+      window.setTimeout(() => storyReader.classList.remove("series-reader-highlight"), 1100);
+      setReaderStatus(activeBook.openingNote || `${activeBook.title} is open—happy reading!`);
+      if (scroll) {
+        focusReadingPage({ showImage: true, focusText: focus });
+      } else if (focus) {
+        window.setTimeout(() => storyReader.focus({ preventScroll: true }), 0);
+      }
+    }
+
+    function filterSeriesLibrary() {
+      const input = document.getElementById("series-search-input");
+      const clearButton = document.getElementById("series-search-clear");
+      const emptyState = document.getElementById("series-empty");
+      const status = document.getElementById("series-results-status");
+      const query = normalizedSeriesSearch(input.value);
+      const hasSearchInput = input.value.length > 0;
+      const queryWords = query.split(" ").filter(Boolean);
+      const cards = [...document.querySelectorAll("[data-series-card]")];
+      let visibleCount = 0;
+
+      cards.forEach((card) => {
+        const searchText = normalizedSeriesSearch(`${card.dataset.seriesSearch || ""} ${card.textContent || ""}`);
+        const matches = !queryWords.length || queryWords.every((word) => searchText.includes(word));
+        card.hidden = !matches;
+        if (matches) visibleCount += 1;
+      });
+
+      clearButton.hidden = !hasSearchInput;
+      emptyState.hidden = visibleCount !== 0;
+      if (query) {
+        status.textContent = `${visibleCount} matching series found`;
+      } else {
+        status.textContent = `${visibleCount} series ready to explore`;
+      }
+    }
+
+    const seriesSearchInput = document.getElementById("series-search-input");
+    seriesSearchInput.addEventListener("input", filterSeriesLibrary);
+    seriesSearchInput.addEventListener("search", filterSeriesLibrary);
+    seriesSearchInput.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape" || !seriesSearchInput.value) return;
+      event.preventDefault();
+      seriesSearchInput.value = "";
+      filterSeriesLibrary();
+    });
+    document.getElementById("series-search-clear").addEventListener("click", () => {
+      const input = document.getElementById("series-search-input");
+      input.value = "";
+      filterSeriesLibrary();
+      input.focus();
+    });
+    document.querySelectorAll("[data-choose-series]").forEach((button) => {
+      button.addEventListener("click", () => toggleSeries(button.closest("[data-series-card]")));
+    });
+    document.querySelectorAll("[data-open-story]").forEach((link) => {
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        openStory(link.dataset.openStory);
+      });
+    });
+    document.querySelectorAll("[data-show-series]").forEach((link) => {
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        showSeriesChooser();
+      });
+    });
+    window.addEventListener("hashchange", () => {
+      if (!storyAccessReady) return;
+      const location = storyLocationFromHash();
+      if (location) {
+        openStory(location.bookId, { updateUrl: false, location });
+      } else {
+        const invalidStoryRoute = window.location.hash && window.location.hash !== "#series-library";
+        if (invalidStoryRoute) window.history.replaceState(null, "", "#series-library");
+        showSeriesChooser({ updateUrl: false });
+      }
+    });
+
+    function chooseFriendlyStoryVoice() {
+      const voices = window.speechSynthesis.getVoices();
+      if (!voices.length) return null;
+      const savedChoice = readStoryVoiceChoice();
+      if (savedChoice?.source === "device") {
+        const selectedVoice = voices.find((voice) =>
+          voice.voiceURI === savedChoice.id || voice.name === savedChoice.id || voice.name === savedChoice.name
+        );
+        if (selectedVoice) return selectedVoice;
+      }
+      const englishVoices = voices.filter((voice) => /^en(?:[-_]|$)/i.test(voice.lang));
+      const candidates = englishVoices.length ? englishVoices : voices;
+      return candidates
+        .map((voice, index) => {
+          const voiceName = voice.name.toLowerCase();
+          const hintIndex = friendlyVoiceHints.findIndex((hint) => voiceName.includes(hint));
+          const hintScore = hintIndex < 0 ? 0 : 60 - hintIndex;
+          const qualityScore = /natural|premium|enhanced/.test(voiceName) ? 100 : 0;
+          const storyScore = /story|narrator/.test(voiceName) ? 35 : 0;
+          const languageScore = /^en-gb$/i.test(voice.lang) ? 8 : /^en-(ie|au|nz)$/i.test(voice.lang) ? 5 : 0;
+          const installedScore = voice.localService ? 20 : 0;
+          return { voice, index, score: hintScore + qualityScore + storyScore + languageScore + installedScore };
+        })
+        .sort((left, right) => right.score - left.score || left.index - right.index)[0].voice;
+    }
+
+    function refreshStoryVoice() {
+      storyVoice = chooseFriendlyStoryVoice();
+    }
+
+    function readStoryVoiceChoice() {
+      const value = window.KiddoSproutStoryVoiceChoice?.read?.();
+      if (!value) return null;
+      return {
+        ...value,
+        name: value.source === "device" ? childFacingDeviceVoiceName(value.name, value.id) : value.name
+      };
+    }
+
+    function updateSelectedStorySound() {
+      const choice = readStoryVoiceChoice();
+      const title = document.getElementById("selected-story-sound");
+      const note = document.getElementById("selected-story-sound-note");
+      if (!choice) {
+        title.textContent = "Pick your favourite voice";
+        note.textContent = "Hear lots of voices in the Sound Studio.";
+        return;
+      }
+      title.textContent = `${choice.name} is ready!`;
+      if (choice.source === "device") {
+        note.textContent = "Device voice · try it with every story mood";
+      } else if (choice.quality === "studio-pro") {
+        note.textContent = "Studio Pro voice · powered by ElevenLabs";
+      } else if (choice.quality === "pro") {
+        note.textContent = "Pro voice · powered by ElevenLabs";
+      } else if (choice.quality === "studio") {
+        note.textContent = "Studio-quality voice · powered by ElevenLabs";
+      } else {
+        note.textContent = "Magic voice · powered by ElevenLabs";
+      }
+    }
+
+    async function storySessionToken() {
+      if (storyStorage.demoActive()) return "";
+      if (window.KiddoSproutSession?.getAccessToken) {
+        return String(await window.KiddoSproutSession.getAccessToken() || "");
+      }
+      for (const key of ["kiddosproutSupabaseSession", "flavornest_session"]) {
+        try {
+          const session = JSON.parse(window.sessionStorage.getItem(key) || "null");
+          if (session?.access_token) return String(session.access_token);
+        } catch (error) {
+          // Try the next shared session key.
+        }
+      }
+      return "";
+    }
+
+    function setReadAloudUi(speaking, message = "") {
+      isSpeaking = speaking;
+      const listenButton = document.getElementById("listen-chapter");
+      const mood = storyVoiceMoods[activeVoiceMood];
+      document.getElementById("listen-icon").textContent = speaking ? "⏹" : "✨";
+      document.getElementById("listen-label").textContent = speaking ? "Stop Story" : "Read to Me!";
+      listenButton.setAttribute("aria-pressed", String(speaking));
+      listenButton.setAttribute("aria-label", speaking ? "Stop story" : `Read this page aloud in ${mood.label} mood`);
+      if (message) setReaderStatus(message);
+    }
+
+    function stopReadingAloud(message = "") {
+      narrationGeneration += 1;
+      if (activeVoiceRequest) {
+        activeVoiceRequest.abort();
+        activeVoiceRequest = null;
+      }
+      if (activeStoryAudio) {
+        activeStoryAudio.pause();
+        activeStoryAudio.currentTime = 0;
+        activeStoryAudio = null;
+      }
+      activeSpeech = null;
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      const mood = storyVoiceMoods[activeVoiceMood];
+      setReadAloudUi(false, message || `${mood.label} mood is ready!`);
+    }
+
+    function splitDeviceNarration(text, maxLength = 1800) {
+      const sentences = String(text || "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .match(/[^.!?]+(?:[.!?]+[”"']?|$)/g) || [];
+      const chunks = [];
+      let currentChunk = "";
+
+      const addWords = (words) => {
+        words.forEach((word) => {
+          const candidate = currentChunk ? `${currentChunk} ${word}` : word;
+          if (candidate.length <= maxLength) {
+            currentChunk = candidate;
+            return;
+          }
+          if (currentChunk) chunks.push(currentChunk);
+          currentChunk = word;
+        });
+      };
+
+      sentences.forEach((sentence) => {
+        const cleanSentence = sentence.trim();
+        if (!cleanSentence) return;
+        const candidate = currentChunk ? `${currentChunk} ${cleanSentence}` : cleanSentence;
+        if (candidate.length <= maxLength) {
+          currentChunk = candidate;
+        } else {
+          if (currentChunk) chunks.push(currentChunk);
+          currentChunk = "";
+          if (cleanSentence.length <= maxLength) currentChunk = cleanSentence;
+          else addWords(cleanSentence.split(/\s+/));
+        }
+      });
+      if (currentChunk) chunks.push(currentChunk);
+      return chunks;
+    }
+
+    function startDeviceNarration(page, mood, fallbackMessage = "") {
+      if (!("speechSynthesis" in window)) {
+        setReadAloudUi(false, "This browser cannot read aloud, but your story is still ready to enjoy.");
+        return;
+      }
+      const chunks = splitDeviceNarration(narrationTextForPage(page));
+      let chunkIndex = 0;
+      storyVoice = chooseFriendlyStoryVoice();
+
+      const speakNextChunk = () => {
+        if (!isSpeaking) return;
+        if (chunkIndex >= chunks.length) {
+          activeSpeech = null;
+          setReadAloudUi(false, "All done — wonderful listening!");
+          return;
+        }
+        const speech = new SpeechSynthesisUtterance(chunks[chunkIndex]);
+        if (storyVoice) {
+          speech.voice = storyVoice;
+          speech.lang = storyVoice.lang;
+        } else {
+          speech.lang = "en-GB";
+        }
+        speech.rate = mood.rate;
+        speech.pitch = mood.pitch;
+        speech.volume = mood.volume;
+        speech.onstart = () => {
+          if (activeSpeech === speech && chunkIndex === 0) {
+            setReadAloudUi(true, fallbackMessage || `${mood.label} story time is on!`);
+          }
+        };
+        speech.onend = () => {
+          if (activeSpeech !== speech) return;
+          activeSpeech = null;
+          chunkIndex += 1;
+          speakNextChunk();
+        };
+        speech.onerror = () => {
+          if (activeSpeech !== speech) return;
+          activeSpeech = null;
+          setReadAloudUi(false, "Oops! The story voice needs a quick rest — try again.");
+        };
+        activeSpeech = speech;
+        window.speechSynthesis.resume();
+        window.speechSynthesis.speak(speech);
+      };
+
+      setReadAloudUi(true, fallbackMessage || `Getting ${mood.label.toLowerCase()} story time ready...`);
+      speakNextChunk();
+    }
+
+    function removeRememberedStoryAudio(key) {
+      const cached = storyAudioCache.get(key);
+      if (!cached) return;
+      URL.revokeObjectURL(cached.url);
+      storyAudioCache.delete(key);
+      storyAudioCacheBytes = Math.max(0, storyAudioCacheBytes - cached.bytes);
+    }
+
+    function rememberStoryAudio(key, url, bytes) {
+      while (storyAudioCache.size && (
+        storyAudioCache.size >= maxStoryAudioCacheEntries
+        || storyAudioCacheBytes + bytes > maxStoryAudioCacheBytes
+      )) {
+        const oldestKey = storyAudioCache.keys().next().value;
+        removeRememberedStoryAudio(oldestKey);
+      }
+      storyAudioCache.set(key, { url, bytes });
+      storyAudioCacheBytes += bytes;
+    }
+
+    async function playPremiumNarration(page, mood, locationKey, generation) {
+      const choice = readStoryVoiceChoice();
+      if (choice?.source !== "elevenlabs") return false;
+      const cacheKey = `${activeBookId}:${locationKey}:${activeVoiceMood}:${choice.id}`;
+      let audioUrl = storyAudioCache.get(cacheKey)?.url || "";
+
+      if (!audioUrl) {
+        let token;
+        try {
+          token = await storySessionToken();
+        } catch (error) {
+          if (generation !== narrationGeneration) return true;
+          console.warn("Story session temporarily unavailable:", error?.message || error);
+          setReadAloudUi(false, "The account service is resting. Your sign-in is safe—reconnect and try this voice again.");
+          return true;
+        }
+        if (generation !== narrationGeneration) return true;
+        if (!token) {
+          setReadAloudUi(false, "Ask a grown-up to log in again for this ElevenLabs voice.");
+          return false;
+        }
+        if (readingLocationKey() !== locationKey || !isSpeaking) return false;
+        const controller = new AbortController();
+        const requestTimeout = window.setTimeout(() => controller.abort(), 95_000);
+        activeVoiceRequest = controller;
+        try {
+          const response = await fetch("/api/story-voice", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              bookId: activeBookId,
+              chapterIndex: currentPage,
+              pageIndex: currentChapterPage,
+              mood: activeVoiceMood,
+              voiceId: choice.id
+            }),
+            cache: "no-store",
+            signal: controller.signal
+          });
+          if (!response.ok) {
+            const payload = await response.json().catch(() => ({}));
+            throw new Error(payload.error || "The magic voice is resting.");
+          }
+          const contentType = String(response.headers.get("content-type") || "").split(";", 1)[0].trim().toLowerCase();
+          if (contentType !== "audio/mpeg") throw new Error("The ElevenLabs voice sent the wrong kind of sound.");
+          const audioBlob = await response.blob();
+          if (!audioBlob.size || audioBlob.size > 12 * 1024 * 1024) throw new Error("The ElevenLabs voice sent an unusable sound.");
+          if (controller.signal.aborted || generation !== narrationGeneration || readingLocationKey() !== locationKey || !isSpeaking) return true;
+          audioUrl = URL.createObjectURL(audioBlob);
+          rememberStoryAudio(cacheKey, audioUrl, audioBlob.size);
+        } catch (error) {
+          if (error?.name === "AbortError" || controller.signal.aborted || generation !== narrationGeneration) return true;
+          console.warn("Premium story narration unavailable:", error?.message || error);
+          setReadAloudUi(false, `${choice.name} needs a quick rest. Try again or choose another ElevenLabs voice.`);
+          return false;
+        } finally {
+          window.clearTimeout(requestTimeout);
+          if (activeVoiceRequest === controller) activeVoiceRequest = null;
+        }
+      }
+
+      if (generation !== narrationGeneration || readingLocationKey() !== locationKey || !isSpeaking) return true;
+      const audio = new Audio(audioUrl);
+      activeStoryAudio = audio;
+      audio.addEventListener("ended", () => {
+        if (activeStoryAudio !== audio) return;
+        activeStoryAudio = null;
+        setReadAloudUi(false, "All done — wonderful listening!");
+      }, { once: true });
+      audio.addEventListener("error", () => {
+        if (activeStoryAudio !== audio) return;
+        activeStoryAudio = null;
+        setReadAloudUi(false, "Oops! That story sound needs a quick rest — try another voice.");
+      }, { once: true });
+      try {
+        await audio.play();
+        if (generation === narrationGeneration && activeStoryAudio === audio) {
+          setReadAloudUi(true, `${choice.name} is telling this page in ${mood.label.toLowerCase()} mood!`);
+        }
+        return true;
+      } catch (error) {
+        if (generation !== narrationGeneration || activeStoryAudio !== audio) return true;
+        activeStoryAudio = null;
+        setReadAloudUi(false, `${choice.name} is ready — tap Read to Me! once more to play.`);
+        return true;
+      }
+    }
+
+    function selectVoiceMood(moodName, announce = true) {
+      const mood = storyVoiceMoods[moodName];
+      if (!mood) return;
+      if (isSpeaking) stopReadingAloud("");
+      activeVoiceMood = moodName;
+      document.querySelectorAll("[data-voice-mood]").forEach((button) => {
+        const isActive = button.dataset.voiceMood === activeVoiceMood;
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-pressed", String(isActive));
+      });
+      setReadAloudUi(false, announce ? `${mood.label} mood picked — ${mood.description}!` : "");
+    }
+
+    function renderReadingProgress() {
+      const uniqueReadChapters = [...new Set(readChapters)].sort((a, b) => a - b);
+      readChapters = uniqueReadChapters;
+      const completed = readChapters.length;
+      const percentage = Math.round((completed / storyPages.length) * 100);
+      const pageLabelPlural = activeBook.pageLabel === "Page" ? "pages" : "chapters";
+      document.getElementById("reading-progress-label").textContent = `${completed} of ${storyPages.length} ${pageLabelPlural} read`;
+      document.getElementById("reading-progress-fill").style.width = `${percentage}%`;
+      const currentIsRead = readChapters.includes(currentPage);
+      const readingPages = currentReadingPages();
+      const onFinalReadingPage = currentChapterPage === readingPages.length - 1;
+      const markButton = document.getElementById("mark-read");
+      const unitLabel = activeBook.pageLabel || "Chapter";
+      markButton.disabled = !currentIsRead && !onFinalReadingPage;
+      markButton.textContent = currentIsRead
+        ? "Read ✓"
+        : onFinalReadingPage
+          ? `Finish ${unitLabel}`
+          : `Finish on Page ${readingPages.length}`;
+      markButton.title = markButton.disabled ? `Keep reading to page ${readingPages.length} to finish this chapter.` : "";
+      markButton.classList.toggle("completed", currentIsRead);
+    }
+
+    function focusReadingPage({ showImage = false, focusText = true } = {}) {
+      const bookPage = document.getElementById("book-page");
+      const scrollTarget = showImage
+        ? document.getElementById("story-scene")
+        : bookPage;
+      const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches === true;
+      window.requestAnimationFrame(() => {
+        // Keep keyboard and screen-reader focus on the same visible place we scroll to.
+        if (focusText) scrollTarget.focus({ preventScroll: true });
+        scrollTarget.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+      });
+    }
+
+    function markChapterRead(chapterIndex = currentPage) {
+      const latestReadChapters = readStoredReadChapters();
+      if (latestReadChapters.includes(chapterIndex)) {
+        readChapters = latestReadChapters;
+        return "existing";
+      }
+      const nextReadChapters = [...latestReadChapters, chapterIndex];
+      if (!storyStorage.setItem(readChaptersKey, JSON.stringify(nextReadChapters))) return "failed";
+      readChapters = nextReadChapters;
+      return "saved";
+    }
+
+    function keepActiveChapterVisible(list, activeButton, retryWhenVisible = true) {
+      if (!list || !activeButton) return;
+      if (list.clientHeight <= 0 && retryWhenVisible) {
+        window.requestAnimationFrame(() => {
+          keepActiveChapterVisible(list, list.querySelector('[aria-current="page"]'), false);
+        });
+        return;
+      }
+      if (list.clientHeight <= 0) return;
+      const listBounds = list.getBoundingClientRect();
+      const buttonBounds = activeButton.getBoundingClientRect();
+      if (buttonBounds.top < listBounds.top) {
+        list.scrollTop = Math.max(0, list.scrollTop - (listBounds.top - buttonBounds.top) - 8);
+      } else if (buttonBounds.bottom > listBounds.bottom) {
+        list.scrollTop = Math.max(0, list.scrollTop + (buttonBounds.bottom - listBounds.bottom) + 8);
+      }
+    }
+
+    function renderChapterList(pageLabel) {
+      const chapterList = document.getElementById("chapter-list");
+      const fragment = document.createDocumentFragment();
+      let activeButton = null;
+      let previousSection = "";
+
+      storyPages.forEach((item, index) => {
+        const isCurrent = index === currentPage;
+        const isRead = readChapters.includes(index);
+        const readingPageCount = chapterPageSets[index]?.length || 1;
+        const section = String(item.section || "").trim();
+        if (section && section !== previousSection) {
+          const sectionHeading = document.createElement("h3");
+          sectionHeading.className = "chapter-section-heading";
+          sectionHeading.textContent = section;
+          fragment.append(sectionHeading);
+        }
+        previousSection = section;
+        const button = document.createElement("button");
+        const meta = document.createElement("span");
+        const title = document.createElement("strong");
+        button.type = "button";
+        button.dataset.chapter = String(index);
+        button.classList.toggle("active", isCurrent);
+        if (isCurrent) {
+          button.setAttribute("aria-current", "page");
+          activeButton = button;
+        }
+        meta.textContent = `${pageLabel} ${index + 1}${!isPictureBook() ? ` · ${readingPageCount} pages` : ""}${isRead ? " · Read ✓" : ""}`;
+        title.textContent = String(item.chapter || `${pageLabel} ${index + 1}`);
+        button.append(meta, title);
+        button.addEventListener("click", () => {
+          currentPage = index;
+          currentChapterPage = 0;
+          renderStoryPage();
+          setReaderStatus(`${pageLabel} ${index + 1} is ready.`);
+          focusReadingPage({ showImage: true });
+        });
+        fragment.append(button);
+      });
+
+      chapterList.replaceChildren(fragment);
+      keepActiveChapterVisible(chapterList, activeButton);
+    }
+
+    function renderStoryPage() {
+      const chapter = storyPages[currentPage];
+      const readingPages = currentReadingPages();
+      currentChapterPage = Math.min(Math.max(0, currentChapterPage), readingPages.length - 1);
+      const page = currentReadingPage();
+      const pageLabel = activeBook.pageLabel || "Chapter";
+      const nestedPages = !isPictureBook() && readingPages.length > 1;
+      const onFirstReadingPage = currentChapterPage === 0;
+      const onFinalReadingPage = currentChapterPage === readingPages.length - 1;
+      const onFirstBookPage = currentPage === 0 && onFirstReadingPage;
+      const currentIsRead = readChapters.includes(currentPage);
+      syncReaderLocation();
+      stopReadingAloud();
+      const locationParts = [];
+      if (chapter.section) locationParts.push(chapter.section);
+      locationParts.push(`${pageLabel} ${currentPage + 1} of ${storyPages.length}`);
+      if (nestedPages) locationParts.push(`Page ${currentChapterPage + 1} of ${readingPages.length}`);
+      document.getElementById("page-count").textContent = locationParts.join(" · ");
+      const chapterTitle = document.getElementById("book-title");
+      chapterTitle.textContent = chapter.chapter;
+      chapterTitle.hidden = nestedPages && !onFirstReadingPage;
+      restoreStorySceneImage(chapter);
+      document.getElementById("story-scene-caption").textContent = chapter.caption;
+      const bookPage = document.getElementById("book-page");
+      bookPage.textContent = page.text;
+      bookPage.removeAttribute("data-page-number");
+      bookPage.classList.remove("page-enter");
+      void bookPage.offsetWidth;
+      bookPage.classList.add("page-enter");
+      const previousButton = document.getElementById("prev-page");
+      previousButton.disabled = onFirstBookPage;
+      previousButton.textContent = onFirstReadingPage && currentPage > 0 && !isPictureBook()
+        ? "← Previous Chapter"
+        : "← Previous Page";
+      const nextButton = document.getElementById("next-page");
+      if (!onFinalReadingPage) {
+        nextButton.textContent = "Next Page →";
+      } else if (currentPage < storyPages.length - 1) {
+        nextButton.textContent = isPictureBook() || currentIsRead ? "Next Page →" : "Finish Chapter →";
+      } else {
+        nextButton.textContent = currentIsRead ? "Read Again ↻" : "Finish Book ✓";
+      }
+      renderChapterList(pageLabel);
+      renderReadingProgress();
+      const nextImage = onFinalReadingPage ? storyPages[currentPage + 1]?.image : "";
+      if (nextImage && nextImage !== chapter.image) {
+        const preloadImage = new Image();
+        preloadImage.src = nextImage;
+      }
+    }
+
+    document.getElementById("prev-page").addEventListener("click", () => {
+      if (currentChapterPage > 0) {
+        currentChapterPage -= 1;
+      } else if (currentPage > 0) {
+        currentPage -= 1;
+        currentChapterPage = (chapterPageSets[currentPage]?.length || 1) - 1;
+      }
+      renderStoryPage();
+      focusReadingPage({ showImage: true });
     });
 
     document.getElementById("next-page").addEventListener("click", () => {
-      currentPage = currentPage === storyPages.length - 1 ? 0 : currentPage + 1;
+      const readingPages = currentReadingPages();
+      if (currentChapterPage < readingPages.length - 1) {
+        currentChapterPage += 1;
+        renderStoryPage();
+        focusReadingPage({ showImage: true });
+        return;
+      }
+
+      const finishedLabel = isPictureBook() ? `Page ${currentPage + 1}` : `Chapter ${currentPage + 1}`;
+      const completionResult = markChapterRead();
+      if (currentPage < storyPages.length - 1) {
+        currentPage += 1;
+        currentChapterPage = 0;
+        renderStoryPage();
+        if (completionResult === "failed") {
+          setReaderStatus(`${finishedLabel} is complete, but progress could not be saved in this browser.`, { error: true });
+        } else {
+          setReaderStatus(completionResult === "saved"
+            ? `${finishedLabel} complete—wonderful reading!`
+            : "The next page is ready!");
+        }
+        focusReadingPage({ showImage: true });
+        return;
+      }
+
+      if (completionResult === "saved") {
+        renderStoryPage();
+        setReaderStatus(`You finished ${activeBook.title}—brilliant reading!`);
+        focusReadingPage({ showImage: true });
+        return;
+      }
+
+      if (completionResult === "failed") {
+        renderStoryPage();
+        setReaderStatus("You reached the end, but progress could not be saved in this browser.", { error: true });
+        focusReadingPage({ showImage: true });
+        return;
+      }
+
+      currentPage = 0;
+      currentChapterPage = 0;
       renderStoryPage();
+      setReaderStatus(`${activeBook.title} is starting again from page 1.`);
+      focusReadingPage({ showImage: true });
     });
 
     document.getElementById("save-bookmark").addEventListener("click", () => {
-      localStorage.setItem(bookmarkKey, String(currentPage));
-      document.getElementById("bookmark-note").textContent = `Saved page ${currentPage + 1}`;
+      const saved = storyStorage.setItem(bookmarkLocationKey, JSON.stringify({
+        chapter: currentPage,
+        page: currentChapterPage
+      }));
+      const pageLabel = activeBook.pageLabel || "Chapter";
+      const innerPageNote = !isPictureBook() && currentReadingPages().length > 1
+        ? `, page ${currentChapterPage + 1}`
+        : "";
+      if (!saved) {
+        setReaderStatus("This browser could not save the bookmark. Check that site storage is allowed.", { error: true });
+        return;
+      }
+      // Keep older KiddoSprout versions able to open the latest saved location.
+      storyStorage.setItem(bookmarkKey, String(currentPage));
+      storyStorage.setItem(bookmarkPartKey, String(currentChapterPage));
+      setReaderStatus(`${pageLabel} ${currentPage + 1}${innerPageNote} saved—we'll open here next time`);
     });
 
-    renderStoryPage();
+    document.getElementById("mark-read").addEventListener("click", () => {
+      const markButton = document.getElementById("mark-read");
+      if (markButton.disabled) return;
+      const latestReadChapters = readStoredReadChapters();
+      const markedAsRead = !latestReadChapters.includes(currentPage);
+      const nextReadChapters = markedAsRead
+        ? [...latestReadChapters, currentPage]
+        : latestReadChapters.filter((index) => index !== currentPage);
+      if (!storyStorage.setItem(readChaptersKey, JSON.stringify(nextReadChapters))) {
+        setReaderStatus("Reading progress could not be saved in this browser.", { error: true });
+        return;
+      }
+      readChapters = nextReadChapters;
+      renderStoryPage();
+      const pageLabel = (activeBook.pageLabel || "Chapter").toLowerCase();
+      setReaderStatus(markedAsRead
+        ? `${pageLabel[0].toUpperCase()}${pageLabel.slice(1)} marked as read—great job!`
+        : `${pageLabel[0].toUpperCase()}${pageLabel.slice(1)} is ready to read again`);
+      if (!markedAsRead && markButton.disabled) {
+        // Disabling a focused button sends browser focus to the page body.
+        focusReadingPage({ showImage: true });
+      }
+    });
+
+    document.querySelectorAll("[data-voice-mood]").forEach((button) => {
+      button.addEventListener("click", () => selectVoiceMood(button.dataset.voiceMood));
+    });
+
+    document.getElementById("listen-chapter").addEventListener("click", async () => {
+      if (isSpeaking) {
+        stopReadingAloud("Story stopped — ready when you are!");
+        return;
+      }
+      const locationKey = readingLocationKey();
+      const generation = ++narrationGeneration;
+      const page = currentReadingPage();
+      const mood = storyVoiceMoods[activeVoiceMood];
+      const choice = readStoryVoiceChoice();
+      setReadAloudUi(true, choice?.source === "elevenlabs"
+        ? `Mixing ${choice.name}'s ${mood.label.toLowerCase()} story sound...`
+        : `Getting ${mood.label.toLowerCase()} story time ready...`);
+      const premiumStarted = await playPremiumNarration(page, mood, locationKey, generation);
+      if (premiumStarted || generation !== narrationGeneration || readingLocationKey() !== locationKey || !isSpeaking) return;
+      if (choice?.source === "elevenlabs") {
+        setReadAloudUi(false, `${choice.name} could not play yet. Try again or choose another ElevenLabs voice.`);
+        return;
+      }
+      startDeviceNarration(page, mood);
+    });
+
+    if ("speechSynthesis" in window) {
+      refreshStoryVoice();
+      window.speechSynthesis.addEventListener?.("voiceschanged", refreshStoryVoice);
+    }
+
+    window.addEventListener("storage", (event) => {
+      const progressStorageKey = storyStorage.storageKey(readChaptersKey);
+      if (progressStorageKey && event.key === progressStorageKey) {
+        readChapters = readStoredReadChapters();
+        renderReadingProgress();
+        renderChapterList(activeBook.pageLabel || "Chapter");
+        return;
+      }
+      if (event.key === window.KiddoSproutStoryVoiceChoice?.key?.()) {
+        refreshStoryVoice();
+        updateSelectedStorySound();
+      }
+    });
+    window.addEventListener("pageshow", () => {
+      refreshStoryVoice();
+      updateSelectedStorySound();
+    });
+    window.addEventListener("pagehide", () => {
+      stopReadingAloud("");
+      storyAudioCache.forEach((cached) => URL.revokeObjectURL(cached.url));
+      storyAudioCache.clear();
+      storyAudioCacheBytes = 0;
+    });
+
+    storyAccessPromise.then((allowed) => {
+      if (!allowed) return;
+      storyAccessReady = true;
+      loadBookState(livingInkBookOne.id);
+      updateSelectedStorySound();
+      filterSeriesLibrary();
+      selectVoiceMood("cheerful", false);
+      const initialLocation = storyLocationFromHash();
+      if (initialLocation) {
+        openStory(initialLocation.bookId, { updateUrl: false, focus: false, location: initialLocation });
+      } else {
+        if (window.location.hash && window.location.hash !== "#series-library") {
+          window.history.replaceState(null, "", "#series-library");
+        }
+        showSeriesChooser({ updateUrl: false, scroll: false, focus: false });
+      }
+    });
   </script>
 </body>
 </html>

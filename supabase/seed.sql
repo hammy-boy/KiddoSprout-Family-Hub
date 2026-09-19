@@ -1,0 +1,1 @@
+-- Curated recipes are bundled with the application. Local family recipes start empty.

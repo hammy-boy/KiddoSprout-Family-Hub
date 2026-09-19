@@ -1,17 +1,150 @@
 services:
   kiddosprout:
     build: .
+    depends_on:
+      voice-api:
+        condition: service_healthy
+      blocker-api:
+        condition: service_healthy
+      bank-api:
+        condition: service_healthy
     ports:
-      - "8001:80"
+      - "127.0.0.1:8001:80"
     environment:
       PORT: "8001"
       SUPABASE_URL: "${SUPABASE_URL}"
       SUPABASE_PUBLISHABLE_KEY: "${SUPABASE_PUBLISHABLE_KEY}"
-      SMTP_HOST: "${SMTP_HOST:-}"
-      SMTP_PORT: "${SMTP_PORT:-587}"
-      SMTP_USER: "${SMTP_USER:-}"
-      SMTP_PASS: "${SMTP_PASS:-}"
-      SMTP_FROM: "${SMTP_FROM:-}"
+      TURNSTILE_SITE_KEY: "${TURNSTILE_SITE_KEY:-}"
+      AUTH_EMAIL_DELIVERY_READY: "${AUTH_EMAIL_DELIVERY_READY:-false}"
+      # Browser-safe capability flag only. OAuth credentials remain in the
+      # account service and are never passed to nginx or website JavaScript.
+      GOOGLE_AUTH_READY: "${GOOGLE_AUTH_READY:-false}"
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - web
+      - backend
+
+  voice-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.voice
+    environment:
+      PORT: "8787"
+      SUPABASE_URL: "${SUPABASE_URL}"
+      SUPABASE_PUBLISHABLE_KEY: "${SUPABASE_PUBLISHABLE_KEY}"
+      ELEVENLABS_API_KEY: "${ELEVENLABS_API_KEY:-}"
+      ELEVENLABS_VOICE_ID: "${ELEVENLABS_VOICE_ID:-}"
+      ELEVENLABS_MODEL_ID: "${ELEVENLABS_MODEL_ID:-eleven_multilingual_v2}"
+      ELEVENLABS_ALLOWED_VOICE_IDS: "${ELEVENLABS_ALLOWED_VOICE_IDS:-}"
+    expose:
+      - "8787"
+    init: true
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8787/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 3s
+
+  blocker-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.blocker
+    environment:
+      PORT: "8788"
+      SUPABASE_URL: "${SUPABASE_URL}"
+      SUPABASE_PUBLISHABLE_KEY: "${SUPABASE_PUBLISHABLE_KEY}"
+      BLOCKER_MAC_DOWNLOAD_PATH: "/app/downloads/KiddoSproutBlocker-macOS.zip"
+      BLOCKER_WINDOWS_X64_DOWNLOAD_PATH: "/app/downloads/KiddoSproutBlocker-Windows-x64.zip"
+      BLOCKER_WINDOWS_ARM64_DOWNLOAD_PATH: "/app/downloads/KiddoSproutBlocker-Windows-arm64.zip"
+      BLOCKER_PIN_STORE: "/data/blocker-pins.json"
+      BLOCKER_MAC_VERSION: "0.3.1"
+      BLOCKER_WINDOWS_VERSION: "0.1.0"
+      BLOCKER_MAC_DOWNLOAD_NAME: "KiddoSproutBlocker-macOS-v0.3.1.zip"
+      BLOCKER_WINDOWS_X64_DOWNLOAD_NAME: "KiddoSproutBlocker-Windows-x64-v0.1.0.zip"
+      BLOCKER_WINDOWS_ARM64_DOWNLOAD_NAME: "KiddoSproutBlocker-Windows-arm64-v0.1.0.zip"
+    expose:
+      - "8788"
+    init: true
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - blocker_data:/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8788/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 3s
+
+  bank-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.bank
+    environment:
+      PORT: "8789"
+      SUPABASE_URL: "${SUPABASE_URL}"
+      SUPABASE_PUBLISHABLE_KEY: "${SUPABASE_PUBLISHABLE_KEY}"
       PLAID_CLIENT_ID: "${PLAID_CLIENT_ID:-}"
       PLAID_SECRET: "${PLAID_SECRET:-}"
       PLAID_ENV: "${PLAID_ENV:-sandbox}"
+      PLAID_COUNTRY_CODES: "${PLAID_COUNTRY_CODES:-GB}"
+      PLAID_PRODUCTS: "${PLAID_PRODUCTS:-auth}"
+      PLAID_REDIRECT_URI: "${PLAID_REDIRECT_URI:-}"
+      PLAID_WEBHOOK_URI: "${PLAID_WEBHOOK_URI:-}"
+      BANK_DEMO_MODE: "${BANK_DEMO_MODE:-false}"
+      BANK_STORE_PATH: "/data/bank-links.json"
+      BANK_TOKEN_KEY_PATH: "/data/bank-token.key"
+      BANK_TOKEN_ENCRYPTION_KEY: "${BANK_TOKEN_ENCRYPTION_KEY:-}"
+    expose:
+      - "8789"
+    init: true
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - bank_data:/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8789/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 3s
+
+volumes:
+  blocker_data:
+  bank_data:
+
+networks:
+  web:
+  backend:

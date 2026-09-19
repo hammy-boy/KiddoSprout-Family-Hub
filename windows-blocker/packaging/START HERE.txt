@@ -1,0 +1,71 @@
+KIDDOSPROUT BLOCKER FOR WINDOWS — START HERE
+Version @VERSION@ colleague test
+Architecture @ARCHITECTURE@
+
+VERIFY THIS TEST DOWNLOAD
+
+Read BUILD-INFO.txt before opening the app. It records the version, architecture,
+unsigned status, Go toolchain, build flags, and included source paths. The
+separate checksum download verifies the ZIP's integrity. After extracting,
+SHA256SUMS.txt lists the expected SHA-256 hash of every other included file. PowerShell's
+Get-FileHash can be used to compare any file with its listed value.
+
+WHAT THIS DOWNLOAD DOES
+
+KiddoSprout watches the signed-in Windows user for well-known game launchers,
+known game executables, games opened from common library folders, and exact
+.exe names a parent adds. When it detects one, it closes that process and shows
+“Blocked this app.” The included Chrome/Edge extension gives game websites a
+simple “Blocked by KiddoSprout” page.
+
+INSTALL THE WINDOWS APP
+
+1. Extract the whole ZIP first. Do not run the app from inside the ZIP preview.
+2. Keep KiddoSproutBlocker.exe and the browser-extension folder together.
+3. With the computer owner's permission, open KiddoSproutBlocker.exe.
+4. It installs only for the signed-in Windows user in Local AppData and opens a
+   private control page at 127.0.0.1 in the default browser.
+5. Create a 4–8 digit parent PIN. Use the same PIN chosen on the protected
+   KiddoSprout download page. Protection starts after the PIN is saved.
+
+Keep this extracted folder during the test. Opening its KiddoSproutBlocker.exe
+again safely brings the running private control page back. The installed copy
+is also at %LOCALAPPDATA%\KiddoSprout\Blocker\KiddoSproutBlocker.exe.
+
+The normal in-app controls require the PIN to pause protection, change the PIN,
+change manual rules, quit the app, or approve uninstalling it. Only a slow
+salted PIN hash is saved; the original PIN is not written to the settings file
+or command line. This current-user test is not system enforcement: the same
+signed-in Windows user can still force stop it, remove its HKCU startup entry,
+or delete its files without using those controls.
+
+ADD WEBSITE PROTECTION TO CHROME OR EDGE
+
+1. In the KiddoSprout control page, choose Open Extension Folder.
+2. Open chrome://extensions or edge://extensions.
+3. Turn on Developer mode.
+4. Choose Load unpacked and select the browser-extension folder.
+
+REMOVE THE TEST APP
+
+Open KiddoSproutBlocker.exe, enter the parent PIN in Quit or uninstall, and
+choose Uninstall Current-user Tester. This removes its start-at-sign-in entry,
+settings, installed extension copy, and installed app files for this Windows
+user. A temporary cleanup helper can remain in Windows Temp until the next
+KiddoSprout install or normal Windows temporary-file cleanup.
+
+IMPORTANT TEST-BUILD NOTES
+
+This first Windows build is unsigned. Windows SmartScreen may call it an
+unrecognized app because it has no paid publisher certificate or reputation.
+Never disable Microsoft Defender or Windows Security. Only continue when the
+file came directly from your KiddoSprout project and the computer owner agreed
+to the test. The download page also provides SHA-256 checksums. Blocking can
+force-close a game after a short graceful-close attempt, so unsaved progress
+may be lost.
+
+This current-user tester is transparent and intentionally not tamper-proof. It
+cannot guarantee detection of every game, the signed-in Windows user or an
+administrator can remove it outside the app, and the browser extension can be
+disabled unless a school or organization manages the browser. Test it on
+Windows 10 or Windows 11 before wider sharing.

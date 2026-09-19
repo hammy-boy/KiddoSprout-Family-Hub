@@ -1,0 +1,21 @@
+FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32
+
+ENV NODE_ENV=production \
+    PORT=8789 \
+    BANK_STORE_PATH=/data/bank-links.json
+
+WORKDIR /app
+COPY server/bank-api.mjs /app/bank-api.mjs
+COPY server/account-service-config.mjs /app/account-service-config.mjs
+
+RUN mkdir -p /data \
+    && chown node:node /data \
+    && chmod 0700 /data
+
+USER node
+EXPOSE 8789
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD ["node", "-e", "fetch('http://127.0.0.1:8789/health').then((response)=>process.exit(response.ok?0:1)).catch(()=>process.exit(1))"]
+
+CMD ["node", "/app/bank-api.mjs"]

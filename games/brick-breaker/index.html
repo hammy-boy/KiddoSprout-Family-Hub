@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0c1426">
+<title>Prism Break — Make some color</title>
+<link rel="icon" href="../../kiddosprout_logo_128.png" type="image/png">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../arcade-shell.css">
+<style>.hidden{display:none!important}.arcade-lock{padding:50px 24px;text-align:center;min-height:60vh}.arcade-lock a{color:inherit;text-decoration:underline}</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<main class="hidden" id="main-content" tabindex="-1" data-hub-page>
+<header>
+<a class="brand" href="../index.html">
+<span>▦</span> PRISM<span>BREAK</span>
+</a>
+<a href="../memory-game/index.html">← Little Matches</a>
+<button id="sound" aria-pressed="false">Sound off</button>
+</header>
+<section class="intro">
+<div>
+<p class="eyebrow">ARCADE / 004</p>
+<h1>Make some <em>color.</em>
+</h1>
+</div>
+<p>One paddle. One ball.<br>A wonderfully breakable world.</p>
+</section>
+<div class="layout">
+<section class="game">
+<div class="hud">
+<div>
+<span>SCORE</span>
+<strong id="score">0000</strong>
+</div>
+<div>
+<span>LEVEL</span>
+<strong id="level">01 / 03</strong>
+</div>
+<div>
+<span>LIVES</span>
+<strong id="lives">● ● ●</strong>
+</div>
+<button id="pause" aria-label="Pause game" disabled>Ⅱ</button>
+</div>
+<canvas id="canvas" width="720" height="640" tabindex="0" aria-label="Brick breaker. Move with your mouse, touch, or arrow keys. Press Space to launch and P to pause.">
+</canvas>
+<div id="overlay" class="overlay">
+<div>
+<span class="mark">▰ ▰ ▰<br>▰ ▰ ▰</span>
+<p class="eyebrow" id="tag">A CLASSIC. A LITTLE BRIGHTER.</p>
+<h2 id="title">Let it bounce.</h2>
+<p id="copy">Find your rhythm. Chase every color.<br>Clear three levels, one brick at a time.</p>
+<button id="start" class="primary">Let’s break some bricks <span>↗</span>
+</button>
+</div>
+</div>
+<div class="status">
+<span id="status">YOUR NEXT HIGH SCORE STARTS HERE.</span>
+<span>COAST ARCADE™</span>
+</div>
+</section>
+<aside>
+<section class="panel record">
+<p class="eyebrow">YOUR HIGH SCORE</p>
+<strong id="best">0000</strong>
+<p id="record-note">Make your first mark.</p>
+<div class="line">
+</div>
+<span>THREE LEVELS. ALL YOURS.</span>
+</section>
+<section class="panel progress">
+<p class="eyebrow">THE COLOR COLLECTION</p>
+<div>
+<span id="level-name">01 · First spectrum</span>
+<b id="remaining">45</b>
+</div>
+<div class="meter">
+<i id="fill">
+</i>
+</div>
+<p id="progress-note">Bricks left to brighten your day.</p>
+</section>
+<section class="power panel">
+<span class="power-icon">↔</span>
+<p class="eyebrow">A LITTLE EXTRA REACH</p>
+<h3>Catch the golden drops.</h3>
+<p>Collect a falling ↔ capsule for a wider paddle. Your power-up lasts 12 seconds.</p>
+<strong id="power-state">READY WHEN YOU ARE</strong>
+</section>
+<div class="guide">
+<p class="eyebrow">FIND YOUR RHYTHM</p>
+<p>
+<b>01</b>
+<span>Move your mouse or drag on the board. Arrow keys work too.</span>
+</p>
+<p>
+<b>02</b>
+<span>Hit with the paddle’s edges to send the ball sideways.</span>
+</p>
+<p>
+<b>03</b>
+<span>Striped bricks need two hits. Keep your eye on the ball.</span>
+</p>
+</div>
+</aside>
+</div>
+<footer>
+<span>← → MOVE · SPACE LAUNCH · P PAUSE</span>
+<a href="../racing-game/index.html">Back to Sunset Sprint ↗</a>
+<a href="../index.html" style="color:inherit">All games ↗</a>
+</footer>
+<p id="announce" class="sr-only" role="status" aria-live="polite">
+</p>
+</main>
+<section class="arcade-lock hidden" data-hub-lock role="main">
+<h1 data-lock-title>Parent approval needed</h1>
+<p data-lock-message>Open the child dashboard to request arcade access.</p>
+<a href="../../index.html#child">Back to KiddoSprout</a>
+</section>
+<script src="../arcade-access.js?v=2" data-root="../../" data-files="engine.js,game.js">
+</script>
+</body>
+</html>

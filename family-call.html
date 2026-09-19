@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="referrer" content="no-referrer">
+  <meta name="description" content="KiddoSprout family call pairing preview for a child device.">
+  <title>Family Calls · KiddoSprout</title>
+  <link rel="icon" type="image/png" href="kiddosprout_logo_128.png">
+  <link rel="stylesheet" href="style.css?v=32">
+</head>
+<body class="family-call-page">
+  <a class="skip-link" href="#familyCallMain" data-i18n="nav.skipToContent">Skip to main content</a>
+  <div class="shell family-call-page-shell">
+    <header class="topbar family-call-page-header">
+      <a class="brand family-call-brand" href="index.html" aria-label="Back to KiddoSprout">
+        <img class="brand-mark" src="kiddosprout_logo_128.png" width="128" height="128" alt="" aria-hidden="true" decoding="async">
+        <spando>KiddoSprout Family Calls</span>
+      </a>
+      <a class="tiny button-link" href="index.html">Back to KiddoSprout</a>
+    </header>
+
+    <main class="family-call-page-main" id="familyCallMain" tabindex="-1">
+      <section class="card family-call-card family-call-device-card" aria-labelledby="familyCallDeviceTitle">
+        <div class="card-head">
+          <div>
+            <span class="demo-badge" data-family-call-preview-only>Interactive Call Simulation</span>
+            <h1 id="familyCallDeviceTitle" data-i18n="call.child.title">Call a Parent</h1>
+            <p class="small" data-i18n="call.child.help">Use KiddoSprout internet audio. No phone number is shared or needed.</p>
+          </div>
+          <span class="family-call-icon" aria-hidden="true">☎</span>
+        </div>
+
+        <div class="family-call-shell">
+          <aside class="family-call-preview-note" data-family-call-preview-only aria-labelledby="familyCallPreviewTitle">
+            <strong id="familyCallPreviewTitle">Safe, interactive simulation</strong>
+            <p>This is not a real call. Use a made-up pairing code to test ringing, answering, declining, muting, and hanging up. There is no audio, microphone access, WebRTC, or network signalling.</p>
+          </aside>
+
+          <section class="family-call-pairing" aria-labelledby="familyCallPairingTitle">
+            <div>
+              <h2 id="familyCallPairingTitle" data-i18n="call.pairing.childTitle">Pair This Child Device</h2>
+              <p class="small" id="familyCallPairingHelp" data-i18n="call.pairing.childHelp">A parent creates a one-time pairing code on their own signed-in device. Do not share it with anyone else.</p>
+            </div>
+            <label for="familyCallPairingCode">
+              <span class="small" data-i18n="call.pairing.enter">Enter the parent’s pairing code</span>
+              <input class="family-call-code" id="familyCallPairingCode" name="familyCallPairingCode" type="text" autocomplete="off" minlength="43" maxlength="128" pattern="[A-Za-z0-9_-]{43}|[0-9a-f]{48}" spellcheck="false" autocapitalize="none" placeholder="One-time pairing code" data-i18n-placeholder="call.pairing.codePlaceholder" aria-describedby="familyCallPairingHelp familyCallPairingStatus" disabled>
+            </label>
+            <section class="human-check-card family-call-human-check" aria-labelledby="familyCallHumanCheckTitle">
+              <div>
+                <strong id="familyCallHumanCheckTitle" data-i18n="call.human.title">Safety check</strong>
+                <span data-i18n="call.human.help">Complete this check only if the pairing service asks for it.</span>
+              </div>
+              <button class="human-check-start" id="familyCallHumanCheckStart" type="button" data-state="idle" aria-pressed="false" aria-controls="familyCallHumanCheck" aria-describedby="familyCallHumanCheckStatus" disabled>
+                <span class="human-check-start-box" aria-hidden="true"></span>
+                <span class="human-check-start-label" data-i18n="auth.notRobot">I’m not a robot</span>
+                <span class="human-check-start-shield" aria-hidden="true">🛡️</span>
+              </button>
+              <div class="human-check-widget" id="familyCallHumanCheck" hidden></div>
+              <p class="human-check-status" id="familyCallHumanCheckStatus" role="status" aria-live="polite" aria-atomic="true" data-i18n="call.human.preview">Safety checks are off in this preview.</p>
+            </section>
+            <button class="approve" id="pairFamilyCallDevice" type="button" disabled aria-disabled="true" data-i18n="call.pairing.pair">Pair Device</button>
+            <output id="familyCallPairingStatus" role="status" aria-live="polite" aria-atomic="true">Enter any made-up code to begin the no-audio simulation.</output>
+          </section>
+
+          <div class="family-call-state">
+            <span class="family-call-state-dot" aria-hidden="true"></span>
+            <output id="familyCallDeviceStatus" role="status" aria-live="polite" aria-atomic="true">Not paired · simulation only</output>
+          </div>
+          <output class="family-call-live-status" id="familyCallStatus" role="status" aria-live="polite" aria-atomic="true">No real call is connected. Pair the simulated device to start.</output>
+          <div class="family-call-actions">
+            <button class="approve" id="callParent" type="button" disabled aria-disabled="true" data-i18n="call.callParent">Call Parent</button>
+            <button class="tiny" id="cancelFamilyCall" type="button" disabled aria-disabled="true" data-i18n="call.cancel">Cancel</button>
+          </div>
+          <p class="family-call-limit" data-family-call-preview-only>Simulation only: no parent device needs to be online and no information leaves this tab.</p>
+          <p class="family-call-limit" data-family-call-live-only data-i18n="call.parent.requirement">When calling becomes available, the parent must keep KiddoSprout open on another paired device and both devices must be online.</p>
+          <p class="family-call-safety" data-i18n="call.notEmergency">Not for emergencies. Ask a nearby trusted adult or use local emergency services when urgent help is needed.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <section class="modal family-call-modal" id="familyCallModal" aria-hidden="true" inert>
+    <div class="modal-panel family-call-modal-panel" role="dialog" aria-modal="true" aria-labelledby="familyCallTitle" aria-describedby="familyCallDescription">
+      <div class="modal-head">
+        <div>
+          <h2 id="familyCallTitle" data-i18n="call.modal.title">KiddoSprout Family Call</h2>
+          <p class="small" id="familyCallDescription">
+            <span data-family-call-preview-only>Call simulation only. No audio, microphone, real parent, or network connection is used.</span>
+            <span data-family-call-live-only data-i18n="call.modal.description">Internet audio with a securely paired family device. No phone number is used.</span>
+          </p>
+        </div>
+      </div>
+      <div class="modal-body family-call-stage">
+        <div class="family-call-avatar" aria-hidden="true">KS</div>
+        <output class="family-call-live-status" id="familyCallLiveStatus" role="status" aria-live="polite" aria-atomic="true" data-i18n="call.modal.waiting">Waiting for the secure call service.</output>
+        <time class="family-call-timer" id="familyCallTimer" datetime="PT0S" aria-live="off">00:00</time>
+        <audio id="familyCallRemoteAudio" autoplay playsinline aria-label="Remote family call audio" data-i18n-aria-label="call.remoteAudio"></audio>
+        <section class="family-call-incoming" id="familyCallDemoResponse" data-family-call-preview-only aria-labelledby="familyCallDemoResponseTitle" aria-describedby="familyCallDemoResponseHelp" aria-hidden="true" hidden inert>
+          <h3 id="familyCallDemoResponseTitle">Choose the simulated parent response</h3>
+          <p class="small" id="familyCallDemoResponseHelp">These buttons only change this screen. They do not contact anyone.</p>
+          <div class="family-call-actions">
+            <button class="approve" id="demoAnswerFamilyCall" type="button" disabled aria-disabled="true">Simulate Answer</button>
+            <button class="block" id="demoDeclineFamilyCall" type="button" disabled aria-disabled="true">Simulate Decline</button>
+          </div>
+        </section>
+        <div class="family-call-controls" aria-label="Call controls" data-i18n-aria-label="call.controls">
+          <button class="tiny" id="muteFamilyCall" type="button" aria-pressed="false" disabled>
+            <span aria-hidden="true">🎙</span>
+            <span data-i18n="call.mute">Mute</span>
+          </button>
+          <button class="block" id="hangUpFamilyCall" type="button" disabled>
+            <span aria-hidden="true">☎</span>
+            <span data-i18n="call.end">End Call</span>
+          </button>
+        </div>
+        <p class="family-call-limit" data-family-call-preview-only>This is a silent simulation. No microphone is requested, no audio is played, and no real call or network connection is created.</p>
+        <p class="family-call-safety" data-i18n="call.notEmergency">Not for emergencies. Ask a nearby trusted adult or use local emergency services when urgent help is needed.</p>
+      </div>
+    </div>
+  </section>
+
+  <script src="supabase-config.js?v=7"></script>
+  <script src="human-check.js?v=4"></script>
+  <script src="language-packs.js?v=1"></script>
+  <script src="language-settings.js?v=9"></script>
+  <script src="demo-mode.js?v=2"></script>
+  <script src="family-calls.js?v=1"></script>
+  <script src="family-call-app.js?v=2"></script>
+</body>
+</html>

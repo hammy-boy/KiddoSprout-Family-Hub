@@ -1,0 +1,200 @@
+name: kiddosprout-public-preview
+
+services:
+  kiddosprout:
+    build:
+      context: .
+      dockerfile: Dockerfile.public
+    # Compose Watch currently recreates watched `depends_on` services without
+    # starting them when only this frontend changes. The public stack starts
+    # every declared service independently, and the status command still
+    # requires all five to be healthy before sharing its URL.
+    depends_on: !reset {}
+    # Cover the brief Docker-DNS race possible during a full stack start. This
+    # is deliberately bounded so a broken preview cannot restart forever.
+    restart: "on-failure:5"
+    # The public project is reachable only from its private Docker network and
+    # Cloudflare connector. Keep it separate from the local 127.0.0.1:8001 app.
+    ports: !reset []
+    environment:
+      # Safe by default: the public URL shows fictional data and receives no
+      # account endpoint or CAPTCHA key. Opt in to live auth only after the
+      # hosted Turnstile and account-service dashboards are configured.
+      PUBLIC_DEMO_ONLY: "true"
+      SUPABASE_URL: ""
+      SUPABASE_PUBLISHABLE_KEY: ""
+      SUPABASE_ANON_KEY: ""
+      TURNSTILE_SITE_KEY: ""
+      AUTH_EMAIL_DELIVERY_READY: "false"
+      GOOGLE_AUTH_READY: "false"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+    develop:
+      watch:
+        # Re-run the strict public bundle builder for browser changes. Directly
+        # syncing repository files into nginx would bypass its allow-list.
+        - action: rebuild
+          path: .
+          include:
+            - "*.html"
+            - "*.css"
+            - "*.js"
+            - "*.avif"
+            - "*.jpg"
+            - "*.png"
+            - "*.webp"
+            - "*.webmanifest"
+            - "*.game"
+            - "assets/**"
+            - "games/**"
+          ignore:
+            # The rebuild itself writes this generated bundle. Watching it
+            # would trigger an endless rebuild/recreate loop and brief 502s.
+            - ".cloudflare/**"
+            - "supabase-config.js"
+            - "assets/*.json"
+            - "app_1.html"
+            - "app_2.html"
+            - "app_3.html"
+            - "app_4.html"
+            - "app_5.html"
+            - "app_6.html"
+        - action: rebuild
+          path: ./Dockerfile.public
+        - action: rebuild
+          path: ./nginx.default.conf
+        - action: rebuild
+          path: ./docker-entrypoint.d/99-kiddosprout-config.sh
+        - action: rebuild
+          path: ./scripts/build-public-demo.mjs
+        - action: rebuild
+          path: ./.dockerignore
+
+  voice-api:
+    # Public-demo APIs never need to reach services bound on the developer's
+    # computer. Remove the local-stack host gateway inherited by Compose.
+    extra_hosts: !reset []
+    environment:
+      PUBLIC_DEMO_ONLY: "true"
+      SUPABASE_URL: ""
+      SUPABASE_PUBLISHABLE_KEY: ""
+      SUPABASE_ANON_KEY: ""
+      ELEVENLABS_API_KEY: ""
+      ELEVENLABS_VOICE_ID: ""
+      ELEVENLABS_MODEL_ID: ""
+      ELEVENLABS_ALLOWED_VOICE_IDS: ""
+    develop:
+      watch:
+        - action: rebuild
+          path: ./server/account-service-config.mjs
+        - action: rebuild
+          path: ./server/voice-api.mjs
+        - action: rebuild
+          path: ./scripts/build-voice-story-catalog.mjs
+        - action: rebuild
+          path: ./story-theater.html
+        - action: rebuild
+          path: ./story-library-data.js
+        - action: rebuild
+          path: ./story-ethan-leo-data.js
+        - action: rebuild
+          path: ./Dockerfile.voice
+        - action: rebuild
+          path: ./.dockerignore
+
+  blocker-api:
+    extra_hosts: !reset []
+    environment:
+      PUBLIC_DEMO_ONLY: "true"
+      SUPABASE_URL: ""
+      SUPABASE_PUBLISHABLE_KEY: ""
+      SUPABASE_ANON_KEY: ""
+    volumes:
+      - public_blocker_data:/data
+    develop:
+      watch:
+        - action: rebuild
+          path: ./server/account-service-config.mjs
+        - action: rebuild
+          path: ./server/blocker-api.mjs
+        - action: rebuild
+          path: ./mac-blocker/dist
+        - action: rebuild
+          path: ./windows-blocker/dist
+        - action: rebuild
+          path: ./Dockerfile.blocker
+        - action: rebuild
+          path: ./.dockerignore
+
+  bank-api:
+    extra_hosts: !reset []
+    environment:
+      PUBLIC_DEMO_ONLY: "true"
+      SUPABASE_URL: ""
+      SUPABASE_PUBLISHABLE_KEY: ""
+      SUPABASE_ANON_KEY: ""
+      PLAID_CLIENT_ID: ""
+      PLAID_SECRET: ""
+      PLAID_ENV: "sandbox"
+      PLAID_REDIRECT_URI: ""
+      PLAID_WEBHOOK_URI: ""
+      BANK_TOKEN_ENCRYPTION_KEY: ""
+      BANK_DEMO_MODE: "false"
+    volumes:
+      - public_bank_data:/data
+    develop:
+      watch:
+        - action: rebuild
+          path: ./server/account-service-config.mjs
+        - action: rebuild
+          path: ./server/bank-api.mjs
+        - action: rebuild
+          path: ./Dockerfile.bank
+        - action: rebuild
+          path: ./.dockerignore
+
+  cloudflared:
+    # Deliberately update this reviewed tag instead of silently changing the
+    # connector every time Docker pulls `latest`.
+    image: cloudflare/cloudflared:2026.8.3@sha256:51c9cefcb4569df44e1ad403ab1d3d8065aa8e84339bcfc6aee75502e1140339
+    pull_policy: missing
+    # TCP 443 is more reliable on school/office Wi-Fi than QUIC/UDP 7844.
+    command: tunnel --no-autoupdate --protocol http2 --metrics 127.0.0.1:2000 --url http://kiddosprout:80
+    # Keep this connector independent from the replaceable nginx container.
+    # Compose Watch can then rebuild website files without recreating the Quick
+    # Tunnel and changing the address shared with colleagues.
+    init: true
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    # The connector can reach only nginx. It cannot address the private bank,
+    # voice, or blocker services directly; nginx remains the sole API gateway.
+    networks:
+      - web
+    # Recover from a short-lived failure without turning a temporary share into
+    # an indefinitely auto-starting public service after every Docker restart.
+    restart: "on-failure:5"
+    stop_grace_period: 10s
+    # `/ready` returns success only after cloudflared has an active connection
+    # to Cloudflare's edge. Use cloudflared's own client so the minimal image
+    # does not need a shell, curl, or wget.
+    healthcheck:
+      test: ["CMD", "cloudflared", "tunnel", "--metrics", "127.0.0.1:2000", "ready"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 15s
+    profiles:
+      - public
+
+volumes:
+  public_blocker_data:
+  public_bank_data:

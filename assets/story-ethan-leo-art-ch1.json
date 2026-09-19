@@ -1,0 +1,65 @@
+[
+  {
+    "sceneNumber": 1,
+    "title": "The Dare",
+    "filename": "assets/story-ethan-leo-c01-s01.jpg",
+    "alt": "Ethan hesitates with a flashlight while Leo eagerly leads the way down the basement stairs during a storm.",
+    "caption": "Leo’s excitement draws cautious Ethan into the dark basement."
+  },
+  {
+    "sceneNumber": 2,
+    "title": "The Descent",
+    "filename": "assets/story-ethan-leo-c01-s02.jpg",
+    "alt": "Ethan and Leo explore a dusty basement filled with cobwebbed shelves, old jars, tools, and boxes.",
+    "caption": "The brothers descend into a basement crowded with forgotten things."
+  },
+  {
+    "sceneNumber": 3,
+    "title": "Relics of the Past",
+    "filename": "assets/story-ethan-leo-c01-s03.jpg",
+    "alt": "Ethan and Leo discover their grandfather’s sailor photograph, medals, journals, and a hidden locked chest.",
+    "caption": "Grandpa’s old relics reveal the first clues to his secret past."
+  },
+  {
+    "sceneNumber": 4,
+    "title": "The Chest",
+    "filename": "assets/story-ethan-leo-c01-s04.jpg",
+    "alt": "Leo lifts the lid of an antique chest as Ethan watches a dusty oilcloth bundle appear inside.",
+    "caption": "The broken lock gives way, revealing a mysterious wrapped bundle."
+  },
+  {
+    "sceneNumber": 5,
+    "title": "The Map",
+    "filename": "assets/story-ethan-leo-c01-s05.jpg",
+    "alt": "Ethan and Leo kneel beside the open chest and study an old map marked with islands, spirals, and stars.",
+    "caption": "A fragile map turns Grandpa’s hidden past into a new adventure."
+  },
+  {
+    "sceneNumber": 6,
+    "title": "The Hook",
+    "filename": "assets/story-ethan-leo-c01-s06.jpg",
+    "alt": "Ethan holds the folded map while he and Leo shine a flashlight toward a creak in the empty basement.",
+    "caption": "A sudden creak makes the brothers wonder whether they awakened a secret."
+  },
+  {
+    "sceneNumber": 7,
+    "title": "The Uneasy Silence",
+    "filename": "assets/story-ethan-leo-c01-s07.jpg",
+    "alt": "Ethan grips the map and flashlight while he and Leo stand uneasily among old medals, photographs, and trunks.",
+    "caption": "The basement’s heavy silence finally dims even Leo’s brave grin."
+  },
+  {
+    "sceneNumber": 8,
+    "title": "The Whisper in the Dark",
+    "filename": "assets/story-ethan-leo-c01-s08.jpg",
+    "alt": "A draft spins dust through Ethan’s flashlight beam as he guides Leo toward the basement stairs.",
+    "caption": "A whisper-like draft sends the brothers hurrying for the stairs."
+  },
+  {
+    "sceneNumber": 9,
+    "title": "The Escape",
+    "filename": "assets/story-ethan-leo-c01-s09.jpg",
+    "alt": "Outside the closed basement door, Ethan holds the map over his open backpack while Leo catches his breath.",
+    "caption": "Safe upstairs, Ethan and Leo realize their adventure has only begun."
+  }
+]

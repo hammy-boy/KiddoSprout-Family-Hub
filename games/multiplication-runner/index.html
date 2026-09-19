@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Math Runner · KiddoSprout</title>
+<link rel="icon" href="../../kiddosprout_logo_128.png" type="image/png">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../arcade-shell.css">
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<main class="hidden" id="main-content" tabindex="-1" data-hub-page>
+<header>
+<a href="../index.html">← All games</a>
+<span>KIDDOSPROUT · LEARN &amp; PLAY</span>
+</header>
+<div class="intro">
+<p class="eyebrow">A LITTLE RUN. A LOT OF DISCOVERY.</p>
+<h1>Math<br>
+<em>Runner</em>
+</h1>
+<p>Explore four islands. Jump along the trail. Solve maths to reach the next checkpoint.</p>
+</div>
+<section class="adventure-map" aria-label="Adventure map">
+<div class="map-heading">
+<strong>Your maths islands</strong>
+<span id="map-progress" aria-live="polite">Choose an island to explore</span>
+</div>
+<img class="island-art" src="map.svg" alt="Four islands connected by a winding trail across the sea">
+<div class="islands">
+<button type="button" data-island="add"><span aria-hidden="true">🌳</span><b>Addition Woods</b><small>+ · Put numbers together</small></button>
+<button type="button" data-island="subtract"><span aria-hidden="true">🏔️</span><b>Subtraction Peaks</b><small>− · Find what remains</small></button>
+<button type="button" data-island="multiply"><span aria-hidden="true">🌻</span><b>Multiplication Meadow</b><small>× · Discover equal groups</small></button>
+<button type="button" data-island="divide"><span aria-hidden="true">🔮</span><b>Division Valley</b><small>÷ · Share equally</small></button>
+</div>
+<div id="checkpoints" aria-label="Ten trail checkpoints"></div>
+</section>
+<section class="settings" aria-label="Run settings">
+<label>Choose your maths<select id="operation">
+<option value="multiply">Multiplication ×</option>
+<option value="add">Addition +</option>
+<option value="subtract">Subtraction −</option>
+<option value="divide">Division ÷</option>
+</select>
+</label>
+<label>
+<span id="table-label">Times table</span>
+<select id="table">
+<option value="mixed">Mixed · 2–12</option>
+</select>
+</label>
+<label>Your pace<select id="pace">
+<option value="practice">Practice · no timer</option>
+<option value="sprint">Sprint · 12 seconds</option>
+</select>
+</label>
+<button id="start">Start a run →</button>
+</section>
+<div class="stats">
+<span id="round">10 questions per run</span>
+<span id="stars">★ 0 first tries</span>
+<span id="best">Best: —</span>
+<button id="pause" disabled>Pause</button>
+</div>
+<section class="world" aria-label="Moving adventure trail">
+<canvas id="landscape" width="900" height="330" role="img" aria-label="A fox running through the island towards a maths checkpoint" aria-describedby="trail-note">A fox follows the island trail towards the next maths checkpoint.</canvas>
+<div class="trail-hud">
+<span id="trail-note" aria-live="polite">Jump over logs and collect trail coins.</span>
+<b id="coins" aria-live="polite">● 0</b>
+</div>
+<div class="prompt">
+<span id="instruction">Ready to explore?</span>
+<h2 id="question">2 × 3 = ?</h2>
+<div id="timer" aria-live="off">Take your time. Every step counts.</div>
+</div>
+<div class="lanes" id="answers">
+</div>
+</section>
+<div class="trail-controls">
+<button id="jump" type="button" disabled>Jump ↑ <small>Space / tap</small></button>
+<span>Answer with keys 1–3 or tap a gate. Each correct answer opens the next part of the trail.</span>
+</div>
+<section class="feedback" aria-live="polite" aria-atomic="true">
+<h2 id="message">Choose your table, then start!</h2>
+<p id="explanation">Tap an answer, or use keys 1, 2, and 3. Practice mode lets you think for as long as you need.</p>
+</section>
+<button id="next" class="hidden">Next question →</button>
+<p class="footnote">Your best score stays in this browser. First-try stars celebrate what you know; corrections help you learn.</p>
+</main>
+<section class="lock hidden" data-hub-lock role="main">
+<h1 data-lock-title>Parent approval needed</h1>
+<p data-lock-message>Open the child dashboard to request arcade access.</p>
+<a href="../../index.html#child">Back to KiddoSprout</a>
+</section>
+<script src="../arcade-access.js?v=2" data-root="../../" data-files="engine.js,runner.js,game.js">
+</script>
+</body>
+</html>

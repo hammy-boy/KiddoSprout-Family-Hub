@@ -1,0 +1,40 @@
+KIDDOSPROUT BLOCKER — START HERE
+
+VERIFY THIS TEST DOWNLOAD
+
+- Read BUILD-INFO.txt before opening the app. It records the exact version,
+  supported Mac architectures, signing status, and included source paths.
+- In Terminal, open this extracted folder and run:
+  shasum -a 256 -c SHA256SUMS.txt
+- Every line must say OK. The download is an ad-hoc-signed, unnotarized colleague
+  test build, not an Apple-reviewed release.
+- Gatekeeper can therefore refuse the first launch. Do not disable Gatekeeper.
+  After that blocked attempt, open System Settings → Privacy & Security and use
+  Open Anyway for KiddoSprout Blocker only when the checksum above matched, then
+  confirm the one-time warning. A publicly distributed build needs Developer ID
+  signing and Apple notarization instead of this test-only exception.
+
+1. Move “KiddoSprout Blocker.app” into Applications.
+2. Sign into the child’s Standard Mac account and open the app with a parent present.
+3. Create the same 4–8 digit PIN used for the protected download, then choose Start Blocking.
+4. Choose Start at Login so protection returns after sign-in.
+
+WEBSITE GAME PROTECTION IN GOOGLE CHROME
+
+1. Open chrome://extensions in Chrome.
+2. Turn on Developer mode.
+3. Choose Load unpacked.
+4. Select the “KiddoSprout Browser Blocker” folder beside this file.
+5. Keep the extension switched on. Opening a blocked game website will show “Blocked by KiddoSprout.”
+
+TEST IT
+
+- Open a known game website such as poki.com. It should be replaced by the KiddoSprout blocked page.
+- A normal Google search remains available, but launching a playable Google game is blocked.
+- Launching a detected Mac game closes it and shows “Blocked this app.”
+
+IMPORTANT
+
+This is a local Mac test build. The Mac app detects games using their App Store category, bundle information, launcher name, and install location. Apps with missing or misleading metadata may need to be added manually.
+
+A child can disable an unpacked Chrome extension. Enforced browser protection requires a parent-administered Chrome policy or a managed browser profile. The parent PIN protects only the app's normal controls: the signed-in Mac user can force quit their own process, disable their user Login Item, or clear their Keychain/configuration without that PIN. A Mac administrator can always remove the app. This transparent test build is not tamper-proof.

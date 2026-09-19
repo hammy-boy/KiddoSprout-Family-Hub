@@ -1,60 +1,122 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <script src="local-docker-redirect.js?v=1"></script>
+  <script>
+    (function () {
+      "use strict";
+      function readState(storage, key) {
+        try {
+          const value = JSON.parse(storage.getItem(key) || "null");
+          return value && typeof value === "object" && !Array.isArray(value) ? value : null;
+        } catch (error) {
+          return null;
+        }
+      }
+      function readActiveState() {
+        let demoState = null;
+        let safePreferences = null;
+        let demoActive = false;
+        try {
+          demoState = readState(window.sessionStorage, "kiddosprout.demo.v1.family");
+          demoActive = Boolean(demoState) || window.sessionStorage.getItem("kiddosprout.demo.v1.active") === "1";
+        } catch (error) {
+          // Storage can be unavailable in restricted browser contexts.
+        }
+        try {
+          safePreferences = readState(window.localStorage, "kiddosproutPreferences");
+        } catch (error) {
+          // Fall back to automatic day/night mode.
+        }
+        return demoActive ? demoState : safePreferences;
+      }
+      function applyTheme() {
+        const state = readActiveState();
+        const selectedTheme = ["auto", "day", "night"].includes(state?.themeMode) ? state.themeMode : "auto";
+        const hour = new Date().getHours();
+        const resolvedTheme = selectedTheme === "auto" ? (hour >= 19 || hour < 7 ? "night" : "day") : selectedTheme;
+        document.documentElement.classList.toggle("theme-night", resolvedTheme === "night");
+        document.documentElement.classList.toggle("theme-day", resolvedTheme === "day");
+        document.documentElement.dataset.themeMode = selectedTheme;
+      }
+      applyTheme();
+      if (typeof window.setInterval === "function") window.setInterval(applyTheme, 60000);
+      window.addEventListener?.("pageshow", applyTheme);
+      document.addEventListener?.("visibilitychange", () => {
+        if (document.visibilityState === "visible") applyTheme();
+      });
+      window.addEventListener?.("storage", (event) => {
+        if (event?.key === "kiddosproutPreferences") applyTheme();
+      });
+    }());
+  </script>
   <title>Creator Studio | KiddoSprout</title>
   <link rel="icon" type="image/png" href="kiddosprout_logo_128.png">
-  <link rel="stylesheet" href="kid-hubs.css">
+  <link rel="stylesheet" href="kid-hubs.css?v=10">
+  <style>
+    .record-status[data-state="error"] { color: #9e3329; border-color: #e4aca4; background: #fff0ed; }
+    .record-status[data-state="success"] { color: #075e58; border-color: #86cdbf; background: #e5f8f2; }
+    .record-controls button:disabled { color: #4e616b; background: #dce7e3; border-color: #cad9d4; opacity: 1; }
+    html.theme-night .record-status[data-state="error"] { color: #ffb6aa; border-color: #80554f; background: #3a2424; }
+    html.theme-night .record-status[data-state="success"] { color: #9aeadc; border-color: #3d786f; background: #123630; }
+    html.theme-night .record-controls button:disabled { color: #cbdadd; background: #38515a; border-color: #496b75; opacity: 1; }
+  </style>
 </head>
 <body>
-  <main class="hub-shell hidden" data-hub-page>
-    <nav class="topbar"><a class="back-link" href="index.html#child">Back to Child Site</a></nav>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <main class="hub-shell hidden" id="main-content" tabindex="-1" data-hub-page>
+    <nav class="topbar" aria-label="Hub navigation"><a class="back-link" href="index.html#child">Back to Child Site</a></nav>
     <section class="hero"><h1>Creator Studio</h1><p>Plan a safe short clip, write a tiny script, and send the idea to a parent before anything is shared.</p></section>
-    <section class="record-studio" aria-label="Record a safe clip">
+    <section class="record-studio" aria-label="Record a safe clip" aria-describedby="creator-safety">
       <div class="record-stage">
-        <video id="camera-preview" autoplay muted playsinline></video>
-        <video id="clip-playback" controls playsinline class="hidden"></video>
+        <video id="camera-preview" autoplay muted playsinline aria-label="Camera or shared-screen preview"></video>
+        <video id="clip-playback" controls playsinline class="hidden" aria-label="Recorded clip playback"></video>
         <div class="record-placeholder" id="record-placeholder">
           <strong>Camera is off</strong>
           <span>Ask a parent before recording. Nothing uploads from this page.</span>
         </div>
-        <span class="record-badge hidden" id="record-badge">Recording</span>
+        <span class="record-badge hidden" id="record-badge" aria-hidden="true">Recording</span>
       </div>
       <div class="record-controls">
         <label>
           <span class="small">Clip title</span>
-          <input id="clip-title" type="text" maxlength="48" placeholder="My safe fact clip">
+          <input id="clip-title" type="text" maxlength="48" autocomplete="off" aria-describedby="creator-safety" placeholder="My safe fact clip">
         </label>
         <label>
           <span class="small">Tiny script</span>
-          <textarea id="clip-script" rows="4" placeholder="Write what you will say. No school name, address, password, or private family details."></textarea>
+          <textarea id="clip-script" rows="4" maxlength="600" aria-describedby="creator-safety" placeholder="Write what you will say. No school name, address, password, or private family details."></textarea>
         </label>
-        <div class="source-choice" aria-label="Recording source">
-          <button class="source-option active" id="camera-source" type="button">Camera</button>
-          <button class="source-option" id="screen-source" type="button">Screen Share</button>
+        <div class="source-choice" role="group" aria-label="Recording source">
+          <button class="source-option active" id="camera-source" type="button" aria-pressed="true">Camera</button>
+          <button class="source-option" id="screen-source" type="button" aria-pressed="false">Screen Share</button>
         </div>
         <div class="record-actions">
-          <button class="kid-link" id="camera-btn" type="button">Turn Camera On</button>
+          <button class="kid-link" id="camera-btn" type="button" aria-pressed="false">Turn Camera On</button>
           <button class="primary-action" id="record-btn" type="button" disabled>Start Recording</button>
           <button class="kid-link" id="download-clip" type="button" disabled>Save Clip</button>
         </div>
         <button class="kid-link full-width" id="send-review" type="button" disabled>Send to Parent Review</button>
-        <p class="record-status" id="record-status">Ready when a parent says it is okay.</p>
+        <p class="record-status" id="record-status" role="status" aria-live="polite" aria-atomic="true">Ready when a parent says it is okay.</p>
       </div>
     </section>
     <section class="grid">
-      <article class="panel"><strong>Clip Idea</strong><p>Pick one thing you know well and explain it in 20 seconds.</p></article>
-      <article class="panel"><strong>Safety Check</strong><p>No school name, address, passwords, uniforms, or private family details.</p></article>
-      <article class="panel"><strong>Parent Review</strong><p>Use Parent Chat on the child site to ask before uploading anywhere.</p></article>
+      <article class="panel"><h2>Clip Idea</h2><p>Pick one thing you know well and explain it in 20 seconds.</p></article>
+      <article class="panel" id="creator-safety"><h2>Safety Check</h2><p>No school name, address, passwords, uniforms, or private family details.</p></article>
+      <article class="panel"><h2>Parent Review</h2><p>Use Parent Chat on the child site to ask before uploading anywhere.</p></article>
     </section>
   </main>
-  <section class="lock-card hidden" data-hub-lock><div><h1 data-lock-title>Parent approval needed</h1><p data-lock-message>A request was sent to the parent dashboard.</p><a class="primary-action" href="index.html#child">Back to Child Site</a></div></section>
-  <script src="kid-hub-gate.js"></script>
+  <section class="lock-card hidden" data-hub-lock role="main"><div><h1 data-lock-title>Parent approval needed</h1><p data-lock-message>A request was sent to the parent dashboard.</p><a class="primary-action" href="index.html#child">Back to Child Site</a></div></section>
+  <script src="supabase-config.js?v=7"></script>
+  <script src="demo-mode.js?v=2"></script>
+  <script src="auth-session.js?v=7"></script>
+  <script src="family-state-cloud.js?v=2"></script>
+  <script src="kid-hub-gate.js?v=9"></script>
   <script>
     KiddoHubGate.protect("studio", "Creator Studio");
 
-    const stateKey = "kiddosproutState";
     const preview = document.getElementById("camera-preview");
     const playback = document.getElementById("clip-playback");
     const placeholder = document.getElementById("record-placeholder");
@@ -74,30 +136,61 @@
     let recordedBlob = null;
     let clipUrl = "";
     let recordingSource = "camera";
+    let captureGeneration = 0;
+    let captureInProgress = false;
 
-    function setStatus(message) {
+    function setStatus(message, state = "notice") {
       statusText.textContent = message;
+      statusText.dataset.state = state;
+    }
+
+    function stopStreamTracks(stream) {
+      stream?.getTracks?.().forEach((track) => track.stop());
+    }
+
+    function setCapturePromptBusy(busy) {
+      captureInProgress = busy;
+      cameraButton.disabled = busy;
+      cameraSourceButton.disabled = busy;
+      screenSourceButton.disabled = busy;
+      cameraButton.setAttribute("aria-busy", String(busy));
     }
 
     function stopActiveStream() {
-      if (!cameraStream) return;
-      cameraStream.getTracks().forEach((track) => track.stop());
+      captureGeneration += 1;
+      const activeStream = cameraStream;
       cameraStream = null;
+      stopStreamTracks(activeStream);
       preview.srcObject = null;
+      preview.classList.add("hidden");
       cameraButton.textContent = recordingSource === "screen" ? "Start Screen Share" : "Turn Camera On";
+      cameraButton.setAttribute("aria-pressed", "false");
       recordButton.disabled = true;
-      placeholder.classList.remove("hidden");
+      setCapturePromptBusy(false);
+      placeholder.classList.toggle("hidden", Boolean(recordedBlob && clipUrl && !playback.classList.contains("hidden")));
+    }
+
+    function watchCaptureEnd(stream, stoppedMessage) {
+      const activeStream = cameraStream;
+      stream?.getVideoTracks?.()[0]?.addEventListener("ended", () => {
+        if (cameraStream !== activeStream) return;
+        if (recorder && recorder.state === "recording") stopRecording();
+        else stopActiveStream();
+        setStatus(stoppedMessage);
+      }, { once: true });
     }
 
     function setRecordingSource(source) {
       if (recorder && recorder.state === "recording") {
-        setStatus("Stop recording before changing source.");
+        setStatus("Stop recording before changing source.", "error");
         return;
       }
       stopActiveStream();
       recordingSource = source;
       cameraSourceButton.classList.toggle("active", source === "camera");
       screenSourceButton.classList.toggle("active", source === "screen");
+      cameraSourceButton.setAttribute("aria-pressed", String(source === "camera"));
+      screenSourceButton.setAttribute("aria-pressed", String(source === "screen"));
       cameraButton.textContent = source === "screen" ? "Start Screen Share" : "Turn Camera On";
       placeholder.querySelector("strong").textContent = source === "screen" ? "Screen share is off" : "Camera is off";
       placeholder.querySelector("span").textContent = source === "screen"
@@ -107,84 +200,161 @@
     }
 
     async function startCapture() {
+      if (captureInProgress) return;
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        setStatus("This browser does not support recording.");
+        setStatus("This browser does not support recording.", "error");
         return;
       }
+      const generation = ++captureGeneration;
+      const requestedStreams = [];
+      let microphoneReady = true;
+      setCapturePromptBusy(true);
+      setStatus(recordingSource === "screen" ? "Choose the screen, window, or tab to share…" : "Waiting for camera permission…");
       try {
         if (recordingSource === "screen") {
           if (!navigator.mediaDevices.getDisplayMedia) {
-            setStatus("This browser does not support screen sharing.");
+            setStatus("This browser does not support screen sharing.", "error");
             return;
           }
           const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+          requestedStreams.push(screenStream);
+          if (generation !== captureGeneration) {
+            stopStreamTracks(screenStream);
+            return;
+          }
           let mixedTracks = [...screenStream.getVideoTracks(), ...screenStream.getAudioTracks()];
           try {
             const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            requestedStreams.push(micStream);
             mixedTracks = [...screenStream.getVideoTracks(), ...screenStream.getAudioTracks(), ...micStream.getAudioTracks()];
           } catch (error) {
-            setStatus("Screen share ready without microphone.");
+            microphoneReady = false;
+          }
+          if (generation !== captureGeneration) {
+            requestedStreams.forEach(stopStreamTracks);
+            return;
           }
           cameraStream = new MediaStream(mixedTracks);
-          screenStream.getVideoTracks()[0]?.addEventListener("ended", () => {
-            if (recorder && recorder.state === "recording") stopRecording();
-            stopActiveStream();
-            setStatus("Screen sharing stopped.");
-          });
+          watchCaptureEnd(screenStream, "Screen sharing stopped.");
         } else {
-          cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+          // Ask for video separately so a missing or denied microphone cannot
+          // make an otherwise working camera appear unavailable.
+          const videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+          requestedStreams.push(videoStream);
+          if (generation !== captureGeneration) {
+            stopStreamTracks(videoStream);
+            return;
+          }
+          let cameraTracks = [...videoStream.getVideoTracks()];
+          try {
+            const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            requestedStreams.push(micStream);
+            cameraTracks = [...cameraTracks, ...micStream.getAudioTracks()];
+          } catch (error) {
+            microphoneReady = false;
+          }
+          if (generation !== captureGeneration) {
+            requestedStreams.forEach(stopStreamTracks);
+            return;
+          }
+          cameraStream = new MediaStream(cameraTracks);
+          watchCaptureEnd(videoStream, "Camera disconnected. Turn it on again when it is available.");
+        }
+        if (generation !== captureGeneration || !cameraStream) {
+          requestedStreams.forEach(stopStreamTracks);
+          return;
         }
         preview.srcObject = cameraStream;
         preview.classList.remove("hidden");
+        playback.pause();
+        playback.currentTime = 0;
         playback.classList.add("hidden");
         placeholder.classList.add("hidden");
         cameraButton.textContent = recordingSource === "screen" ? "Stop Screen Share" : "Turn Camera Off";
+        cameraButton.setAttribute("aria-pressed", "true");
         recordButton.disabled = false;
-        setStatus(recordingSource === "screen" ? "Screen share ready. Keep private tabs closed." : "Camera ready. Keep the clip short and safe.");
+        setStatus(recordingSource === "screen"
+          ? (microphoneReady ? "Screen share ready. Keep private tabs closed." : "Screen share ready without microphone. Keep private tabs closed.")
+          : (microphoneReady
+            ? "Camera ready. Keep the clip short and safe."
+            : "Camera ready without microphone sound. Keep the clip short and safe."), "success");
       } catch (error) {
-        setStatus(recordingSource === "screen" ? "Screen sharing was cancelled or blocked." : "Camera permission was not allowed, or no camera was found.");
+        requestedStreams.forEach(stopStreamTracks);
+        setStatus(recordingSource === "screen" ? "Screen sharing was cancelled or blocked." : "Camera permission was not allowed, or no camera was found.", "error");
+      } finally {
+        if (generation === captureGeneration) setCapturePromptBusy(false);
       }
     }
 
     function startRecording() {
       if (!cameraStream) {
-        setStatus("Turn the camera on first.");
+        setStatus(recordingSource === "screen" ? "Start screen sharing first." : "Turn the camera on first.", "error");
+        return;
+      }
+      if (typeof MediaRecorder !== "function") {
+        setStatus("This browser can show the preview but cannot record a clip.", "error");
         return;
       }
       recordedChunks = [];
       recordedBlob = null;
       if (clipUrl) URL.revokeObjectURL(clipUrl);
       clipUrl = "";
-      const options = MediaRecorder.isTypeSupported("video/webm;codecs=vp9,opus")
-        ? { mimeType: "video/webm;codecs=vp9,opus" }
-        : {};
-      recorder = new MediaRecorder(cameraStream, options);
-      recorder.addEventListener("dataavailable", (event) => {
-        if (event.data && event.data.size > 0) recordedChunks.push(event.data);
-      });
-      recorder.addEventListener("stop", () => {
-        recordedBlob = new Blob(recordedChunks, { type: recorder.mimeType || "video/webm" });
-        clipUrl = URL.createObjectURL(recordedBlob);
-        playback.src = clipUrl;
-        playback.classList.remove("hidden");
-        preview.classList.add("hidden");
+      try {
+        const canUseWebm = typeof MediaRecorder.isTypeSupported === "function"
+          && MediaRecorder.isTypeSupported("video/webm;codecs=vp9,opus");
+        const currentRecorder = new MediaRecorder(cameraStream, canUseWebm ? { mimeType: "video/webm;codecs=vp9,opus" } : {});
+        recorder = currentRecorder;
+        currentRecorder.addEventListener("dataavailable", (event) => {
+          if (event.data && event.data.size > 0) recordedChunks.push(event.data);
+        });
+        currentRecorder.addEventListener("error", () => {
+          recordBadge.classList.add("hidden");
+          setStatus("The browser stopped recording unexpectedly. Switch capture off and try again.", "error");
+        }, { once: true });
+        currentRecorder.addEventListener("stop", () => {
+          const mimeType = currentRecorder.mimeType || "video/webm";
+          recorder = null;
+          recordedBlob = new Blob(recordedChunks, { type: mimeType });
+          recordBadge.classList.add("hidden");
+          if (!recordedBlob.size) {
+            recordedBlob = null;
+            stopActiveStream();
+            setStatus("The clip was empty. Turn the camera on and try again.", "error");
+            return;
+          }
+          clipUrl = URL.createObjectURL(recordedBlob);
+          playback.src = clipUrl;
+          playback.classList.remove("hidden");
+          preview.classList.add("hidden");
+          placeholder.classList.add("hidden");
+          downloadButton.disabled = false;
+          reviewButton.disabled = false;
+          recordButton.textContent = "Record Another Clip";
+          stopActiveStream();
+          setStatus("Clip recorded and capture switched off. Watch it back before sharing with a parent.", "success");
+        });
+        currentRecorder.start();
+        recordBadge.classList.remove("hidden");
+        recordButton.textContent = "Stop Recording";
+        downloadButton.disabled = true;
+        reviewButton.disabled = true;
+        setStatus("Recording now. Stop when you finish your sentence.");
+      } catch (error) {
+        recorder = null;
         recordBadge.classList.add("hidden");
-        downloadButton.disabled = false;
-        reviewButton.disabled = false;
-        recordButton.textContent = "Record Again";
-        setStatus("Clip recorded. Watch it back before sharing with a parent.");
-      });
-      recorder.start();
-      recordBadge.classList.remove("hidden");
-      recordButton.textContent = "Stop Recording";
-      downloadButton.disabled = true;
-      reviewButton.disabled = true;
-      setStatus("Recording now. Stop when you finish your sentence.");
+        recordButton.textContent = "Start Recording";
+        setStatus("Recording could not start in this browser. You can still write your idea.", "error");
+      }
     }
 
     function stopRecording() {
       if (recorder && recorder.state === "recording") {
-        recorder.stop();
+        try {
+          recorder.stop();
+        } catch (error) {
+          recordBadge.classList.add("hidden");
+          setStatus("Recording could not stop cleanly. Switch capture off and try again.", "error");
+        }
       }
     }
 
@@ -198,23 +368,26 @@
 
     async function saveClip() {
       if (!recordedBlob || !clipUrl) {
-        setStatus("Record a clip first.");
+        setStatus("Record a clip first.", "error");
         return;
       }
-      const fileName = safeFileName(titleInput.value) + ".webm";
+      const useMp4 = /^video\/mp4\b/i.test(recordedBlob.type || "");
+      const extension = useMp4 ? ".mp4" : ".webm";
+      const mimeType = useMp4 ? "video/mp4" : "video/webm";
+      const fileName = safeFileName(titleInput.value) + extension;
       if (window.showSaveFilePicker) {
         try {
           const handle = await window.showSaveFilePicker({
             suggestedName: fileName,
             types: [{
-              description: "WebM video",
-              accept: { "video/webm": [".webm"] }
+              description: useMp4 ? "MP4 video" : "WebM video",
+              accept: { [mimeType]: [extension] }
             }]
           });
           const writable = await handle.createWritable();
           await writable.write(recordedBlob);
           await writable.close();
-          setStatus("Clip saved using Finder/File Explorer. A parent should review it before it is shared.");
+          setStatus("Clip saved using Finder/File Explorer. A parent should review it before it is shared.", "success");
           return;
         } catch (error) {
           if (error.name === "AbortError") {
@@ -229,38 +402,81 @@
       document.body.appendChild(link);
       link.click();
       link.remove();
-      setStatus("Clip saved to the browser downloads folder. A parent should review it before it is shared.");
+      setStatus("Clip saved to the browser downloads folder. A parent should review it before it is shared.", "success");
     }
 
-    function sendParentReview() {
+    async function sendParentReview() {
+      reviewButton.disabled = true;
+      reviewButton.setAttribute("aria-busy", "true");
       try {
-        const family = JSON.parse(localStorage.getItem(stateKey) || "null");
+        const family = KiddoHubGate.readState();
         const child = family && family.children && family.children[family.activeChild];
         if (!child) {
-          setStatus("Open KiddoSprout and add a child profile first.");
+          setStatus(KiddoHubGate.demoActive()
+            ? "Open the main KiddoSprout demo and choose its fictional child profile first."
+            : "Open KiddoSprout and add a child profile first.", "error");
+          reviewButton.disabled = false;
           return;
         }
         const title = titleInput.value.trim() || "Untitled clip";
         const script = scriptInput.value.trim();
-        child.pending = Number(child.pending || 0) + 1;
-        child.creatorQueue = child.creatorQueue || [];
-        child.creatorQueue.unshift(title);
-        child.currentRequest = [
+        const request = [
           "Creator Clip",
           `${child.name} recorded "${title}" for parent review${script ? ": " + script.slice(0, 90) : "."}`,
           "C",
           "creatorReview",
           title
         ];
-        localStorage.setItem(stateKey, JSON.stringify(family));
-        setStatus("Review request sent to the parent dashboard. Keep the clip private until approved.");
+        const requests = Array.isArray(child.requests)
+          ? child.requests.filter((queued) => Array.isArray(queued)).slice(0, 100)
+          : [];
+        const legacyRequest = Array.isArray(child.currentRequest)
+          && !/^no request(?: yet)?$/i.test(String(child.currentRequest[0] || "").trim())
+          ? child.currentRequest
+          : null;
+        if (legacyRequest && !requests.some((queued) => JSON.stringify(queued) === JSON.stringify(legacyRequest))) {
+          requests.push(legacyRequest);
+        }
+        const alreadyWaiting = requests.some((queued) => queued[3] === "creatorReview" && queued[4] === title);
+        if (alreadyWaiting) {
+          reviewButton.disabled = true;
+          setStatus(`“${title}” is already waiting in the parent dashboard.`, "success");
+          return;
+        }
+        if (requests.length >= 100) {
+          setStatus("The parent request list is full. Ask a parent to review the waiting requests first.", "error");
+          reviewButton.disabled = false;
+          return;
+        }
+        requests.unshift(request);
+        child.requests = requests;
+        child.pending = requests.length;
+        child.currentRequest = [...requests[0]];
+        child.creatorQueue = Array.isArray(child.creatorQueue)
+          ? child.creatorQueue.map((item) => String(item).slice(0, 48)).slice(0, 99)
+          : [];
+        if (!child.creatorQueue.includes(title)) child.creatorQueue.unshift(title);
+        if (!await Promise.resolve(KiddoHubGate.writeState(family))) throw new Error("Review request could not be saved.");
+        reviewButton.disabled = true;
+        setStatus(KiddoHubGate.demoActive()
+          ? "Practice review saved in this demo tab. No real parent was contacted."
+          : "Review request sent to the parent dashboard. Keep the clip private until approved.", "success");
       } catch (error) {
-        setStatus("Could not send the review request. Try again from the child site.");
+        reviewButton.disabled = false;
+        setStatus(KiddoHubGate.demoActive()
+          ? "The practice review could not be saved. No real parent was contacted."
+          : "Could not send the review request. Try again from the child site.", "error");
+      } finally {
+        reviewButton.removeAttribute("aria-busy");
       }
     }
 
     cameraButton.addEventListener("click", () => {
-      if (cameraStream) stopActiveStream();
+      if (recorder && recorder.state === "recording") stopRecording();
+      else if (cameraStream) {
+        stopActiveStream();
+        setStatus(recordingSource === "screen" ? "Screen sharing switched off." : "Camera switched off.", "success");
+      }
       else startCapture();
     });
 
@@ -274,7 +490,11 @@
 
     downloadButton.addEventListener("click", saveClip);
     reviewButton.addEventListener("click", sendParentReview);
-    window.addEventListener("beforeunload", stopActiveStream);
+    window.addEventListener("pagehide", () => {
+      if (recorder && recorder.state === "recording") stopRecording();
+      stopActiveStream();
+      if (clipUrl) URL.revokeObjectURL(clipUrl);
+    });
   </script>
 </body>
 </html>

@@ -2,5 +2,16 @@
 *.pyc
 __pycache__/
 .git/
-.env
+.env*
+assets/*.json
+assets/family-tech-hub.png
+family-tech-hub.png
+docker-compose.override.yml
 supabase-config.js
+node_modules
+.cloudflare/
+mac-blocker/build
+windows-blocker/kiddosprout-blocker.exe
+windows-blocker/.kiddosprout-windows-build.*
+supabase/.temp
+supabase/.branches
