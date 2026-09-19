@@ -1,0 +1,6 @@
+(() => {
+ const script=document.currentScript,root=script.dataset.root,files=script.dataset.files.split(',').filter(Boolean);
+ function load(src){return new Promise((resolve,reject)=>{const tag=document.createElement('script');tag.src=src;tag.onload=resolve;tag.onerror=reject;document.body.append(tag)})}
+ function allowed(){try{const state=JSON.parse(localStorage.getItem('kiddosproutState')||'null'),child=state?.children?.[state.activeChild];return !!state?.parentAccountCreated&&child?.appRules?.arcade==='allowed'}catch{return false}}
+ load(root+'kid-hub-gate.js').then(async()=>{KiddoHubGate.protect('arcade','Sprout Arcade');if(!allowed()){document.querySelector('[data-hub-page]').classList.add('hidden');document.querySelector('[data-hub-lock]').classList.remove('hidden');return}for(const file of files)await load(file);const timer=setInterval(()=>{if(!allowed()){clearInterval(timer);location.reload()}},1000)}).catch(()=>{const lock=document.querySelector('[data-hub-lock]');lock.classList.remove('hidden');document.querySelector('[data-hub-page]').classList.add('hidden');document.querySelector('[data-lock-message]').textContent='The arcade could not load. Please return to KiddoSprout and try again.'});
+})();
