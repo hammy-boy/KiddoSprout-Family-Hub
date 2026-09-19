@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#081c29">
+<title>Meteor Patrol — A small ship, a big mission</title>
+<link rel="icon" href="../../kiddosprout_logo_128.png" type="image/png">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../arcade-shell.css">
+<style>.hidden{display:none!important}.arcade-lock{padding:50px 24px;text-align:center;min-height:60vh}.arcade-lock a{color:inherit;text-decoration:underline}</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<main class="hidden" id="main-content" tabindex="-1" data-hub-page>
+<header>
+<a href="../index.html" class="brand">
+<span>⌁</span> METEOR <b>PATROL</b>
+</a>
+<a href="../snake-game/index.html">← Orbit Snake</a>
+<span class="edition">ARCADE / 006</span>
+</header>
+<section class="intro">
+<div>
+<p class="eyebrow">A SMALL SHIP. A BIG MISSION.</p>
+<h1>Keep the cosmos <em>clear.</em>
+</h1>
+</div>
+<p>Find a gap. Follow your instincts.<br>There’s a whole little world counting on you.</p>
+</section>
+<div class="layout">
+<section class="game">
+<div class="hud">
+<div>
+<span>MISSION SCORE</span>
+<strong id="score">0000</strong>
+</div>
+<div>
+<span>HULL INTEGRITY</span>
+<strong id="health">◆ ◆ ◆</strong>
+</div>
+<button id="pause" aria-label="Pause mission" disabled>Ⅱ</button>
+</div>
+<div class="flight-deck">
+<canvas id="space" width="600" height="700" tabindex="0" aria-label="Space shooter. Move with Left and Right arrows or A and D. Your ship fires automatically. Press Space for a shield and P to pause.">
+</canvas>
+<div class="overlay" id="overlay">
+<div>
+<span class="mission-mark">⌁</span>
+<p class="eyebrow" id="tag">CALLING ALL LITTLE EXPLORERS</p>
+<h2 id="title">You’re up, pilot.</h2>
+<p id="copy">Three waves of drifting meteors.<br>One brave ship. Let’s make some space.</p>
+<button id="start" class="primary">Ready for takeoff <span>↗</span>
+</button>
+</div>
+</div>
+</div>
+<div class="status">
+<span id="status">AUTO-FIRE ON · PILOT, TAKE THE CONTROLS</span>
+<span>DEEP SPACE DIVISION</span>
+</div>
+<div class="touch">
+<button id="left" aria-label="Hold to move left">←</button>
+<button id="shield" aria-label="Activate shield">◇ SHIELD</button>
+<button id="right" aria-label="Hold to move right">→</button>
+</div>
+</section>
+<aside>
+<section class="panel record">
+<p class="eyebrow">YOUR BEST MISSION</p>
+<strong id="best">0000</strong>
+<p id="best-note">Big journeys start with a little courage.</p>
+<div class="line">
+</div>
+<span>NO TWO FLIGHTS ARE QUITE ALIKE.</span>
+</section>
+<section class="panel mission">
+<p class="eyebrow">FLIGHT PLAN</p>
+<div class="wave">
+<strong id="wave">01</strong>
+<span id="wave-name">A quiet corner<br>of the cosmos</span>
+</div>
+<div class="meter">
+<i id="progress">
+</i>
+</div>
+<p id="remaining">10 meteors to clear</p>
+</section>
+<section class="panel shield-card">
+<span class="shield-symbol">◇</span>
+<p class="eyebrow">YOUR LITTLE SAFETY NET</p>
+<h3>A moment of invincibility.</h3>
+<p>Press Space or tap SHIELD for 3 seconds of protection. It takes 15 seconds from activation to recharge.</p>
+<strong id="shield-state">SHIELD READY</strong>
+</section>
+<div class="guide">
+<p class="eyebrow">THE PILOT’S HANDBOOK</p>
+<p>
+<b>01</b>
+<span>Your ship fires automatically. Focus on aiming and dodging.</span>
+</p>
+<p>
+<b>02</b>
+<span>Move with arrows, A/D, or drag across the flight deck.</span>
+</p>
+<p>
+<b>03</b>
+<span>Protect the base too: an escaping meteor costs a hull point, even with your shield on.</span>
+</p>
+</div>
+</aside>
+</div>
+<footer>
+<span>← → MOVE · SPACE SHIELD · P PAUSE</span>
+<a href="../racing-game/index.html">Back to Sunset Sprint ↗</a>
+<a href="../index.html" style="color:inherit">All games ↗</a>
+</footer>
+<p id="announce" class="sr-only" role="status" aria-live="polite">
+</p>
+</main>
+<section class="arcade-lock hidden" data-hub-lock role="main">
+<h1 data-lock-title>Parent approval needed</h1>
+<p data-lock-message>Open the child dashboard to request arcade access.</p>
+<a href="../../index.html#child">Back to KiddoSprout</a>
+</section>
+<script src="../arcade-access.js?v=2" data-root="../../" data-files="engine.js,game.js">
+</script>
+</body>
+</html>

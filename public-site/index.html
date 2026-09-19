@@ -1,0 +1,1584 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KiddoSprout</title>
+  <link rel="icon" type="image/png" href="kiddosprout_logo_128.png">
+  <link rel="apple-touch-icon" href="kiddosprout_logo_128.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#3fa35b">
+  <script>
+    (function () {
+      "use strict";
+      function readPreference(storage, key) {
+        try {
+          const value = JSON.parse(storage?.getItem?.(key) || "null");
+          return value && typeof value === "object" && !Array.isArray(value) ? value : null;
+        } catch (error) {
+          return null;
+        }
+      }
+      let demoState = null;
+      let safePreferences = null;
+      let demoActive = false;
+      try {
+        demoState = readPreference(window.sessionStorage, "kiddosprout.demo.v1.family");
+        demoActive = Boolean(demoState)
+          || window.sessionStorage.getItem("kiddosprout.demo.v1.active") === "1";
+      } catch (error) {
+        // Restricted storage safely uses automatic day/night mode.
+      }
+      try {
+        safePreferences = readPreference(window.localStorage, "kiddosproutPreferences");
+      } catch (error) {
+        // Restricted storage safely uses automatic day/night mode.
+      }
+      const state = demoActive
+        ? demoState
+        : safePreferences;
+      const supportedLanguages = ["en-GB", "es", "fr", "pt", "de"];
+      const language = supportedLanguages.includes(state?.languageMode) ? state.languageMode : "en-GB";
+      document.documentElement.lang = language;
+      const choice = ["auto", "day", "night"].includes(state?.themeMode) ? state.themeMode : "auto";
+      const hour = new Date().getHours();
+      const resolved = choice === "auto" ? (hour >= 19 || hour < 7 ? "night" : "day") : choice;
+      document.documentElement.classList.add(`theme-${resolved}`);
+      document.documentElement.dataset.themeMode = choice;
+      document.querySelector('meta[name="theme-color"]')?.setAttribute(
+        "content",
+        resolved === "night" ? "#0b202c" : "#3fa35b"
+      );
+    }());
+  </script>
+  <link rel="stylesheet" href="style.css?v=32">
+</head>
+<body class="public-demo-only">
+  <a class="skip-link" href="#main-content" data-i18n="nav.skipToContent">Skip to main content</a>
+  <script>
+    (function () {
+      const root = document.documentElement;
+      const resolved = root.classList.contains("theme-night") ? "night" : "day";
+      document.body.classList.add(`theme-${resolved}`);
+      root.classList.remove("theme-day", "theme-night");
+    }());
+  </script>
+  <section class="demo-banner" id="demoBanner" aria-label="Colleague Demo Mode" hidden>
+    <div class="demo-banner-copy">
+      <span class="demo-badge" data-i18n="demo.badge">Colleague Demo</span>
+      <div>
+        <strong data-i18n="demo.title">You’re exploring a fictional family hub.</strong>
+        <span data-i18n="demo.help">Try the workflows with fictional data. Changes stay in this tab; real accounts, real banks, private messages, and device changes stay off.</span>
+      </div>
+    </div>
+    <div class="demo-banner-actions">
+      <button class="tiny" id="resetDemo" type="button" data-i18n="demo.reset">Reset demo</button>
+      <button class="secondary" id="exitDemo" type="button" data-public-demo-account-action data-i18n="demo.exit">Exit demo</button>
+    </div>
+  </section>
+  <section class="pwa-update-notice" id="pwaUpdateNotice" aria-labelledby="pwaUpdateTitle" aria-describedby="pwaUpdateMessage" hidden>
+    <div>
+      <strong id="pwaUpdateTitle" data-i18n="pwa.update.title">KiddoSprout update ready</strong>
+      <p id="pwaUpdateMessage" role="status" aria-live="polite" aria-atomic="true" data-i18n="pwa.update.ready">Update and reload when you are ready to use the newest version.</p>
+    </div>
+    <button class="primary" id="pwaUpdateNow" type="button" data-i18n="pwa.update.action">Update &amp; Reload</button>
+  </section>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <img class="brand-mark" src="kiddosprout_logo_128.png" width="128" height="128" alt="" aria-hidden="true" decoding="async">
+        <span id="siteTitle">KiddoSprout Family Hub</span>
+      </div>
+      <nav class="nav parent-only" aria-label="Dashboard sections" data-i18n-aria-label="nav.dashboardSections">
+        <button class="active" data-jump="today" data-i18n="nav.today" aria-current="location">Today</button>
+        <button data-jump="controls" data-i18n="nav.controls">Controls</button>
+        <button data-jump="reports" data-i18n="nav.reports">Reports</button>
+      </nav>
+      <div class="top-actions">
+        <button class="icon-button" id="settingsToggle" type="button" aria-label="Open settings menu" data-i18n-aria-label="settings.openMenu" aria-expanded="false" aria-controls="settingsMenu" aria-haspopup="dialog">⚙</button>
+        <button class="tiny" id="modeToggle">Child Site</button>
+        <div class="settings-menu" id="settingsMenu" role="dialog" aria-modal="false" aria-label="Quick settings" data-i18n-aria-label="settings.menu" aria-hidden="true" inert>
+          <div class="settings-menu-head">
+            <strong data-i18n="settings.title">Settings</strong>
+            <button class="icon-button small-icon" id="settingsClose" type="button" aria-label="Close settings menu" data-i18n-aria-label="settings.closeMenu">×</button>
+          </div>
+          <label>
+            <span class="small" data-i18n="settings.theme">Theme</span>
+            <select id="quickThemeModeSetting" aria-describedby="quickThemeModeHelp quickThemeModeStatus">
+              <option value="auto" data-i18n="settings.theme.auto">Auto by time</option>
+              <option value="day" data-i18n="settings.theme.day">Day</option>
+              <option value="night" data-i18n="settings.theme.night">Night</option>
+            </select>
+          </label>
+          <output class="theme-mode-status theme-mode-status-compact" id="quickThemeModeStatus" for="quickThemeModeSetting" aria-live="polite" aria-atomic="true" data-resolved-theme="day">Auto now using Day</output>
+          <p class="settings-field-help" id="quickThemeModeHelp" data-i18n="settings.theme.help">Auto switches to Night at 19:00 and Day at 07:00.</p>
+          <label>
+            <span class="small" data-i18n="settings.language">Language</span>
+            <select id="quickLanguageModeSetting" data-language-setting aria-describedby="quickLanguageModeHelp">
+              <option value="en-GB" data-i18n="settings.language.english">English (UK)</option>
+              <option value="es" data-i18n="settings.language.spanish">Spanish</option>
+              <option value="fr" data-i18n="settings.language.french">French</option>
+              <option value="pt" data-i18n="settings.language.portuguese">Portuguese</option>
+              <option value="de" data-i18n="settings.language.german">German</option>
+            </select>
+          </label>
+          <p class="settings-field-help" id="quickLanguageModeHelp" data-i18n="settings.language.help">Changes dashboard navigation, account controls, and settings. Activity content stays in its original language.</p>
+          <button class="settings-link" id="quickParentSettings" type="button" data-i18n="settings.parent">Parent settings</button>
+          <button class="settings-link parent-only" id="logoutKiddoSprout" type="button" data-demo-protected="Live accounts are off" data-public-demo-account-action data-i18n="settings.logout">Log out</button>
+          <a class="settings-link" href="recipe.html" data-demo-protected="Real recipe accounts are off" data-public-demo-preview data-demo-preview-title="Open the interactive tab-only FlavorNest practice book" data-i18n="settings.recipes">FlavorNest recipes</a>
+          <a class="settings-link" href="app_7.html" data-demo-protected="Real bank connections are off" data-public-demo-preview data-demo-preview-title="Open the interactive Smart Spending practice bank" data-i18n="settings.spending">Smart Spending</a>
+          <p class="demo-menu-note" data-i18n="demo.menuHelp">Live accounts stay off; test settings use fictional data stored only in this tab.</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="hero" id="today">
+      <picture>
+        <source srcset="family-tech-hub-v01232923b55c.avif" type="image/avif">
+        <source srcset="family-tech-hub-v0fb9d85f0464.webp" type="image/webp">
+        <img class="hero-photo" src="family-tech-hub-v5fffdb82973c.jpg" width="1672" height="941" alt="Family using technology together in a calm home setting" decoding="async" fetchpriority="high">
+      </picture>
+      <div class="hero-content">
+        <h1 id="heroTitle">KiddoSprout helps kids grow online.</h1>
+        <p id="heroDescription" data-i18n="hero.parent.description">A brighter family hub for parent approvals, child requests, homework focus, recipe ideas, smart spending, safe games, and calm screen-time routines.</p>
+        <div class="hero-actions">
+          <button class="primary parent-only" data-jump="controls" data-i18n="hero.review">Review Requests</button>
+          <button class="secondary parent-only" id="heroChildMode" data-i18n="hero.child">Open Child Mode</button>
+        </div>
+      </div>
+    </section>
+
+    <main id="main-content" tabindex="-1">
+      <div class="app-layout">
+        <aside class="feature-sidebar" aria-label="Feature folders" data-i18n-aria-label="sidebar.title">
+          <div class="sidebar-title" data-i18n="sidebar.title">Feature folders</div>
+          <details class="feature-folder child-only" open>
+            <summary data-i18n="sidebar.start">Start</summary>
+            <button data-jump="childStart" data-i18n="sidebar.childHome">Child Home</button>
+            <button data-jump="dailySpark" data-i18n="sidebar.dailySpark">Daily Spark</button>
+            <button data-jump="hubs" data-i18n="sidebar.kidHubs">Kid Hubs</button>
+            <button data-jump="avatarStudio" data-i18n="sidebar.avatar">Avatar Studio</button>
+          </details>
+          <details class="feature-folder child-only" open>
+            <summary data-i18n="sidebar.goals">Goals</summary>
+            <button data-jump="badges" data-i18n="sidebar.badges">Badges</button>
+            <button data-jump="achievementHub" data-i18n="sidebar.achievements">Achievements</button>
+            <button data-jump="streaks" data-i18n="sidebar.streaks">Streaks</button>
+            <button data-jump="todayPlanSection" data-i18n="sidebar.todayPlan">Today Plan</button>
+            <button data-jump="dailyGoals" data-i18n="sidebar.goalBoard">Goal Board</button>
+          </details>
+          <details class="feature-folder child-only" open>
+            <summary data-i18n="sidebar.learning">Learning & Care</summary>
+            <button data-jump="homework" data-i18n="sidebar.homework">Homework</button>
+            <button data-jump="focusSession" data-i18n="sidebar.focus">Focus Session</button>
+            <button data-jump="familyCallChild" data-i18n="sidebar.familyCall">Family Calls</button>
+            <button data-jump="parentChat" data-i18n="sidebar.parentChat">Parent Chat</button>
+            <button data-jump="parentNote" data-i18n="sidebar.parentNote">Parent Note</button>
+            <button data-jump="dailySchedule" data-i18n="sidebar.schedule">Schedule</button>
+            <button data-jump="helpSafety" data-i18n="sidebar.help">Help & Safety</button>
+            <button data-jump="checkIn" data-i18n="sidebar.checkIn">Check-In</button>
+            <button data-jump="reading" data-i18n="sidebar.reading">Reading Log</button>
+            <button data-jump="healthyBreaks" data-i18n="sidebar.breaks">Healthy Breaks</button>
+            <button data-jump="chores" data-i18n="sidebar.chores">Chores</button>
+            <button data-jump="kindness" data-i18n="sidebar.kindness">Kindness Quest</button>
+          </details>
+          <details class="feature-folder parent-only" open>
+            <summary data-i18n="sidebar.parentHome">Parent Home</summary>
+            <button data-jump="parentOverview" data-i18n="sidebar.overview">Overview</button>
+            <button data-jump="parentStatus" data-i18n="sidebar.familyStatus">Family Status</button>
+            <button data-jump="familyCallParent" data-i18n="sidebar.familyCall">Family Calls</button>
+            <button data-jump="controls" data-i18n="nav.controls">Controls</button>
+            <button data-jump="reports" data-i18n="nav.reports">Reports</button>
+          </details>
+          <details class="feature-folder parent-only" open>
+            <summary data-i18n="sidebar.setup">Setup</summary>
+            <button data-jump="manageChildren" data-i18n="sidebar.manageChildren">Manage Children</button>
+            <button data-jump="advancedSettings" data-i18n="settings.advanced">Advanced Settings</button>
+            <button data-jump="deviceProtection" data-i18n="sidebar.deviceProtection">Device Protection</button>
+            <button data-jump="childContentSettings" data-i18n="sidebar.childContent">Child Content</button>
+            <button data-jump="familyScheduleSettings" data-i18n="sidebar.schedule">Schedule</button>
+          </details>
+        </aside>
+        <div class="content-flow">
+      <section class="card login-only auth-card" aria-label="Log in" data-i18n-aria-label="auth.login.region" style="margin-bottom: 18px;" data-public-demo-account-action>
+        <div class="card-head">
+          <div>
+            <h2 data-i18n="auth.login.title">Log In to KiddoSprout</h2>
+          </div>
+        </div>
+        <div class="signup-panel">
+          <form class="signup-form" id="loginForm" novalidate>
+            <p class="passcode-status" id="loginSupabaseStatus" aria-live="polite"></p>
+            <div class="auth-fields" id="accountLoginFields">
+            <section class="google-auth-choice" id="googleLoginChoice" hidden aria-labelledby="googleLoginTitle">
+              <span class="google-auth-sparkle" aria-hidden="true">✨</span>
+              <div>
+                <strong id="googleLoginTitle" data-i18n="auth.google.loginTitle">A quick way back in</strong>
+                <span data-i18n="auth.google.loginHelp">Use your grown-up Google account.</span>
+              </div>
+              <button class="google-auth-button" id="googleLogin" type="button" aria-describedby="googleLoginStatus" disabled>
+                <span class="google-auth-mark" aria-hidden="true">G</span>
+                <span data-i18n="auth.google.continue">Continue with Google</span>
+              </button>
+              <p class="oauth-status" id="googleLoginStatus" role="status" aria-live="polite"></p>
+            </section>
+            <div class="auth-divider" id="loginAuthDivider" hidden><span data-i18n="auth.google.loginDivider">or use email and password</span></div>
+            <label class="small" for="loginEmail" data-i18n="auth.email">Parent email</label>
+            <input id="loginEmail" type="email" autocomplete="email" maxlength="254" placeholder="example@gmail.com" required>
+            <label class="small" for="loginPassword" data-i18n="auth.password">Password</label>
+            <input id="loginPassword" type="password" autocomplete="current-password" maxlength="128" placeholder="Password" required>
+            <label class="view-password setting-view">
+              <input id="viewLoginPassword" type="checkbox">
+              <span data-i18n="auth.viewPassword">View password</span>
+            </label>
+            <section class="human-check-card" aria-labelledby="loginHumanCheckTitle">
+              <div>
+                <strong id="loginHumanCheckTitle" data-i18n="auth.safety">Safety check</strong>
+                <span data-i18n="auth.tickBeforeLogin">Tick the box before logging in.</span>
+              </div>
+              <button class="human-check-start" id="loginHumanCheckStart" type="button" data-state="idle" aria-pressed="false" aria-controls="loginHumanCheck" aria-describedby="loginHumanCheckStatus">
+                <span class="human-check-start-box" aria-hidden="true"></span>
+                <span class="human-check-start-label" data-i18n="auth.notRobot">I’m not a robot</span>
+                <span class="human-check-start-shield" aria-hidden="true">🛡️</span>
+              </button>
+              <div class="human-check-widget" id="loginHumanCheck" hidden></div>
+              <p class="human-check-status" id="loginHumanCheckStatus" aria-live="polite" data-i18n="auth.tickToStart">Tick the box to start.</p>
+            </section>
+            <div class="choice-row">
+              <button class="approve" id="loginKiddoSprout" type="submit" aria-describedby="loginHumanCheckStatus loginStatus" data-i18n="auth.login">Log In</button>
+              <button class="tiny" id="loginToSignup" type="button" data-i18n="auth.create">Create Account</button>
+              <button class="tiny" id="resendLoginEmail" type="button" data-i18n="auth.resend">Resend Confirmation Email</button>
+              <button class="tiny" id="forgotAccountPassword" type="button" aria-expanded="false" aria-controls="accountPasswordRecoveryPanel" hidden data-i18n="auth.accountRecovery.open">Forgot password?</button>
+            </div>
+            </div>
+            <section class="email-confirmation-card" id="accountPasswordRecoveryPanel" hidden inert aria-hidden="true" aria-labelledby="accountPasswordRecoveryTitle">
+              <span class="confirmation-icon" aria-hidden="true">↻</span>
+              <div>
+                <h3 id="accountPasswordRecoveryTitle" data-i18n="auth.accountRecovery.title">Reset account password</h3>
+                <p id="accountPasswordRecoveryHelp" data-i18n="auth.accountRecovery.requestHelp">Enter your parent email above, complete the safety check, then request a secure reset link.</p>
+                <div id="accountPasswordRecoveryRequestFields" aria-hidden="false">
+                  <div class="choice-row">
+                    <button class="approve" id="sendAccountPasswordRecovery" type="button" aria-describedby="loginHumanCheckStatus accountPasswordRecoveryStatus" data-i18n="auth.accountRecovery.send">Send reset email</button>
+                    <button class="tiny" id="cancelAccountPasswordRecovery" type="button" data-i18n="auth.accountRecovery.cancel">Cancel</button>
+                  </div>
+                </div>
+                <div id="accountPasswordUpdateFields" hidden inert aria-hidden="true">
+                  <label class="small" for="accountPasswordNew" data-i18n="auth.accountRecovery.newPassword">New password</label>
+                  <input id="accountPasswordNew" type="password" autocomplete="new-password" minlength="8" maxlength="128" required aria-describedby="accountPasswordRecoveryStatus">
+                  <label class="small" for="accountPasswordConfirm" data-i18n="auth.accountRecovery.confirmPassword">Confirm new password</label>
+                  <input id="accountPasswordConfirm" type="password" autocomplete="new-password" minlength="8" maxlength="128" required aria-describedby="accountPasswordRecoveryStatus">
+                  <label class="view-password setting-view">
+                    <input id="viewAccountPassword" type="checkbox">
+                    <span data-i18n="auth.accountRecovery.viewPassword">View new password</span>
+                  </label>
+                  <div class="choice-row">
+                    <button class="approve" id="updateAccountPassword" type="submit" aria-describedby="accountPasswordRecoveryStatus" data-i18n="auth.accountRecovery.update">Update password</button>
+                    <button class="tiny" id="cancelAccountPasswordUpdate" type="button" data-i18n="auth.accountRecovery.cancel">Cancel</button>
+                  </div>
+                </div>
+                <p class="passcode-status" id="accountPasswordRecoveryStatus" role="status" aria-live="polite" aria-atomic="true"></p>
+              </div>
+            </section>
+            <p class="passcode-status" id="loginStatus" role="status" aria-live="polite" aria-atomic="true"></p>
+          </form>
+          <aside class="signup-note">
+            <span class="demo-badge" data-i18n="auth.preview.badge">Colleague preview</span>
+            <h3 data-i18n="auth.preview.title">Tour a ready-made family hub</h3>
+            <p class="small" data-i18n="auth.preview.help">Explore fictional dashboard data without creating an account. Nothing is added to your real family or login.</p>
+            <button class="primary demo-entry-button" id="exploreDemo" type="button" data-i18n="auth.demo">Explore Demo</button>
+            <p class="demo-entry-footnote" data-i18n="auth.preview.footnote">This-tab-only sample data · protected services disabled</p>
+            <hr class="demo-entry-divider">
+            <h3 data-i18n="auth.preview.accountTitle">One Account</h3>
+            <p class="small" data-i18n="auth.preview.accountHelp">Ready to use KiddoSprout for a real family? Log in or create a private parent account.</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="card signup-only auth-card" aria-label="Sign up" data-i18n-aria-label="auth.signup.region" style="margin-bottom: 18px;" data-public-demo-account-action>
+        <div class="card-head">
+          <div>
+            <h2 id="signupEntryTitle" data-i18n="auth.signup.title">Create Parent Account</h2>
+            <p class="small" data-i18n="auth.signup.help">Set up the parent dashboard passcode and family profile.</p>
+          </div>
+        </div>
+        <div class="signup-panel">
+          <form class="signup-form" id="signupForm" novalidate>
+            <section class="google-auth-choice google-auth-choice-signup" id="googleSignupChoice" hidden aria-labelledby="googleSignupTitle">
+              <span class="google-auth-sparkle" aria-hidden="true">🌱</span>
+              <div>
+                <strong id="googleSignupTitle" data-i18n="auth.google.signupTitle">Grow your family hub</strong>
+                <span data-i18n="auth.google.signupHelp">Google confirms your grown-up email—no confirmation message needed.</span>
+              </div>
+              <button class="google-auth-button" id="googleSignup" type="button" aria-describedby="googleSignupStatus" disabled>
+                <span class="google-auth-mark" aria-hidden="true">G</span>
+                <span data-i18n="auth.google.continue">Continue with Google</span>
+              </button>
+              <p class="oauth-status" id="googleSignupStatus" role="status" aria-live="polite"></p>
+            </section>
+            <div class="auth-divider" id="signupAuthDivider" hidden><span data-i18n="auth.google.signupDivider">or create an account with email</span></div>
+            <section class="google-onboarding-intro" id="googleOnboardingIntro" hidden aria-labelledby="googleOnboardingTitle">
+              <span aria-hidden="true">🎉</span>
+              <div>
+                <h3 id="googleOnboardingTitle" data-i18n="auth.google.onboardingTitle">Google confirmed your email!</h3>
+                <p data-i18n="auth.google.onboardingHelp">Finish your family details. Create a separate KiddoSprout password and parent PIN—never use your Google password here.</p>
+              </div>
+            </section>
+            <section class="auth-track-intro" id="signupTrackIntro" aria-labelledby="signupTrackTitle">
+              <strong id="signupTrackTitle" data-i18n="auth.signup.emailTrackTitle">Email and password signup</strong>
+              <span id="signupTrackHelp" data-i18n="auth.signup.emailTrackHelp">Create your account here, then use the confirmation link sent to your inbox.</span>
+            </section>
+            <p class="passcode-status" id="signupEmailAvailability" role="status" aria-live="polite" hidden></p>
+            <div class="auth-fields" id="signupDetailsFields">
+              <ol class="signup-progress" id="signupProgress" aria-label="Email account setup progress" data-i18n-aria-label="auth.signup.progress.label">
+                <li class="active" data-signup-progress="details" aria-current="step" aria-label="Step 1 of 3: Family details. Current step." data-i18n-aria-label="auth.signup.progress.detailsCurrent"><span>1</span><strong data-i18n="auth.signup.progress.details">Family details</strong></li>
+                <li data-signup-progress="safety" aria-label="Step 2 of 3: Safety check. Upcoming step." data-i18n-aria-label="auth.signup.progress.safetyUpcoming"><span>2</span><strong data-i18n="auth.signup.progress.safety">Safety check</strong></li>
+                <li data-signup-progress="email" aria-label="Step 3 of 3: Confirm email. Upcoming step." data-i18n-aria-label="auth.signup.progress.emailUpcoming"><span>3</span><strong data-i18n="auth.signup.progress.email">Confirm email</strong></li>
+              </ol>
+              <label class="small" for="signupFamily" data-i18n="auth.signup.familyName">Family name</label>
+              <input id="signupFamily" type="text" autocomplete="organization" maxlength="80" placeholder="Family name" data-i18n-placeholder="auth.signup.familyNamePlaceholder" required>
+              <label class="small" for="signupParent" data-i18n="auth.signup.parentName">Parent name</label>
+              <input id="signupParent" type="text" autocomplete="name" maxlength="80" placeholder="Parent name" data-i18n-placeholder="auth.signup.parentNamePlaceholder" required>
+              <label class="small" id="signupEmailLabel" for="signupEmail" data-i18n="auth.email">Parent email</label>
+              <input id="signupEmail" type="email" autocomplete="email" maxlength="254" placeholder="example@gmail.com" required>
+              <label class="small" for="signupParentTwo" data-i18n="auth.signup.secondParentName">Second parent name</label>
+              <input id="signupParentTwo" type="text" autocomplete="section-second-parent name" maxlength="80" placeholder="Second parent name" data-i18n-placeholder="auth.signup.secondParentNamePlaceholder">
+              <label class="small" for="signupEmailTwo" data-i18n="auth.signup.secondParentEmail">Second parent email</label>
+              <input id="signupEmailTwo" type="email" autocomplete="section-second-parent email" maxlength="254" placeholder="example@gmail.com">
+              <label class="small" id="signupPasswordLabel" for="signupPassword" data-i18n="auth.signup.accountPassword">Account password</label>
+              <input id="signupPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" placeholder="At least 8 characters" data-i18n-placeholder="auth.signup.passwordPlaceholder" required>
+              <label class="small google-onboarding-only" id="signupPasswordConfirmLabel" for="signupPasswordConfirm" data-i18n="auth.signup.confirmPassword" hidden>Confirm KiddoSprout password</label>
+              <input class="google-onboarding-only" id="signupPasswordConfirm" type="password" autocomplete="new-password" minlength="8" maxlength="128" placeholder="Type the same password again" data-i18n-placeholder="auth.signup.confirmPasswordPlaceholder" hidden>
+              <label class="small" for="signupPasscode" data-i18n="auth.signup.parentPasscode">Parent dashboard passcode</label>
+              <input id="signupPasscode" type="password" inputmode="numeric" autocomplete="off" minlength="4" maxlength="8" pattern="[0-9]{4,8}" placeholder="4–8 digits" data-i18n-placeholder="auth.signup.passcodePlaceholder" required>
+              <label class="view-password setting-view">
+                <input id="viewSignupPassword" type="checkbox">
+                <span data-i18n="auth.signup.viewSecrets">View password and passcode</span>
+              </label>
+            </div>
+            <section class="human-check-card" id="signupHumanCheckCard" aria-labelledby="signupHumanCheckTitle">
+              <div>
+                <strong id="signupHumanCheckTitle" data-i18n="auth.confirmBot">Confirm you are not a bot</strong>
+                <span data-i18n="auth.protect">Tick the box to protect your family account.</span>
+              </div>
+              <button class="human-check-start" id="signupHumanCheckStart" type="button" data-state="idle" aria-pressed="false" aria-controls="signupHumanCheck" aria-describedby="signupHumanCheckStatus">
+                <span class="human-check-start-box" aria-hidden="true"></span>
+                <span class="human-check-start-label" data-i18n="auth.notRobot">I’m not a robot</span>
+                <span class="human-check-start-shield" aria-hidden="true">🛡️</span>
+              </button>
+              <div class="human-check-widget" id="signupHumanCheck" hidden></div>
+              <p class="human-check-status" id="signupHumanCheckStatus" aria-live="polite" data-i18n="auth.tickToStart">Tick the box to start.</p>
+            </section>
+            <section class="email-confirmation-card" id="emailConfirmationCard" hidden inert aria-hidden="true" aria-labelledby="emailConfirmationTitle">
+              <span class="confirmation-icon" aria-hidden="true">✓</span>
+              <div>
+                <h3 id="emailConfirmationTitle" data-i18n="auth.signup.confirmationTitle">Now confirm your email</h3>
+                <p><span data-i18n="auth.signup.confirmationSent">We sent a secure link to</span> <strong id="confirmationEmail"></strong>. <span data-i18n="auth.signup.confirmationReturn">Open it, then come back here.</span></p>
+              </div>
+              <div class="choice-row">
+                <button class="approve" id="checkEmailConfirmation" type="button" aria-describedby="signupHumanCheckStatus signupStatus" data-i18n="auth.signup.confirmationContinue">I've Confirmed — Continue</button>
+                <button class="tiny" id="resendSignupEmail" type="button" data-i18n="auth.resend">Resend Confirmation Email</button>
+                <button class="tiny" id="restartEmailSignup" type="button" data-i18n="auth.signup.confirmationChange">Change email / Start over</button>
+              </div>
+            </section>
+            <div class="choice-row" id="emailSignupActions">
+              <button class="approve" id="createAccount" type="submit" aria-describedby="signupHumanCheckStatus signupStatus" data-i18n="auth.signup.createAndSend">Create Account &amp; Send Email</button>
+            </div>
+            <div class="choice-row" id="googleOnboardingActions" hidden>
+              <button class="approve google-finish-button" id="finishGoogleSetup" type="button" aria-describedby="signupStatus" data-i18n="auth.signup.finishGoogle">Finish Family Setup</button>
+            </div>
+            <div class="choice-row" id="signupUniversalActions">
+              <button class="tiny" id="downloadSignup" type="button" aria-describedby="signupInstallStatus" data-i18n="auth.install">Install App</button>
+              <button class="tiny" id="signupToLogin" type="button" data-i18n="auth.login">Log In</button>
+              <button class="tiny" id="signupToChild" type="button" data-i18n="auth.backChild">Back to Child Site</button>
+            </div>
+            <p class="install-status" id="signupInstallStatus" role="status" aria-live="polite" aria-atomic="true"></p>
+            <p class="passcode-status" id="signupStatus" role="status" aria-live="polite" aria-atomic="true"></p>
+          </form>
+          <aside class="signup-note">
+            <h3 id="signupNoteTitle" data-i18n="auth.signup.noteTitle">Three quick steps</h3>
+            <p class="small" id="signupNoteText" data-i18n="auth.signup.noteHelp">Add family details, complete the safety check, then create your account and confirm your email.</p>
+            <ul class="signup-benefits">
+              <li data-i18n="auth.signup.privateLogin">One private parent login</li>
+              <li data-i18n="auth.signup.passcodeBenefit">A separate dashboard passcode</li>
+              <li id="signupBenefitEmail" data-i18n="auth.signup.emailBenefit">Email confirmation before access</li>
+            </ul>
+          </aside>
+        </div>
+      </section>
+
+      <section class="parent-welcome parent-only" id="parentOverview" aria-label="Parent dashboard summary" style="margin-bottom: 18px;">
+        <div>
+          <h2 data-i18n="parent.dashboard">Parent Dashboard</h2>
+          <p class="small" data-i18n="parent.dashboard.help">Start with the four cards below: daily allowance, requests, blocked sites, and bedtime. Open setup panels only when you need to change details.</p>
+        </div>
+        <button class="tiny" data-jump="controls" data-i18n="parent.goControls">Go to Controls</button>
+      </section>
+
+      <details class="card parent-only setup-panel" id="manageChildren" aria-label="Child profiles" style="margin-bottom: 18px;">
+        <summary>
+          <div>
+            <h2 data-i18n="parent.manageChildren">Manage Children</h2>
+            <p class="small" data-i18n="parent.manageChildren.help">Add, switch, or edit a child profile.</p>
+          </div>
+          <span class="summary-action" data-i18n="settings.open">Open</span>
+        </summary>
+        <p class="demo-unavailable-note"><strong>Interactive demo sandbox.</strong> Add, edit, switch, or remove fictional child profiles. Use made-up details only; changes stay in this tab and reset with the demo.</p>
+        <button class="tiny panel-save" id="saveNow">Save</button>
+        <div class="profile-strip" id="profileStrip" role="group" aria-label="Child profiles"></div>
+        <div class="signup-form" aria-label="Add child profile">
+          <div class="grid two">
+            <label>
+              <span class="small">Child name</span>
+              <input id="newChildName" type="text" autocomplete="off" placeholder="Enter child name">
+            </label>
+            <label>
+              <span class="small">Date of birth</span>
+              <input id="newChildDob" type="date" autocomplete="bday">
+            </label>
+            <label>
+              <span class="small">Device</span>
+              <select id="newChildDevice">
+                <option value="Tablet">Tablet</option>
+                <option value="Phone">Phone</option>
+                <option value="Laptop">Laptop</option>
+                <option value="Shared device">Shared device</option>
+              </select>
+            </label>
+            <label>
+              <span class="small">Avatar icon</span>
+              <select id="newChildAvatarIcon">
+                <option value="star">Star</option>
+                <option value="bolt">Bolt</option>
+                <option value="book">Book</option>
+                <option value="rocket">Rocket</option>
+                <option value="heart">Heart</option>
+                <option value="smile">Smile</option>
+                <option value="rainbow">Rainbow</option>
+                <option value="leaf">Leaf</option>
+                <option value="crown">Crown</option>
+              </select>
+            </label>
+            <label>
+              <span class="small">Avatar color</span>
+              <input id="newChildAvatarColor" type="color" value="#147d7f">
+            </label>
+            <label>
+              <span class="small">School year</span>
+              <select id="newChildSchoolYear">
+                <option value="">Not set</option>
+                <option value="Nursery">Nursery</option>
+                <option value="Reception">Reception</option>
+                <option value="Year 1">Year 1</option>
+                <option value="Year 2">Year 2</option>
+                <option value="Year 3">Year 3</option>
+                <option value="Year 4">Year 4</option>
+                <option value="Year 5">Year 5</option>
+                <option value="Year 6">Year 6</option>
+                <option value="Year 7+">Year 7+</option>
+              </select>
+            </label>
+            <label>
+              <span class="small">Emergency contact</span>
+              <input id="newChildEmergencyContact" type="text" autocomplete="off" placeholder="Name or phone">
+            </label>
+            <label>
+              <span class="small">Care note</span>
+              <input id="newChildCareNote" type="text" autocomplete="off" placeholder="Anything parents should remember">
+            </label>
+          </div>
+          <p class="passcode-status" id="newChildWarning" aria-live="polite"></p>
+          <div class="choice-row">
+            <button class="approve" id="addChild">Add Child</button>
+            <button class="block" id="removeChild">Remove Selected Child</button>
+          </div>
+          <p class="small" id="removeChildStatus" aria-live="polite"></p>
+        </div>
+        <div class="signup-form" aria-label="Edit child profile" style="margin-top: 18px;">
+          <h3>Edit Selected Child</h3>
+          <div class="grid two">
+            <label>
+              <span class="small">Child name</span>
+              <input id="editChildName" type="text" autocomplete="off">
+            </label>
+            <label>
+              <span class="small">Date of birth</span>
+              <input id="editChildDob" type="date" autocomplete="bday">
+            </label>
+            <label>
+              <span class="small">Device</span>
+              <select id="editChildDevice">
+                <option value="Tablet">Tablet</option>
+                <option value="Phone">Phone</option>
+                <option value="Laptop">Laptop</option>
+                <option value="Shared device">Shared device</option>
+              </select>
+            </label>
+            <label>
+              <span class="small">Avatar icon</span>
+              <select id="editChildAvatarIcon">
+                <option value="star">Star</option>
+                <option value="bolt">Bolt</option>
+                <option value="book">Book</option>
+                <option value="rocket">Rocket</option>
+                <option value="heart">Heart</option>
+                <option value="smile">Smile</option>
+                <option value="rainbow">Rainbow</option>
+                <option value="leaf">Leaf</option>
+                <option value="crown">Crown</option>
+              </select>
+            </label>
+            <label>
+              <span class="small">Avatar color</span>
+              <input id="editChildAvatarColor" type="color" value="#147d7f">
+            </label>
+            <label>
+              <span class="small">School year</span>
+              <select id="editChildSchoolYear">
+                <option value="">Not set</option>
+                <option value="Nursery">Nursery</option>
+                <option value="Reception">Reception</option>
+                <option value="Year 1">Year 1</option>
+                <option value="Year 2">Year 2</option>
+                <option value="Year 3">Year 3</option>
+                <option value="Year 4">Year 4</option>
+                <option value="Year 5">Year 5</option>
+                <option value="Year 6">Year 6</option>
+                <option value="Year 7+">Year 7+</option>
+              </select>
+            </label>
+            <label>
+              <span class="small">Emergency contact</span>
+              <input id="editChildEmergencyContact" type="text" autocomplete="off">
+            </label>
+            <label>
+              <span class="small">Care note</span>
+              <input id="editChildCareNote" type="text" autocomplete="off">
+            </label>
+          </div>
+          <p class="passcode-status" id="editChildWarning" aria-live="polite"></p>
+          <div class="choice-row">
+            <button class="approve" id="saveChildProfile">Save Child Details</button>
+          </div>
+        </div>
+      </details>
+
+      <details class="card parent-only setup-panel" id="advancedSettings" aria-label="Security and display settings" data-i18n-aria-label="settings.advanced.aria" style="margin-bottom: 18px;">
+        <summary>
+          <div>
+            <h2 data-i18n="settings.advanced">Advanced Settings</h2>
+            <p class="small" data-i18n="settings.advanced.help">Passcode, trusted contacts, and wellbeing targets.</p>
+          </div>
+          <span class="summary-action" data-i18n="settings.open">Open</span>
+        </summary>
+        <p class="demo-unavailable-note"><strong data-i18n="settings.advanced.demoTitle">Interactive demo settings.</strong> <span data-i18n="settings.advanced.demoHelp">Try passcodes, fictional parent/contact details, themes, wellbeing, and schedules. Nothing is sent or added to a real account.</span></p>
+        <div class="slider-row">
+          <label for="passcodeSetting">
+            <span data-i18n="settings.passcode">Parent passcode</span>
+            <span id="passcodeSettingStatus" data-i18n="settings.passcode.notSet">Not set</span>
+          </label>
+          <input id="passcodeSetting" type="password" inputmode="numeric" autocomplete="off" minlength="4" maxlength="8" pattern="[0-9]{4,8}" placeholder="Enter a new 4–8 digit PIN" data-i18n-placeholder="settings.passcode.placeholder">
+          <label class="view-password setting-view">
+            <input id="viewSettingPassword" type="checkbox">
+            <span data-i18n="settings.passcode.view">View new PIN</span>
+          </label>
+          <button class="tiny" id="savePasscodeSetting" type="button" data-i18n="settings.passcode.update">Update Passcode</button>
+        </div>
+        <div class="grid two" style="margin-bottom: 12px;">
+          <label>
+            <span class="small" data-i18n="auth.signup.secondParentName">Second parent name</span>
+            <input id="secondParentNameSetting" type="text" autocomplete="off" maxlength="80" placeholder="Second parent name" data-i18n-placeholder="auth.signup.secondParentNamePlaceholder" aria-describedby="secondParentStatus">
+          </label>
+          <label>
+            <span class="small" data-i18n="auth.signup.secondParentEmail">Second parent email</span>
+            <input id="secondParentEmailSetting" type="email" autocomplete="off" maxlength="254" placeholder="example@gmail.com" aria-describedby="secondParentStatus">
+          </label>
+        </div>
+        <div class="choice-row" style="margin: 0 0 16px;">
+          <button class="tiny" id="saveSecondParent" type="button" data-i18n="settings.secondParent.save">Save Second Parent</button>
+        </div>
+        <p class="passcode-status" id="secondParentStatus" role="status" aria-live="polite" aria-atomic="true"></p>
+        <div class="grid two">
+          <label>
+            <span class="small" data-i18n="settings.theme">Theme</span>
+            <select id="themeModeSetting" aria-describedby="themeModeHelp themeModeStatus">
+              <option value="auto" data-i18n="settings.theme.auto">Auto by time</option>
+              <option value="day" data-i18n="settings.theme.day">Day</option>
+              <option value="night" data-i18n="settings.theme.night">Night</option>
+            </select>
+            <span class="settings-field-help" id="themeModeHelp" data-i18n="settings.theme.help">Auto switches to Night at 19:00 and Day at 07:00.</span>
+          </label>
+          <label>
+            <span class="small" data-i18n="settings.currentLook">Current look</span>
+            <output class="theme-mode-status" id="themeModeStatus" for="themeModeSetting quickThemeModeSetting" aria-live="polite" aria-atomic="true" data-resolved-theme="day">Auto now using Day</output>
+          </label>
+          <label>
+            <span class="small" data-i18n="settings.language">Language</span>
+            <select id="languageModeSetting" data-language-setting aria-describedby="languageModeHelp">
+              <option value="en-GB" data-i18n="settings.language.english">English (UK)</option>
+              <option value="es" data-i18n="settings.language.spanish">Spanish</option>
+              <option value="fr" data-i18n="settings.language.french">French</option>
+              <option value="pt" data-i18n="settings.language.portuguese">Portuguese</option>
+              <option value="de" data-i18n="settings.language.german">German</option>
+            </select>
+            <span class="settings-field-help" id="languageModeHelp" data-i18n="settings.language.help">Changes dashboard navigation, account controls, and settings. Activity content stays in its original language.</span>
+          </label>
+          <label>
+            <span class="small" data-i18n="settings.wellbeing.waterGoal">Daily water goal</span>
+            <input id="waterGoalInput" type="number" min="1" max="12" value="4">
+          </label>
+          <label>
+            <span class="small" data-i18n="settings.wellbeing.eyeGoal">Eye break goal</span>
+            <input id="eyeGoalInput" type="number" min="1" max="12" value="3">
+          </label>
+        </div>
+        <div class="choice-row" style="margin: 12px 0 16px;">
+          <button class="tiny" id="saveWellbeing" type="button" data-i18n="settings.wellbeing.save">Save Wellbeing</button>
+        </div>
+        <div class="grid two" id="familyScheduleSettings">
+          <label>
+            <span class="small" data-i18n="settings.schedule.schoolStart">School starts</span>
+            <input id="schoolStartInput" type="time" value="08:45">
+          </label>
+          <label>
+            <span class="small" data-i18n="settings.schedule.schoolEnd">School ends</span>
+            <input id="schoolEndInput" type="time" value="15:15">
+          </label>
+          <label>
+            <span class="small" data-i18n="settings.schedule.bedtimeStart">Bedtime starts</span>
+            <input id="bedtimeStartInput" type="time" value="20:30">
+          </label>
+          <label>
+            <span class="small" data-i18n="settings.schedule.morningUnlock">Morning unlock</span>
+            <input id="bedtimeEndInput" type="time" value="07:00">
+          </label>
+        </div>
+        <div class="choice-row" style="margin: 12px 0 16px;">
+          <button class="tiny" id="saveSchedule" type="button" data-i18n="settings.schedule.save">Save Schedule</button>
+        </div>
+        <label>
+          <span class="small" data-i18n="settings.contacts.trusted">Trusted contacts</span>
+          <textarea id="trustedContactsInput" maxlength="2000" aria-describedby="trustedContactsHelp trustedContactsStatus" placeholder="Mum&#10;Dad&#10;School office" data-i18n-placeholder="settings.contacts.placeholder"></textarea>
+          <span class="settings-field-help" id="trustedContactsHelp" data-i18n="settings.contacts.help">One contact per line. Up to 20 unique contacts, with 80 characters per name.</span>
+        </label>
+        <div class="choice-row" style="margin-top: 12px;">
+          <button class="tiny" id="saveTrustedContacts" type="button" data-i18n="settings.contacts.save">Save Contacts</button>
+        </div>
+        <p class="passcode-status" id="trustedContactsStatus" role="status" aria-live="polite" aria-atomic="true"></p>
+      </details>
+
+      <details class="card parent-only setup-panel" id="deviceProtection" aria-label="Computer device protection" style="margin-bottom: 18px;">
+        <summary>
+          <div>
+            <h2 data-i18n="parent.deviceProtection">Device Protection</h2>
+            <p class="small">Download the Mac or Windows Game Blocker and protect it with a parent PIN.</p>
+          </div>
+          <span class="summary-action" data-i18n="settings.open">Open</span>
+        </summary>
+        <p class="demo-unavailable-note"><strong>Interactive setup demo.</strong> Try the platform choices and download a harmless text checklist. It contains no app, installer, password, or executable code.</p>
+        <div class="device-protection-grid">
+          <article class="device-protection-download">
+            <span class="device-protection-icon" aria-hidden="true">🛡️</span>
+            <div>
+              <span class="device-protection-label">Mac + Windows test companions</span>
+              <h3>Block games beyond the browser</h3>
+              <p class="small">KiddoSprout closes detected games and parent-selected apps for the signed-in computer user. The parent PIN is required to pause, change, quit, or request removal.</p>
+              <a class="approve button-link" href="blocker-setup.html" data-demo-protected="Blocker downloads are off" data-public-demo-preview data-public-demo-label="Preview Mac + Windows setup" data-public-demo-label-key="parent.blocker.previewChoose" data-i18n="parent.blocker.choose">Choose Mac or Windows</a>
+            </div>
+          </article>
+          <aside class="device-protection-scope">
+            <strong>Safe test setup</strong>
+            <ol>
+              <li>Keep the parent as the computer administrator.</li>
+              <li>Give the child a Standard, non-administrator account.</li>
+              <li>Install the blocker from the parent dashboard.</li>
+            </ol>
+            <p class="small">These first test builds close apps just after launch. A computer administrator can always force-remove software.</p>
+          </aside>
+        </div>
+      </details>
+
+      <details class="card parent-only setup-panel" id="childContentSettings" aria-label="Child content settings" style="margin-bottom: 18px;">
+        <summary>
+          <div>
+            <h2 data-i18n="parent.childContent">Child Content</h2>
+            <p class="small">Rules, chores, and focus goal shown on the child site.</p>
+          </div>
+          <span class="summary-action" data-i18n="settings.open">Open</span>
+        </summary>
+        <div class="card-head compact-head">
+          <h3 id="familyRulesHeading">Family Rules</h3>
+          <button class="tiny" id="saveRules">Save Rules</button>
+        </div>
+        <textarea id="rulesInput" aria-labelledby="familyRulesHeading" placeholder="One family rule per line"></textarea>
+        <div class="card-head compact-head">
+          <h3 id="familyChoresHeading">Chores</h3>
+          <button class="tiny" id="saveChores">Save Chores</button>
+        </div>
+        <textarea id="choresInput" aria-labelledby="familyChoresHeading" placeholder="Tidy desk"></textarea>
+        <div class="card-head compact-head">
+          <h3 id="familyFocusHeading">Focus Session</h3>
+          <button class="tiny" id="saveFocus">Save Focus</button>
+        </div>
+        <input id="focusInput" type="text" aria-labelledby="familyFocusHeading" placeholder="Read or learn for 15 minutes">
+        <div class="card-head compact-head">
+          <h3 id="parentNoteHeading">Parent Note</h3>
+          <button class="tiny" id="saveParentNote">Save Note</button>
+        </div>
+        <textarea id="parentNoteInput" aria-labelledby="parentNoteHeading" placeholder="A short message the child sees today"></textarea>
+      </details>
+
+      <section class="status-strip parent-only" id="parentStatus" aria-label="Family status">
+        <article class="metric">
+          <span>Daily allowance setting</span>
+          <strong id="timeLeft">—</strong>
+        </article>
+        <article class="metric">
+          <span>Pending requests</span>
+          <strong id="pendingCount">0</strong>
+        </article>
+        <article class="metric">
+          <span>Blocked web hits</span>
+          <strong id="blockedHits">0</strong>
+        </article>
+        <article class="metric">
+          <span>Bedtime schedule</span>
+          <strong id="lockState">Off</strong>
+        </article>
+      </section>
+
+      <section class="card child-only" id="childStart" aria-label="Child mode" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2 id="childWelcome">Child Mode</h2>
+            <p class="small" data-i18n="child.homeHelp">Open approved hubs, finish your plan, and ask a parent when you need something new.</p>
+          </div>
+          <button class="tiny" id="childAskApp" data-i18n="child.askApp">Ask for App</button>
+        </div>
+      </section>
+
+      <section class="card child-only lively-panel" id="dailySpark" aria-label="Daily spark" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2 data-i18n="child.dailySpark">Daily Spark</h2>
+            <p class="small">A fresh idea, a tiny challenge, and room for your next apps.</p>
+          </div>
+          <button class="tiny" id="newSpark" data-i18n="child.newSpark">New Spark</button>
+        </div>
+        <div class="spark-layout">
+          <article class="spark-card">
+            <span class="pulse-dot" aria-hidden="true"></span>
+            <span class="small">Today's idea</span>
+            <strong id="sparkTitle">Ready to grow</strong>
+            <p class="small" id="sparkText">Pick one hub and finish a small win.</p>
+          </article>
+          <article class="mini-card coming-soon spending-slot">
+            <span class="small">Connected app</span>
+            <strong>Smart Spending</strong>
+            <p class="small">Try a safe money challenge about saving, spending, and sharing.</p>
+            <a class="mini-link" href="app_7.html" data-open-app-link="spending" data-demo-protected="Real bank connections are off" data-public-demo-preview data-demo-preview-title="Open the interactive Smart Spending practice bank">Open Smart Spending</a>
+            <span class="demo-unavailable-note">Bank data and connections stay off in this preview.</span>
+          </article>
+          <article class="mini-card coming-soon spending-slot recipe-slot">
+            <span class="small" data-app-status-label="recipe">Connected app</span>
+            <strong>FlavorNest</strong>
+            <p class="small">Open recipes, saved meals, and kitchen wins.</p>
+            <a class="mini-link" href="recipe.html" data-open-app-link="recipe" data-demo-protected="Real recipe accounts are off" data-public-demo-preview data-demo-preview-title="Open the interactive tab-only FlavorNest practice book">Open FlavorNest</a>
+            <span class="demo-unavailable-note">Connected recipe accounts stay off in this preview.</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="card child-only" id="hubs" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2 data-i18n="child.kidHubs">Kid Hubs</h2>
+            <p class="small" data-i18n="child.kidHubs.help">Separate spaces for creator learning, nature quests, movement breaks, original books, and safe play.</p>
+          </div>
+        </div>
+        <div class="tabs" role="group" aria-label="Filter Kid Hubs">
+          <button class="active" data-filter="all" aria-pressed="true" data-i18n="child.all">All</button>
+          <button data-filter="learn" aria-pressed="false" data-i18n="child.learn">Learn</button>
+          <button data-filter="create" aria-pressed="false" data-i18n="child.create">Create</button>
+          <button data-filter="move" aria-pressed="false" data-i18n="child.move">Move</button>
+          <button data-filter="play" aria-pressed="false" data-i18n="child.play">Play</button>
+        </div>
+        <div class="hub-grid">
+          <article class="hub-card flyer" data-kind="move"><span class="hub-label" data-app-status-label="arcade">Needs parent approval</span><strong>Sprout Arcade</strong><p>Explore English, maths, science and more in Learning World, or play your favourite arcade games.</p><button data-open-app="arcade">Open arcade</button></article>
+          <article class="hub-card studio" data-kind="create">
+            <span class="hub-label">Creator Studio</span>
+            <strong>Creator Studio</strong>
+            <p>Record short clips, pick safe prompts, and queue uploads for review.</p>
+            <button data-open-app="studio" data-i18n="child.launch">Launch</button>
+          </article>
+          <article class="hub-card explore" data-kind="learn">
+            <span class="hub-label">Nature Explorer</span>
+            <strong>Explorer Lab</strong>
+            <p>Animal facts, map quests, mini documentaries, and photo challenges.</p>
+            <button data-open-app="explore" data-i18n="child.launch">Launch</button>
+          </article>
+          <article class="hub-card move" data-kind="move">
+            <span class="hub-label">Movement Breaks</span>
+            <strong>Move Breaks</strong>
+            <p>Dance timers, stretch streaks, classroom games, and energy resets.</p>
+            <button data-open-app="move" data-i18n="child.launch">Launch</button>
+          </article>
+          <article class="hub-card story" data-kind="learn">
+            <span class="hub-label">Original Books</span>
+            <strong>Story Theater</strong>
+            <p>Original KiddoSprout books, character voices, family bookmarks, and calm mode.</p>
+            <button data-open-app="story" data-i18n="child.launch">Launch</button>
+            <span class="demo-unavailable-note">The demo opens the full series shelf and reader; premium voices stay off.</span>
+          </article>
+          <article class="hub-card arcade" data-kind="play">
+            <span class="hub-label" data-app-status-label="arcade">Needs parent approval</span>
+            <strong>Sprout Arcade</strong>
+            <p>Explore English, maths, science, geography, computing, art, music, Chess, and more family games.</p>
+            <button data-open-app="arcade">Choose a Game</button>
+          </article>
+          <article class="hub-card flyer" data-kind="play">
+            <span class="hub-label" id="flyerHubLabel" data-app-status-label="flyer">Needs parent approval</span>
+            <strong>Sprout Flyer</strong>
+            <p>Tap to glide through friendly clouds and earn safe play points.</p>
+            <button data-open-app="flyer" data-i18n="child.play">Play</button>
+          </article>
+        </div>
+      </section>
+
+      <section class="card child-only" id="avatarStudio" aria-label="Avatar studio" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2 data-i18n="child.avatar">Avatar Studio</h2>
+            <p class="small">Pick your profile color, icon, and costume.</p>
+          </div>
+          <button class="tiny" id="saveKidAvatar" data-i18n="child.saveLook">Save Look</button>
+        </div>
+        <div class="avatar-preview">
+          <div class="big-avatar" id="kidAvatarPreview">A</div>
+          <div>
+            <strong id="kidAvatarName">Your avatar</strong>
+            <p class="small" id="kidCostumePreview">Costume: Explorer</p>
+          </div>
+        </div>
+        <div class="signup-form" style="margin-top: 14px;">
+          <div class="grid two">
+            <div class="avatar-control">
+              <label class="small" for="kidAvatarIcon">Avatar icon</label>
+              <select id="kidAvatarIcon">
+                <option value="star">Star</option>
+                <option value="bolt">Bolt</option>
+                <option value="book">Book</option>
+                <option value="rocket">Rocket</option>
+                <option value="heart">Heart</option>
+                <option value="smile">Smile</option>
+                <option value="rainbow">Rainbow</option>
+                <option value="leaf">Leaf</option>
+                <option value="crown">Crown</option>
+              </select>
+              <div class="avatar-choice-grid" role="group" aria-label="Profile picture choices">
+                <button type="button" data-avatar-choice="star" aria-label="Star picture" aria-pressed="false">★</button>
+                <button type="button" data-avatar-choice="smile" aria-label="Smile picture" aria-pressed="false">☺</button>
+                <button type="button" data-avatar-choice="heart" aria-label="Heart picture" aria-pressed="false">♥</button>
+                <button type="button" data-avatar-choice="rocket" aria-label="Rocket picture" aria-pressed="false">▲</button>
+                <button type="button" data-avatar-choice="rainbow" aria-label="Rainbow picture" aria-pressed="false">◒</button>
+                <button type="button" data-avatar-choice="leaf" aria-label="Leaf picture" aria-pressed="false">◆</button>
+                <button type="button" data-avatar-choice="crown" aria-label="Crown picture" aria-pressed="false">♛</button>
+              </div>
+            </div>
+            <div class="avatar-control">
+              <label class="small" for="kidAvatarColorText">Avatar color</label>
+              <div class="avatar-color-picker">
+                <span class="color-wheel-control">
+                  <input id="kidAvatarColor" type="color" value="#147d7f" aria-label="Avatar color wheel">
+                </span>
+                <div class="avatar-color-text-entry">
+                  <input id="kidAvatarColorText" type="text" value="#147d7f" placeholder="Type light green or #147d7f" aria-describedby="kidAvatarColorHelp">
+                  <span class="avatar-color-help" id="kidAvatarColorHelp">Spaces work too — try “sky blue” or “hot pink”.</span>
+                </div>
+              </div>
+            </div>
+            <div class="avatar-control">
+              <label class="small" for="kidCostume">Costume</label>
+              <select id="kidCostume">
+                <option value="Explorer">Explorer</option>
+                <option value="Space Pilot">Space Pilot</option>
+                <option value="Story Wizard">Story Wizard</option>
+                <option value="Dance Captain">Dance Captain</option>
+                <option value="Ocean Guide">Ocean Guide</option>
+                <option value="Inventor">Inventor</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card child-only" id="badges" aria-label="Badge shelf" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2 data-i18n="child.badges">Badge Shelf</h2>
+            <p class="small">Badges unlock as you finish healthy activities.</p>
+          </div>
+          <strong id="badgeCount">0/0</strong>
+        </div>
+        <div class="badge-grid" id="badgeShelf"></div>
+      </section>
+
+      <section class="card child-only achievement-card" id="achievementHub" aria-labelledby="achievementChartTitle" style="margin-bottom: 18px;">
+        <div class="card-head achievement-card-head">
+          <div>
+            <h2 id="achievementChartTitle"><span aria-hidden="true">🌟</span> <span data-i18n="child.achievements">Achievement Garden</span></h2>
+            <p class="small" id="achievementChartSubtitle">Grow your goals one shiny star at a time!</p>
+          </div>
+          <div class="achievement-head-actions">
+            <span class="achievement-total" id="achievementTotal">0 goals</span>
+            <button class="tiny achievement-parent-button" id="openAchievementLock" type="button" aria-expanded="false" aria-controls="achievementLockPanel"><span aria-hidden="true">🔒</span> Grown-up Update</button>
+          </div>
+        </div>
+
+        <p class="achievement-lock-note" id="achievementLockedNote"><span aria-hidden="true">🛡️</span> Only a grown-up with the parent passcode can plant goals or give stars.</p>
+
+        <div class="achievement-lock-panel" id="achievementLockPanel" hidden>
+          <div>
+            <strong>Parent check</strong>
+            <span class="small">Enter the parent dashboard passcode to update this chart.</span>
+          </div>
+          <label>
+            <span class="small">Parent passcode</span>
+            <input id="achievementPasscode" type="password" inputmode="numeric" autocomplete="off" minlength="4" maxlength="8" pattern="[0-9]{4,8}" placeholder="4–8 digits">
+          </label>
+          <label class="view-password achievement-view-password">
+            <input id="viewAchievementPasscode" type="checkbox">
+            <span>Show passcode</span>
+          </label>
+          <div class="choice-row">
+            <button class="approve" id="unlockAchievementEditor" type="button">Unlock Parent Controls</button>
+            <button class="tiny" id="cancelAchievementUnlock" type="button">Cancel</button>
+          </div>
+          <p class="small achievement-lock-status" id="achievementLockStatus" aria-live="polite"></p>
+        </div>
+
+        <div class="achievement-editor" id="achievementEditor" hidden>
+          <div class="achievement-editor-head">
+            <span><strong>Parent controls unlocked</strong><small>Changes apply to the selected child.</small></span>
+            <button class="tiny" id="lockAchievementEditor" type="button">Lock Controls</button>
+          </div>
+          <div class="achievement-form" aria-label="Add an achievement goal">
+            <label>
+              <span class="small">Goal</span>
+              <input id="achievementTitle" type="text" maxlength="80" placeholder="Read four chapters">
+            </label>
+            <label>
+              <span class="small">Stars</span>
+              <input id="achievementTarget" type="number" min="1" max="100" value="5">
+            </label>
+            <label>
+              <span class="small">Reward (optional)</span>
+              <input id="achievementReward" type="text" maxlength="80" placeholder="Choose family film">
+            </label>
+            <button class="approve" id="addAchievement" type="button">Add Goal</button>
+          </div>
+        </div>
+        <p class="small achievement-status" id="achievementStatus" aria-live="polite"></p>
+        <div class="achievement-chart-list" id="achievementChartList"></div>
+      </section>
+
+      <section class="card child-only" id="streaks" aria-label="Streaks" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2 data-i18n="child.streaks">Habit Streaks</h2>
+            <p class="small">Keep healthy learning, reading, movement, and chore habits going.</p>
+          </div>
+          <strong id="bestStreak">0 days</strong>
+        </div>
+        <div class="badge-grid" id="streakShelf"></div>
+      </section>
+
+      <section class="card child-only" id="homework" aria-label="Homework mode" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2 data-i18n="child.homework">Homework Mode</h2>
+            <p class="small">A parent controls when homework mode starts and ends.</p>
+          </div>
+        </div>
+        <div class="lock-screen">
+          <div>
+            <strong id="homeworkModeState">Homework Off</strong>
+            <span id="homeworkModeSub">Games and video requests are available.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card child-only" id="todayPlanSection" aria-label="Today plan" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2 data-i18n="child.todayPlan">Today Plan</h2>
+            <p class="small">Small, balanced goals for the selected child profile.</p>
+          </div>
+          <button class="tiny" id="resetPlan">Reset</button>
+        </div>
+        <div class="plan-grid" id="todayPlan"></div>
+      </section>
+
+      <section class="card child-only" id="focusSession" aria-label="Focus session" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2>Focus Session</h2>
+            <p class="small" id="childFocusGoal">Work quietly, then tell a parent when you are ready for them to check.</p>
+          </div>
+          <button class="tiny" id="completeFocus">Tell Parent</button>
+        </div>
+        <div class="lock-screen">
+          <div>
+            <strong id="focusClock">15:00</strong>
+            <span>Stay with one activity. A parent confirms homework or focus work.</span>
+          </div>
+        </div>
+        <div class="choice-row" style="margin-top: 12px;">
+          <button class="approve" id="startFocus">Start</button>
+          <button class="tiny" id="resetFocus">Reset</button>
+        </div>
+      </section>
+
+      <section class="card child-only note-card" id="parentNote" aria-label="Parent note" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2>Parent Note</h2>
+            <p class="small">A real message from the parent dashboard.</p>
+          </div>
+        </div>
+        <div class="story-box" id="childParentNote">No parent note yet.</div>
+      </section>
+
+      <section class="card child-only schedule-card" id="dailySchedule" aria-label="Daily schedule" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2>Daily Schedule</h2>
+            <p class="small">School hours and bedtime from the parent dashboard.</p>
+          </div>
+          <strong id="scheduleNow" role="status" aria-live="polite" aria-atomic="true">Ready</strong>
+        </div>
+        <div class="mini-grid" id="scheduleCards"></div>
+      </section>
+
+      <section class="card child-only family-call-card" id="familyCallChild" aria-labelledby="familyCallChildTitle" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2 id="familyCallChildTitle" data-i18n="call.child.title">Call a Parent</h2>
+            <p class="small" data-i18n="call.child.help">Use KiddoSprout internet audio. No phone number is shared or needed.</p>
+          </div>
+          <span class="family-call-icon" aria-hidden="true">☎</span>
+        </div>
+        <div class="family-call-shell">
+          <div class="family-call-state">
+            <span class="family-call-state-dot" aria-hidden="true"></span>
+            <output id="familyCallDashboardStatus" role="status" aria-live="polite" aria-atomic="true" data-i18n="call.status.separateDevice">Family calls open on a separately paired child device.</output>
+          </div>
+          <p class="family-call-limit" data-i18n="call.child.separateDevice">For privacy, calling does not start inside this parent-signed-in dashboard.</p>
+          <div class="family-call-actions">
+            <a class="approve button-link" id="openFamilyCall" href="family-call.html" data-i18n="call.openChildDevice">Open Child Call Page</a>
+            <button class="tiny" type="button" data-jump="parentChat" data-i18n="call.sendMessage">Send a Message Instead</button>
+          </div>
+          <p class="family-call-safety" data-i18n="call.notEmergency">Not for emergencies. Ask a nearby trusted adult or use local emergency services when urgent help is needed.</p>
+        </div>
+      </section>
+
+      <section class="card child-only lively-panel" id="parentChat" aria-label="Parent chat" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2>Parent Chat</h2>
+            <p class="small">Send a short message to the parent dashboard.</p>
+          </div>
+        </div>
+        <div class="grid two">
+          <label>
+            <span class="small">Message</span>
+            <textarea id="parentChatMessage" placeholder="Tell your parent what you need checked or what happened."></textarea>
+          </label>
+          <label>
+            <span class="small">Message type</span>
+            <select id="parentChatType">
+              <option value="Please check my homework">Please check my homework</option>
+              <option value="I need help">I need help</option>
+              <option value="I have a question">I have a question</option>
+              <option value="Something is confusing">Something is confusing</option>
+            </select>
+          </label>
+        </div>
+        <div class="choice-row" style="margin-top: 12px;">
+          <button class="approve" id="sendParentChat">Send to Parent</button>
+          <button class="tiny" id="clearParentChat">Clear</button>
+        </div>
+      </section>
+
+      <section class="card child-only" id="helpSafety" aria-label="Help and safety" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2>Help & Safety</h2>
+            <p class="small">Ask for help, report a problem, or take a calm break.</p>
+          </div>
+        </div>
+        <div class="mini-grid">
+          <article class="mini-card">
+            <span class="small">Message parent</span>
+            <strong>Need Help</strong>
+            <p class="small">Sends a help alert to the parent dashboard.</p>
+            <button class="approve" data-help-action="needHelp">Send Help Alert</button>
+          </article>
+          <article class="mini-card">
+            <span class="small">Safety report</span>
+            <strong>Something Wrong</strong>
+            <p class="small">Opens a separate page to type what happened.</p>
+            <a class="block button-link" href="report_problem.html" data-demo-protected="Live reports are off" data-public-demo-preview data-demo-preview-title="Open the safe practice report page">Open Report Page</a>
+          </article>
+          <article class="mini-card">
+            <span class="small">Reset</span>
+            <strong>Calm Break</strong>
+            <p class="small">Adds a short movement break and opens the timer.</p>
+            <button class="tiny" data-help-action="calmBreak">Start Calm Break</button>
+          </article>
+          <article class="mini-card">
+            <span class="small">Access</span>
+            <strong>Extra Time</strong>
+            <p class="small">Requests more screen time from a parent.</p>
+            <button class="tiny" data-help-action="extraTime">Ask for Time</button>
+          </article>
+        </div>
+        <div class="filter-list" id="trustedContactsList"></div>
+      </section>
+
+      <section class="card child-only color-pop" id="checkIn" aria-label="Check in and rules" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2>Check-In</h2>
+            <p class="small">Share how today feels and review family rules.</p>
+          </div>
+        </div>
+        <div class="mini-grid">
+          <article class="mini-card">
+            <span class="small">Mood</span>
+            <strong>How are you?</strong>
+            <div class="choice-row">
+              <button class="tiny" data-mood="Great">Great</button>
+              <button class="tiny" data-mood="Okay">Okay</button>
+              <button class="tiny" data-mood="Need help">Need help</button>
+            </div>
+          </article>
+          <article class="mini-card">
+            <span class="small">Family rules</span>
+            <strong>Today</strong>
+            <div class="filter-list" id="childRules"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="card child-only color-pop" id="dailyGoals" aria-label="Daily goals" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2 data-i18n="child.goalBoard">Daily Goal Board</h2>
+            <p class="small">Tap each small win as you finish it today.</p>
+          </div>
+          <button class="tiny" id="resetDailyWins">Reset Wins</button>
+        </div>
+        <div class="goal-board" id="dailyGoalBoard"></div>
+      </section>
+
+      <section class="card child-only color-pop" id="kindness" aria-label="Kindness quest" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2 data-i18n="child.kindness">Kindness Quest</h2>
+            <p class="small">A tiny real-world mission that counts toward healthy habits.</p>
+          </div>
+          <strong id="kindnessPoints">0 points</strong>
+        </div>
+        <div class="story-box" id="kindnessPrompt">Say one kind thing to someone at home.</div>
+        <div class="choice-row" style="margin-top: 12px;">
+          <button class="approve" id="completeKindness">Complete Quest</button>
+          <button class="tiny" id="nextKindness">New Quest</button>
+        </div>
+      </section>
+
+      <section class="card child-only color-pop" id="reading" aria-label="Reading log" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2 data-i18n="child.reading">Reading Log</h2>
+            <p class="small">Add books, comics, articles, or read-aloud time.</p>
+          </div>
+          <strong id="readingTotal">0m</strong>
+        </div>
+        <div class="grid two">
+          <label>
+            <span class="small">What did you read?</span>
+            <input id="readingTitle" type="text" autocomplete="off" placeholder="Book or story name">
+          </label>
+          <label>
+            <span class="small">Minutes</span>
+            <input id="readingMinutes" type="number" min="1" max="120" value="10">
+          </label>
+        </div>
+        <div class="choice-row" style="margin-top: 12px;">
+          <button class="approve" id="addReading">Add Reading</button>
+        </div>
+        <div class="filter-list" id="readingHistory"></div>
+      </section>
+
+      <section class="card child-only color-pop" id="healthyBreaks" aria-label="Water and eye breaks" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2 data-i18n="child.breaks">Healthy Breaks</h2>
+            <p class="small">Track water and eye rests while using screens.</p>
+          </div>
+        </div>
+        <div class="mini-grid">
+          <article class="mini-card wellness-card">
+            <span class="small">Water</span>
+            <strong id="waterProgress">0/4</strong>
+            <div class="track"><div class="fill" id="waterFill" style="--w: 0%; --c: #147d7f;"></div></div>
+            <button class="tiny" id="addWater">Add Water</button>
+          </article>
+          <article class="mini-card wellness-card">
+            <span class="small">Eye breaks</span>
+            <strong id="eyeProgress">0/3</strong>
+            <div class="track"><div class="fill" id="eyeFill" style="--w: 0%; --c: #df604a;"></div></div>
+            <button class="tiny" id="addEyeBreak">Add Eye Break</button>
+          </article>
+        </div>
+      </section>
+
+      <section class="card child-only color-pop" id="chores" aria-label="Chores" style="margin-bottom: 18px;">
+        <div class="card-head">
+          <div>
+            <h2 data-i18n="child.chores">Chores</h2>
+            <p class="small">Mark a chore done to send it to the parent dashboard.</p>
+          </div>
+        </div>
+        <div class="filter-list" id="childChores"></div>
+      </section>
+
+      <div class="grid parent-only">
+        <aside class="control-stack parent-only" id="controls">
+          <section class="card family-call-card" id="familyCallParent" aria-labelledby="familyCallParentTitle">
+            <div class="card-head">
+              <div>
+                <h2 id="familyCallParentTitle" data-i18n="call.parent.title">Family Calls</h2>
+                <p class="small" data-i18n="call.parent.help">Pair a child device, then answer KiddoSprout internet audio calls while both devices are online.</p>
+              </div>
+              <span class="family-call-icon" aria-hidden="true">☎</span>
+            </div>
+            <div class="family-call-shell">
+              <section class="family-call-pairing" aria-labelledby="familyCallPairingTitle">
+                <div>
+                  <h3 id="familyCallPairingTitle" data-i18n="call.pairing.title">Pair a Child Device</h3>
+                  <p class="small" id="familyCallPairingHelp" data-i18n="call.pairing.help">Create a one-time code, then enter it only on the child device you want to pair.</p>
+                </div>
+                <label for="familyCallPairingCode">
+                  <span class="small" data-i18n="call.pairing.code">Pairing code</span>
+                  <input class="family-call-code" id="familyCallPairingCode" type="text" value="" placeholder="Not created" data-i18n-placeholder="call.pairing.placeholder" aria-describedby="familyCallPairingHelp familyCallPairingStatus" readonly>
+                </label>
+                <div class="family-call-actions">
+                  <button class="approve" id="createFamilyCallPairing" type="button" disabled aria-disabled="true" data-i18n="call.pairing.create">Create Pairing Code</button>
+                  <button class="tiny" id="copyFamilyCallPairing" type="button" disabled aria-disabled="true" data-i18n="call.pairing.copy">Copy Code</button>
+                  <button class="tiny" id="revokeFamilyCallPairing" type="button" disabled aria-disabled="true" data-i18n="call.pairing.revoke">Revoke Device</button>
+                </div>
+                <output id="familyCallPairingStatus" role="status" aria-live="polite" aria-atomic="true" data-i18n="call.pairing.status">Secure pairing service is not connected.</output>
+              </section>
+              <section class="family-call-incoming" id="incomingFamilyCall" role="alert" aria-labelledby="incomingFamilyCallTitle" aria-describedby="incomingFamilyCallDescription" aria-hidden="true" hidden inert>
+                <div>
+                  <strong id="incomingFamilyCallTitle" data-i18n="call.incoming">Incoming family call</strong>
+                  <span class="small" id="incomingFamilyCallDescription" data-i18n="call.noPhone">KiddoSprout audio uses no phone number.</span>
+                </div>
+                <div class="family-call-actions">
+                  <button class="approve" id="acceptFamilyCall" type="button" disabled data-i18n="call.answer">Answer</button>
+                  <button class="block" id="declineFamilyCall" type="button" disabled data-i18n="call.decline">Decline</button>
+                </div>
+              </section>
+              <p class="family-call-limit" data-i18n="call.parent.requirement">When calling becomes available, the parent must keep KiddoSprout open on another paired device and both devices must be online.</p>
+              <p class="family-call-limit" data-family-call-preview-only>Demo Mode keeps real pairing, microphones, and ringing off. Use the silent simulator to test the complete call controls without contacting anyone.</p>
+              <div class="family-call-actions" data-family-call-preview-only>
+                <a class="approve button-link" href="family-call.html">Try the No-Audio Call Simulator</a>
+              </div>
+              <p class="family-call-safety" data-i18n="call.privacy">KiddoSprout does not record call audio. Calls are not for emergencies.</p>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="card-head">
+              <div>
+                <h2 data-i18n="parent.approveRequests">Approve Requests</h2>
+                <p class="small">Apps, games, extra time, and chores from Child Mode.</p>
+              </div>
+            </div>
+            <div class="request" id="requestCard">
+              <div class="app-icon" id="appInitial">-</div>
+              <div>
+                <h3 id="appName">No request yet</h3>
+                <span class="small" id="appMeta">Requests appear here after a child profile exists.</span>
+                <div class="request-actions">
+                  <button class="approve" id="approveBtn" data-i18n="parent.approve" disabled>Approve</button>
+                  <button class="block" id="blockBtn" data-i18n="parent.decline" disabled>Decline</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="card-head">
+              <div>
+                <h2 data-i18n="parent.screenControls">Screen Controls</h2>
+                <p class="small">Saved allowance, bedtime status, and game access.</p>
+              </div>
+            </div>
+            <div class="slider-row">
+              <label for="limitRange">
+                <span>Daily allowance</span>
+                <span id="limitValue">2h</span>
+              </label>
+              <input id="limitRange" type="range" min="30" max="300" step="15" value="120">
+            </div>
+            <div class="bedtime">
+              <div>
+                <h3 id="bedtimeToggleLabel">Bedtime schedule</h3>
+                <span class="small" id="bedtimeScheduleSummary">20:30 to 07:00</span>
+              </div>
+              <label class="switch">
+                <input id="bedtimeToggle" type="checkbox" aria-labelledby="bedtimeToggleLabel" aria-describedby="bedtimeScheduleSummary">
+                <span class="knob"></span>
+              </label>
+            </div>
+            <div class="bedtime">
+              <div>
+                <h3 id="parentHomeworkToggleLabel">Homework Mode</h3>
+                <span class="small" id="parentHomeworkLabel">Games and video requests are available.</span>
+              </div>
+              <label class="switch">
+                <input id="parentHomeworkToggle" type="checkbox" aria-labelledby="parentHomeworkToggleLabel" aria-describedby="parentHomeworkLabel">
+                <span class="knob"></span>
+              </label>
+            </div>
+            <div class="bedtime">
+              <div>
+                <h3 id="flyerAllowedToggleLabel">Sprout Flyer game</h3>
+                <span class="small" id="flyerAllowedLabel">Parent approval required before play.</span>
+              </div>
+              <label class="switch">
+                <input id="flyerAllowedToggle" type="checkbox" aria-labelledby="flyerAllowedToggleLabel" aria-describedby="flyerAllowedLabel">
+                <span class="knob"></span>
+              </label>
+            </div>
+            <div class="card-head compact-head" style="margin-top: 16px;">
+              <h3>App Access Rules</h3>
+              <span class="small">Allow, ask, or block each app.</span>
+            </div>
+            <div class="filter-list" id="appAccessList"></div>
+            <div class="device-blocker-cta">
+              <div>
+                <strong>Protect installed computer games too</strong>
+                <span class="small">Use the 4–8 digit parent PIN to download the Mac or Windows companion.</span>
+              </div>
+              <a class="tiny button-link" href="blocker-setup.html" data-demo-protected="Blocker downloads are off" data-public-demo-preview data-public-demo-label="Preview Game Blocker setup" data-public-demo-label-key="parent.blocker.previewSetup" data-i18n="parent.blocker.downloads">Game Blocker Downloads</a>
+            </div>
+            <div class="lock-screen" role="status" aria-live="polite" aria-atomic="true">
+              <div>
+                <strong id="deviceState">Bedtime schedule off</strong>
+                <span id="deviceSub">This dashboard shows schedule status. Device-wide controls require the blocker companion.</span>
+              </div>
+            </div>
+          </section>
+        </aside>
+      </div>
+
+      <section class="grid parent-only" id="reports" style="margin-top: 18px;">
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <h2 data-i18n="parent.safetyAlerts">Safety Alerts</h2>
+              <p class="small">Help messages sent from the child site.</p>
+            </div>
+            <button class="tiny" id="clearAlerts">Clear</button>
+          </div>
+          <div class="filter-list" id="safetyAlerts"></div>
+        </article>
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <h2 data-i18n="parent.mood">Mood Check-Ins</h2>
+              <p class="small">Recent child check-ins from the child site.</p>
+            </div>
+            <button class="tiny" id="clearMood">Clear</button>
+          </div>
+          <div class="filter-list" id="moodCheckins"></div>
+        </article>
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <h2 data-i18n="parent.problemReports">Problem Reports</h2>
+              <p class="small">Detailed reports sent from the child site.</p>
+            </div>
+            <button class="tiny" id="clearProblemReports">Clear</button>
+            <button class="tiny" id="exportWeeklySummary">Export Summary</button>
+          </div>
+          <div class="filter-list" id="problemReports"></div>
+        </article>
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <h2 data-i18n="parent.webFiltering">Granular Web Filtering</h2>
+              <p class="small">Paste a URL or message to check it against KiddoSprout rules.</p>
+            </div>
+            <button class="tiny" id="scanBtn">Run Scan</button>
+          </div>
+          <label>
+            <span class="small">URL or text to scan</span>
+            <textarea id="scanInput" placeholder="Paste a website, search phrase, message, or app description"></textarea>
+          </label>
+          <div class="scan-result" id="scanResult">
+            <strong>Ready</strong>
+            <span class="small">Enter something and run a scan.</span>
+          </div>
+          <div class="filter-list" id="scanHistory"></div>
+        </article>
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <h2 data-i18n="parent.weeklyReport">Weekly App Report</h2>
+              <p class="small">Minutes by app for this child profile.</p>
+            </div>
+          </div>
+          <div class="report" id="reportRows"></div>
+        </article>
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <h2 data-i18n="parent.wellbeing">Wellbeing Snapshot</h2>
+              <p class="small">Daily wins, breaks, kindness, and reading activity.</p>
+            </div>
+          </div>
+          <div class="filter-list" id="wellbeingSnapshot"></div>
+        </article>
+      </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <section class="modal family-call-modal" id="familyCallModal" aria-hidden="true" inert>
+    <div class="modal-panel family-call-modal-panel" role="dialog" aria-modal="true" aria-labelledby="familyCallTitle" aria-describedby="familyCallDescription">
+      <div class="modal-head">
+        <div>
+          <h2 id="familyCallTitle" data-i18n="call.modal.title">KiddoSprout Family Call</h2>
+          <p class="small" id="familyCallDescription" data-i18n="call.modal.description">Internet audio with a securely paired family device. No phone number is used.</p>
+        </div>
+      </div>
+      <div class="modal-body family-call-stage">
+        <div class="family-call-avatar" aria-hidden="true">KS</div>
+        <output class="family-call-live-status" id="familyCallLiveStatus" role="status" aria-live="polite" aria-atomic="true" data-i18n="call.modal.waiting">Waiting for the secure call service.</output>
+        <time class="family-call-timer" id="familyCallTimer" datetime="PT0S" aria-live="off">00:00</time>
+        <audio id="familyCallRemoteAudio" autoplay playsinline aria-label="Remote family call audio" data-i18n-aria-label="call.remoteAudio"></audio>
+        <div class="family-call-controls" aria-label="Call controls" data-i18n-aria-label="call.controls">
+          <button class="tiny" id="muteFamilyCall" type="button" aria-pressed="false" disabled>
+            <span aria-hidden="true">🎙</span>
+            <span data-i18n="call.mute">Mute</span>
+          </button>
+          <button class="block" id="hangUpFamilyCall" type="button" disabled>
+            <span aria-hidden="true">☎</span>
+            <span data-i18n="call.end">End Call</span>
+          </button>
+        </div>
+        <p class="family-call-limit" data-family-call-preview-only data-i18n="call.modal.disabled">The call client is not connected, so this screen cannot request the microphone or contact another device.</p>
+        <p class="family-call-safety" data-i18n="call.notEmergency">Not for emergencies. Ask a nearby trusted adult or use local emergency services when urgent help is needed.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="modal" id="appModal" aria-hidden="true" inert>
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="appTitle" aria-describedby="appSubtitle">
+      <div class="modal-head">
+        <div>
+          <h2 id="appTitle">Kid Hub</h2>
+          <p class="small" id="appSubtitle">Choose a profile to begin.</p>
+        </div>
+        <button class="icon-btn" id="closeApp" type="button" title="Close app" aria-label="Close app" data-i18n-title="app.close" data-i18n-aria-label="app.close">x</button>
+      </div>
+      <div class="modal-body" id="appBody"></div>
+    </div>
+  </section>
+
+  <section class="lock-gate" id="parentGate" aria-hidden="true" inert data-public-demo-account-action>
+    <div class="lock-box" role="dialog" aria-modal="true" aria-labelledby="parentGateTitle" aria-describedby="parentGateDescription">
+      <h2 id="parentGateTitle" data-i18n="auth.parent.title">Parent Login</h2>
+      <p class="small" id="parentGateDescription" data-i18n="auth.parent.description">Enter the parent passcode to open approvals, screen limits, filters, and reports.</p>
+      <label class="small" for="passcodeInput" data-i18n="auth.parent.pin">Parent PIN</label>
+      <input id="passcodeInput" type="password" inputmode="numeric" autocomplete="off" minlength="4" maxlength="8" pattern="[0-9]{4,8}" placeholder="4–8 digit passcode" data-i18n-placeholder="auth.parent.pinPlaceholder" required>
+      <label class="view-password">
+        <input id="viewPassword" type="checkbox">
+        <span data-i18n="auth.parent.viewPin">View PIN</span>
+      </label>
+      <div class="lock-actions">
+        <button class="primary" id="unlockParent" data-i18n="auth.parent.unlock">Unlock Parent Dashboard</button>
+        <button class="secondary" id="backToChild" data-i18n="auth.backChild">Back to Child Site</button>
+        <button class="secondary" id="openSignup" data-i18n="auth.parent.signup">Sign Up</button>
+      </div>
+      <button class="download-project" id="downloadKiddoSprout" type="button" aria-describedby="parentInstallStatus" data-i18n="auth.parent.install">Install KiddoSprout App</button>
+      <p class="install-status" id="parentInstallStatus" role="status" aria-live="polite" aria-atomic="true"></p>
+      <button class="tiny" id="forgotPassword" type="button" aria-expanded="false" aria-controls="forgotPanel" style="margin-top: 12px;" data-i18n="auth.parent.forgot">Forgot parent PIN?</button>
+      <div class="signup-form" id="forgotPanel" style="display: none; margin-top: 14px;">
+        <p class="passcode-status" id="recoveryEmailAvailability" role="status" aria-live="polite" hidden></p>
+        <section class="google-auth-choice" id="googleRecoveryChoice" hidden aria-labelledby="googleRecoveryTitle">
+          <span class="google-auth-sparkle" aria-hidden="true">🔑</span>
+          <div>
+            <strong id="googleRecoveryTitle" data-i18n="auth.google.recoveryTitle">Forgot your parent PIN?</strong>
+            <span data-i18n="auth.google.recoveryHelp">Google can confirm it is you and safely unlock Parent Settings.</span>
+          </div>
+          <button class="google-auth-button" id="googleRecovery" type="button" aria-describedby="googleRecoveryStatus" disabled>
+            <span class="google-auth-mark" aria-hidden="true">G</span>
+            <span data-i18n="auth.google.continue">Continue with Google</span>
+          </button>
+          <p class="oauth-status" id="googleRecoveryStatus" role="status" aria-live="polite"></p>
+        </section>
+        <div class="auth-fields" id="emailRecoveryFlow">
+          <label class="small" for="recoveryEmail" data-i18n="auth.recovery.email">Recovery email</label>
+          <input id="recoveryEmail" type="email" autocomplete="email" maxlength="254" placeholder="example@gmail.com" required>
+          <section class="human-check-card" aria-labelledby="recoveryHumanCheckTitle">
+            <div>
+              <strong id="recoveryHumanCheckTitle" data-i18n="auth.safety">Safety check</strong>
+              <span data-i18n="auth.recovery.grownup">Tick the box to confirm you are a grown-up.</span>
+            </div>
+            <button class="human-check-start" id="recoveryHumanCheckStart" type="button" data-state="idle" aria-pressed="false" aria-controls="recoveryHumanCheck" aria-describedby="recoveryHumanCheckStatus">
+              <span class="human-check-start-box" aria-hidden="true"></span>
+              <span class="human-check-start-label" data-i18n="auth.notRobot">I’m not a robot</span>
+              <span class="human-check-start-shield" aria-hidden="true">🛡️</span>
+            </button>
+            <div class="human-check-widget" id="recoveryHumanCheck" hidden></div>
+            <p class="human-check-status" id="recoveryHumanCheckStatus" aria-live="polite" data-i18n="auth.tickToStart">Tick the box to start.</p>
+          </section>
+          <button class="approve" id="sendRecoveryCode" type="button" aria-describedby="recoveryHumanCheckStatus passcodeStatus" data-i18n="auth.recovery.send">Send One-Time Code</button>
+          <label class="small" for="recoveryCode" data-i18n="auth.recovery.code">One-time code</label>
+          <input id="recoveryCode" type="text" inputmode="numeric" autocomplete="one-time-code" minlength="6" maxlength="6" pattern="[0-9]{6}" placeholder="6-digit code" data-i18n-placeholder="auth.recovery.codePlaceholder" required>
+          <label class="small" for="recoveryPasscode" data-i18n="auth.recovery.newPasscode">New passcode</label>
+          <input id="recoveryPasscode" type="password" inputmode="numeric" autocomplete="new-password" minlength="4" maxlength="8" pattern="[0-9]{4,8}" placeholder="4–8 digits" data-i18n-placeholder="auth.signup.passcodePlaceholder" required>
+          <label class="view-password">
+            <input id="viewRecoveryPassword" type="checkbox">
+            <span data-i18n="auth.recovery.viewPasscode">View passcode</span>
+          </label>
+          <button class="primary" id="resetPasscode" type="button" aria-describedby="passcodeStatus" data-i18n="auth.recovery.reset">Reset Passcode</button>
+        </div>
+      </div>
+      <p class="passcode-status lockout-countdown" id="passcodeLockoutCountdown" aria-live="off" hidden></p>
+      <p class="passcode-status" id="passcodeStatus" role="status" aria-live="polite" aria-atomic="true"></p>
+    </div>
+  </section>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="burst-layer" id="burstLayer" aria-hidden="true"></div>
+
+  <script src="supabase-config.js?v=7"></script>
+  <script src="human-check.js?v=4"></script>
+  <script src="language-packs.js?v=1"></script>
+  <script src="language-settings.js?v=9"></script>
+  <script src="demo-mode.js?v=2"></script>
+  <script src="auth-session.js?v=7"></script>
+  <script src="family-state-cloud.js?v=2"></script>
+  <script src="passcode-security.js?v=1"></script>
+  <script src="js.js?v=41"></script>
+  <script src="family-calls.js?v=1"></script>
+  <script src="family-call-app.js?v=2"></script>
+</body>
+</html>

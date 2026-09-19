@@ -5,8 +5,15 @@ import { buildPublicDemo, OUTPUT_DIRECTORY } from "./build-public-demo.mjs";
 
 const ROOT = new URL("../", import.meta.url);
 const read = (path, encoding = "utf8") => readFile(new URL(path, ROOT), encoding);
+const IANA_LANGUAGE_REGISTRY_URL = "https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry";
 
 const GAME_SPECS = Object.freeze([
+  {
+    directory: "language-garden",
+    title: "Language Garden",
+    scripts: ["catalogue.js", "courses.js", "game.js"],
+    metadataUrls: [IANA_LANGUAGE_REGISTRY_URL]
+  },
   { directory: "pattern-painter", title: "Pattern Painter", scripts: ["engine.js", "game.js"] },
   { directory: "melody-meadow", title: "Melody Meadow", scripts: ["music.js", "game.js"] },
   { directory: "compass-quest", title: "Compass Quest", scripts: ["engine.js", "game.js"] },
@@ -51,7 +58,7 @@ const localGameDirectories = (await readdir(new URL("games/", ROOT), { withFileT
 assert.deepEqual(
   localGameDirectories,
   GAME_SPECS.map(({ directory }) => directory).sort(),
-  "The reviewed Sprout Arcade inventory must contain exactly fourteen web games."
+  "The reviewed Sprout Arcade inventory must contain exactly fifteen web games."
 );
 
 const chooser = await read("games/index.html");
@@ -67,12 +74,12 @@ for (const [index, spec] of GAME_SPECS.entries()) {
       "The reviewed game order changed unexpectedly.");
   }
 }
-assert.equal((chooser.match(/<a\b[^>]*class=["'][^"']*\bcard\b[^"']*["']/gi) || []).length, 15,
-  "The chooser must contain fourteen browser games plus one clearly separate Chess download.");
+assert.equal((chooser.match(/<a\b[^>]*class=["'][^"']*\bcard\b[^"']*["']/gi) || []).length, 16,
+  "The chooser must contain fifteen browser games plus one clearly separate Chess download.");
 assert.match(
   chooser,
   /<a\b[^>]*href=["']\.\.\/Game%201\.game["'][^>]*download=["']KiddoSprout-Chess-Match\.game["'][^>]*>[\s\S]*?<h2>Saved Chess Match<\/h2>[\s\S]*?Mac-only saved Chess match/,
-  "Chess must be presented as a Mac saved-match download, not as a fifteenth browser game."
+  "Chess must be presented as a Mac saved-match download, not as a sixteenth browser game."
 );
 assert.equal(await isFile("Game 1.game"), true, "The chooser's saved Chess match is missing.");
 assert.match(await read("Game 1.game"), /^<\?xml[\s\S]*?<plist\b/i,
@@ -107,7 +114,15 @@ for (const spec of GAME_SPECS) {
     await read(`${base}/style.css`),
     ...await Promise.all(spec.scripts.map((script) => read(`${base}/${script}`)))
   ].join("\n");
-  assert.doesNotMatch(executableSource, /\bhttps?:\/\//i,
+  const metadataUrls = spec.metadataUrls || [];
+  for (const url of metadataUrls) {
+    assert.equal(executableSource.split(url).length - 1, 1,
+      `${spec.title} must keep its reviewed source URL as inert metadata only.`);
+    assert.doesNotMatch(html, new RegExp(`["']${url.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`),
+      `${spec.title} must not turn its source citation into an outbound child-facing link.`);
+  }
+  const networkCheckedSource = metadataUrls.reduce((source, url) => source.replaceAll(url, ""), executableSource);
+  assert.doesNotMatch(networkCheckedSource, /\bhttps?:\/\//i,
     `${spec.title} must not contact an external origin.`);
   assert.doesNotMatch(executableSource, /\b(?:fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon)\b/,
     `${spec.title} must stay self-contained without network or telemetry APIs.`);
@@ -234,8 +249,8 @@ assert.ok(workerRuntimeMatch, "The service worker runtime allow-list is missing.
 const runtimeGames = JSON.parse(workerRuntimeMatch[1]).filter((path) => path.startsWith("/games/")).sort();
 assert.deepEqual(runtimeGames, PUBLIC_GAME_FILES.map((path) => `/${path}`).sort(),
   "Offline runtime caching must include exactly the reviewed arcade files.");
-assert.match(workerSource, /const KIDDOSPROUT_CACHE_VERSION = ["']shell-v112["']/,
-  "The family-call and expanded learning-game release needs the v111 shell cache so older clients receive it.");
+assert.match(workerSource, /const KIDDOSPROUT_CACHE_VERSION = ["']shell-v113["']/,
+  "The Language Garden release needs the v113 shell cache so older clients receive it.");
 assert.deepEqual(runtimeGames.filter((path) => path.endsWith(".svg")), ["/games/multiplication-runner/map.svg"],
   "Only the reviewed Math Runner map SVG may enter the offline allow-list.");
 
@@ -259,8 +274,8 @@ const publishedGames = (await collectRelativeFiles(new URL("games/", `file://${O
   .map((path) => `games/${path}`)
   .sort();
 assert.deepEqual(publishedGames, [...PUBLIC_GAME_FILES].sort(),
-  "The public colleague build must publish all and only the fourteen reviewed web games.");
+  "The public colleague build must publish all and only the fifteen reviewed web games.");
 assert.equal((await stat(new URL("Game%201.game", `file://${OUTPUT_DIRECTORY}/`))).isFile(), true,
   "The public build is missing the clearly labelled Mac Chess download.");
 
-console.log("Sprout Arcade checks passed: 14 gated web games, truthful Chess download, and reviewed public/offline files.");
+console.log("Sprout Arcade checks passed: 15 gated web games, truthful Chess download, and reviewed public/offline files.");

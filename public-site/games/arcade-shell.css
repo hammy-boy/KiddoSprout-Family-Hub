@@ -1,0 +1,83 @@
+html {
+  color-scheme: light dark;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 10000;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  border: 2px solid #173148;
+  border-radius: 10px;
+  color: #12202b;
+  background: #fff;
+  font: 800 16px/1.2 system-ui, sans-serif;
+  text-decoration: none;
+  transform: translateY(calc(-100% - 20px));
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px #5b3a82;
+  transform: translateY(0);
+}
+
+:where(a, button, input, select, [tabindex]):focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px #5b3a82;
+}
+
+:where(button, input, select):disabled {
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+[data-hub-lock] {
+  align-items: center;
+  justify-content: center;
+}
+
+[data-hub-lock]:not(.hidden) {
+  display: grid;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :where(a, button, input, select) {
+    border-width: 2px;
+  }
+}
+
+@media (forced-colors: active) {
+  :where(a, button, input, select, [tabindex]):focus-visible {
+    outline: 3px solid Highlight;
+    box-shadow: none;
+  }
+
+  :where(button, input, select):disabled {
+    color: GrayText;
+    opacity: 1;
+  }
+}

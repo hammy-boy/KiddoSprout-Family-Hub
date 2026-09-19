@@ -304,6 +304,7 @@
       ["Sketch Pad", "S", "Creative app"]
     ];
     const APP_CATALOG = {
+      arcade: { title: "Sprout Arcade", initial: "A", kind: "Game", defaultRule: "request" },
       studio: { title: "Creator Studio", initial: "C", kind: "Create", defaultRule: "request" },
       explore: { title: "Explorer Lab", initial: "E", kind: "Learning", defaultRule: "allowed" },
       move: { title: "Move Breaks", initial: "M", kind: "Movement", defaultRule: "allowed" },
@@ -6764,6 +6765,7 @@
         return requestAppAccess(child, app, trigger);
       }
       const hubPages = {
+        arcade: "games/",
         studio: "creator-studio.html",
         explore: "nature-explorer.html",
         move: "move-breaks.html",
