@@ -3,6 +3,7 @@
 
   const script = document.currentScript;
   const root = String(script?.dataset?.root || "");
+  const accessTitle = String(script?.dataset?.accessTitle || "Learning & Arcade Games");
   const gameFiles = String(script?.dataset?.files || "")
     .split(",")
     .map((file) => file.trim())
@@ -38,6 +39,19 @@
     }
   }
 
+  function focusRequestedGameGroup() {
+    const requestedHash = String(window.location?.hash || "");
+    if (!["#learning-games", "#arcade-games"].includes(requestedHash)) return;
+    const group = document.querySelector(requestedHash);
+    if (!group) return;
+    const focusGroup = () => {
+      group.scrollIntoView({ block: "start" });
+      group.focus({ preventScroll: true });
+    };
+    if (typeof window.requestAnimationFrame === "function") window.requestAnimationFrame(focusGroup);
+    else focusGroup();
+  }
+
   async function prepareArcade() {
     // Public builds generate this safe flag-only file. A plain source checkout
     // may not have it yet, so its absence must not block tab-scoped demo state.
@@ -49,13 +63,14 @@
     if (!window.KiddoSproutFamilyState) await loadScript(`${root}family-state-cloud.js?v=2`);
     if (!window.KiddoHubGate) await loadScript(`${root}kid-hub-gate.js?v=9`);
 
-    const allowed = await Promise.resolve(window.KiddoHubGate.protect("arcade", "Sprout Arcade"));
+    const allowed = await Promise.resolve(window.KiddoHubGate.protect("arcade", accessTitle));
     if (!allowed) return;
 
     for (const file of gameFiles) {
       await loadScript(file);
     }
     document.documentElement.dataset.arcadeLoaded = "true";
+    focusRequestedGameGroup();
   }
 
   prepareArcade().catch(() => {

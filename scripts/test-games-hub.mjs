@@ -11,23 +11,24 @@ const GAME_SPECS = Object.freeze([
   {
     directory: "language-garden",
     title: "Language Garden",
+    group: "learning",
     scripts: ["catalogue.js", "courses.js", "game.js"],
     metadataUrls: [IANA_LANGUAGE_REGISTRY_URL]
   },
-  { directory: "pattern-painter", title: "Pattern Painter", scripts: ["engine.js", "game.js"] },
-  { directory: "melody-meadow", title: "Melody Meadow", scripts: ["music.js", "game.js"] },
-  { directory: "compass-quest", title: "Compass Quest", scripts: ["engine.js", "game.js"] },
-  { directory: "science-sorter", title: "Science Sorter", scripts: ["labs.js", "game.js"] },
-  { directory: "robot-routes", title: "Robot Routes", scripts: ["engine.js", "game.js"] },
-  { directory: "word-builder", title: "Word Builder", scripts: ["engine.js", "game.js"] },
-  { directory: "learning-world", title: "Learning World", scripts: ["subjects.js", "game.js"] },
-  { directory: "multiplication-runner", title: "Math Runner", scripts: ["engine.js", "runner.js", "game.js"], assets: ["map.svg"] },
-  { directory: "racing-game", title: "Sunset Sprint", scripts: ["game.js"] },
-  { directory: "platformer-game", title: "Cloudbound", scripts: ["engine.js", "game.js"] },
-  { directory: "memory-game", title: "Little Matches", scripts: ["engine.js", "game.js"] },
-  { directory: "brick-breaker", title: "Prism Break", scripts: ["engine.js", "game.js"] },
-  { directory: "snake-game", title: "Orbit Snake", scripts: ["engine.js", "game.js"] },
-  { directory: "meteor-game", title: "Meteor Patrol", scripts: ["engine.js", "game.js"] }
+  { directory: "pattern-painter", title: "Pattern Painter", group: "learning", scripts: ["engine.js", "game.js"] },
+  { directory: "melody-meadow", title: "Melody Meadow", group: "learning", scripts: ["music.js", "game.js"] },
+  { directory: "compass-quest", title: "Compass Quest", group: "learning", scripts: ["engine.js", "game.js"] },
+  { directory: "science-sorter", title: "Science Sorter", group: "learning", scripts: ["labs.js", "game.js"] },
+  { directory: "robot-routes", title: "Robot Routes", group: "learning", scripts: ["engine.js", "game.js"] },
+  { directory: "word-builder", title: "Word Builder", group: "learning", scripts: ["engine.js", "game.js"] },
+  { directory: "learning-world", title: "Learning World", group: "learning", scripts: ["subjects.js", "game.js"] },
+  { directory: "multiplication-runner", title: "Math Runner", group: "learning", scripts: ["engine.js", "runner.js", "game.js"], assets: ["map.svg"] },
+  { directory: "racing-game", title: "Sunset Sprint", group: "arcade", scripts: ["game.js"] },
+  { directory: "platformer-game", title: "Cloudbound", group: "arcade", scripts: ["engine.js", "game.js"] },
+  { directory: "memory-game", title: "Little Matches", group: "arcade", scripts: ["engine.js", "game.js"] },
+  { directory: "brick-breaker", title: "Prism Break", group: "arcade", scripts: ["engine.js", "game.js"] },
+  { directory: "snake-game", title: "Orbit Snake", group: "arcade", scripts: ["engine.js", "game.js"] },
+  { directory: "meteor-game", title: "Meteor Patrol", group: "arcade", scripts: ["engine.js", "game.js"] }
 ]);
 
 const PUBLIC_GAME_FILES = Object.freeze([
@@ -62,12 +63,23 @@ assert.deepEqual(
 );
 
 const chooser = await read("games/index.html");
+const learningGroupStart = chooser.indexOf('id="learning-games"');
+const arcadeGroupStart = chooser.indexOf('id="arcade-games"');
+assert.ok(learningGroupStart >= 0 && arcadeGroupStart > learningGroupStart,
+  "The chooser must place Learning Games on one side and Arcade Games on the other.");
+const learningGroup = chooser.slice(learningGroupStart, arcadeGroupStart);
+const arcadeGroup = chooser.slice(arcadeGroupStart);
+assert.match(learningGroup, /Parent approval required/);
+assert.match(arcadeGroup, /Parent approval required/);
 const expectedChooserLinks = GAME_SPECS.map(({ directory }) => `${directory}/index.html`);
 for (const [index, spec] of GAME_SPECS.entries()) {
   assert.match(chooser, new RegExp(`href=["']${spec.directory}/index\\.html["']`),
     `${spec.title} must be selectable from Sprout Arcade.`);
-  assert.match(chooser, new RegExp(`<h2>${spec.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}</h2>`),
+  assert.match(chooser, new RegExp(`<h3>${spec.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}</h3>`),
     `${spec.title} needs its truthful chooser label.`);
+  const expectedGroup = spec.group === "learning" ? learningGroup : arcadeGroup;
+  assert.match(expectedGroup, new RegExp(`href=["']${spec.directory}/index\\.html["']`),
+    `${spec.title} must stay in the ${spec.group} games group.`);
   const currentLink = chooser.indexOf(`href="${expectedChooserLinks[index]}"`);
   if (index > 0) {
     assert.ok(currentLink > chooser.indexOf(`href="${expectedChooserLinks[index - 1]}"`),
@@ -78,9 +90,11 @@ assert.equal((chooser.match(/<a\b[^>]*class=["'][^"']*\bcard\b[^"']*["']/gi) || 
   "The chooser must contain fifteen built-in browser games plus one clearly separate Chess Academy link.");
 assert.match(
   chooser,
-  /<a\b[^>]*href=["']https:\/\/davidolufunmilayo1-blip\.github\.io\/advaced-chess-academy\/["'][^>]*target=["']_blank["'][^>]*rel=["']noopener noreferrer["'][^>]*>[\s\S]*?<h2>Advaced Chess Academy<\/h2>[\s\S]*?Opens the separate chess website/,
+  /<a\b[^>]*href=["']https:\/\/davidolufunmilayo1-blip\.github\.io\/advaced-chess-academy\/["'][^>]*target=["']_blank["'][^>]*rel=["']noopener noreferrer["'][^>]*>[\s\S]*?<h3>Advaced Chess Academy<\/h3>[\s\S]*?Opens the separate Chess website/,
   "Chess must use the reviewed live Academy URL and clearly identify it as a separate website."
 );
+assert.match(learningGroup, /Advaced Chess Academy/,
+  "Chess lessons and puzzles belong with the learning games.");
 assert.doesNotMatch(chooser, /href=["']\.\.\/Game%201\.game["']/,
   "The arcade card must not fall back to the obsolete Mac-only Chess download.");
 assert.equal(await isFile("Game 1.game"), true, "The legacy saved Chess fixture is missing.");
@@ -132,8 +146,10 @@ for (const spec of GAME_SPECS) {
 
 const accessSource = await read("games/arcade-access.js");
 assert.match(accessSource,
-  /const allowed = await Promise\.resolve\(window\.KiddoHubGate\.protect\("arcade", "Sprout Arcade"\)\);/,
+  /const allowed = await Promise\.resolve\(window\.KiddoHubGate\.protect\("arcade", accessTitle\)\);/,
   "The arcade must await KiddoHubGate instead of treating its Promise as permission.");
+assert.match(accessSource, /accessTitle[^\n]+Learning & Arcade Games/,
+  "The shared parent request must truthfully name both game libraries.");
 assert.doesNotMatch(accessSource, /kiddosproutState|localStorage/i,
   "Arcade access must use the current protected family state, not a legacy browser-state shortcut.");
 const protectIndex = accessSource.indexOf("KiddoHubGate.protect");
@@ -212,7 +228,7 @@ assert.deepEqual(pending.loaded, [], "A pending parent decision must not start g
 allowAccess(true);
 await new Promise((resolve) => setImmediate(resolve));
 await new Promise((resolve) => setImmediate(resolve));
-assert.deepEqual(pending.gateCalls, [["arcade", "Sprout Arcade"]]);
+assert.deepEqual(pending.gateCalls, [["arcade", "Learning & Arcade Games"]]);
 assert.deepEqual(pending.loaded, ["engine.js", "runner.js", "game.js"],
   "An approved game must load its reviewed scripts in order.");
 assert.equal(pending.document.documentElement.dataset.arcadeLoaded, "true");
@@ -235,24 +251,28 @@ const [indexSource, appSource, workerSource] = await Promise.all([
 ]);
 assert.match(indexSource, /data-filter=["']play["'][^>]*aria-pressed=["']false["']/,
   "The child hub needs a Play filter for the new game library.");
+assert.match(indexSource, /class=["'][^"']*hub-card learning-games[^"']*["'][^>]*data-kind=["']learn["'][\s\S]*?data-app-status-label=["']arcade["'][\s\S]*?data-open-app=["']arcade["'][^>]*data-game-section=["']learning["']/,
+  "Learning Games must be the first parent-approved games choice under Learn.");
 assert.match(indexSource, /class=["'][^"']*hub-card arcade[^"']*["'][^>]*data-kind=["']play["'][\s\S]*?data-app-status-label=["']arcade["'][\s\S]*?data-open-app=["']arcade["']/,
-  "Sprout Arcade must participate in the same parent-rule UI as other child apps.");
-assert.match(appSource, /arcade:\s*\{\s*title:\s*["']Sprout Arcade["'][\s\S]*?defaultRule:\s*["']request["']/,
-  "A real family must default Sprout Arcade to Ask parent.");
+  "Arcade Games must participate in the same parent-rule UI as other child apps.");
+assert.equal((indexSource.match(/data-app-status-label=["']arcade["']/g) || []).length, 2,
+  "Both game-library cards must display the shared parent approval status.");
+assert.match(appSource, /arcade:\s*\{\s*title:\s*["']Learning & Arcade Games["'][\s\S]*?defaultRule:\s*["']request["']/,
+  "Both game libraries must default to Ask parent.");
 assert.match(appSource, /HOMEWORK_PAUSED_APP_IDS\s*=\s*new Set\(\[[^\]]*["']arcade["']/,
-  "Homework Mode must pause Sprout Arcade.");
-assert.match(appSource, /appRules:\s*\{[\s\S]*?arcade:\s*["']allowed["']/,
-  "The fictional colleague demo should be able to tour the reviewed arcade.");
-assert.match(appSource, /const hubPages\s*=\s*\{[\s\S]*?arcade:\s*["']games\/index\.html["']/,
-  "Approved arcade navigation must use an explicit, portable index path.");
+  "Homework Mode must pause both game libraries.");
+assert.match(appSource, /appRules:\s*\{[\s\S]*?arcade:\s*["']request["']/,
+  "The fictional colleague demo must also ask a parent before opening either library.");
+assert.match(appSource, /requestedGameSection[\s\S]*?games\/index\.html#\$\{requestedGameSection\}/,
+  "Approved navigation must target the chosen learning or arcade side.");
 
 const workerRuntimeMatch = workerSource.match(/const KIDDOSPROUT_RUNTIME_ASSETS = (\[[\s\S]*?\]);/);
 assert.ok(workerRuntimeMatch, "The service worker runtime allow-list is missing.");
 const runtimeGames = JSON.parse(workerRuntimeMatch[1]).filter((path) => path.startsWith("/games/")).sort();
 assert.deepEqual(runtimeGames, PUBLIC_GAME_FILES.map((path) => `/${path}`).sort(),
   "Offline runtime caching must include exactly the reviewed arcade files.");
-assert.match(workerSource, /const KIDDOSPROUT_CACHE_VERSION = ["']shell-v113["']/,
-  "The Language Garden release needs the v113 shell cache so older clients receive it.");
+assert.match(workerSource, /const KIDDOSPROUT_CACHE_VERSION = ["']shell-v114["']/,
+  "The split game-library release needs the v114 shell cache so older clients receive it.");
 assert.deepEqual(runtimeGames.filter((path) => path.endsWith(".svg")), ["/games/multiplication-runner/map.svg"],
   "Only the reviewed Math Runner map SVG may enter the offline allow-list.");
 

@@ -2746,6 +2746,10 @@
       background: linear-gradient(135deg, #76541a, #842f27 54%, #523461);
     }
 
+    .hub-card.learning-games {
+      background: linear-gradient(135deg, #14636b, #267340 58%, #75621b);
+    }
+
     .hub-card.arcade {
       background: linear-gradient(135deg, #174f68, #17665f 55%, #5d4d18);
     }
@@ -4137,6 +4141,11 @@
     body.theme-night.mode-child #hubs .hub-card.story {
       border-color: #a47bc2;
       background: linear-gradient(135deg, #303f78, #5a376d);
+    }
+
+    body.theme-night.mode-child #hubs .hub-card.learning-games {
+      border-color: #7fd38c;
+      background: linear-gradient(135deg, #16556b, #287247 58%, #76631d);
     }
 
     body.theme-night.mode-child #hubs .hub-card.arcade {

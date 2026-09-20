@@ -378,7 +378,7 @@ const projectScope = inspectWorkerScope({
 }, URL, Set);
 assert.equal(projectScope.scopePath, "/KiddoSprout-Family-Hub/");
 assert.equal(projectScope.cachePrefix, "kiddosprout-app-%2FKiddoSprout-Family-Hub%2F-");
-assert.equal(projectScope.shellCache.endsWith("-shell-v113"), true);
+assert.equal(projectScope.shellCache.endsWith("-shell-v114"), true);
 assert.equal(projectScope.runtimeCache.endsWith("-runtime-v1"), true);
 assert.equal(
   [...projectScope.shellAssets, ...projectScope.runtimeAssets]

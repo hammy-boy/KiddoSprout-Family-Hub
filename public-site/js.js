@@ -304,14 +304,13 @@
       ["Sketch Pad", "S", "Creative app"]
     ];
     const APP_CATALOG = {
-      arcade: { title: "Sprout Arcade", initial: "A", kind: "Game", defaultRule: "request" },
+      arcade: { title: "Learning & Arcade Games", initial: "G", kind: "Game libraries", defaultRule: "request" },
       studio: { title: "Creator Studio", initial: "C", kind: "Create", defaultRule: "request" },
       explore: { title: "Explorer Lab", initial: "E", kind: "Learning", defaultRule: "allowed" },
       move: { title: "Move Breaks", initial: "M", kind: "Movement", defaultRule: "allowed" },
       story: { title: "Story Theater", initial: "S", kind: "Original books", defaultRule: "allowed" },
       recipe: { title: "FlavorNest", initial: "F", kind: "Recipe app", defaultRule: "allowed" },
       spending: { title: "Smart Spending", initial: "$", kind: "Money app", defaultRule: "allowed" },
-      arcade: { title: "Sprout Arcade", initial: "A", kind: "Game library", defaultRule: "request" },
       flyer: { title: "Sprout Flyer", initial: "F", kind: "Game", defaultRule: "request" },
       gameSites: {
         title: "Game Websites",
@@ -591,7 +590,7 @@
           story: "allowed",
           recipe: "allowed",
           spending: "allowed",
-          arcade: "allowed",
+          arcade: "request",
           flyer: "allowed",
           gameSites: "blocked",
           roblox: "blocked"
@@ -6538,8 +6537,7 @@
       Object.entries(APP_CATALOG).forEach(([id, app]) => {
         const homeworkPaused = isAppPausedByHomework(child, id);
         const rule = effectiveAppRule(child, id);
-        const label = document.querySelector(`[data-app-status-label="${id}"]`);
-        if (label) {
+        document.querySelectorAll(`[data-app-status-label="${id}"]`).forEach((label) => {
           label.textContent = homeworkPaused
             ? translate("parent.appStatus.paused", {}, "Paused for Homework Mode")
             : rule === "allowed"
@@ -6547,7 +6545,7 @@
               : rule === "blocked"
                 ? translate("parent.appStatus.blocked", {}, "Blocked by parent")
                 : translate("parent.appStatus.request", {}, "Needs parent approval");
-        }
+        });
         document.querySelectorAll(`[data-open-app="${id}"], [data-open-app-link="${id}"]`).forEach((control) => {
           control.classList.toggle("blocked-app", rule === "blocked");
           control.classList.toggle("request-app", rule === "request");
@@ -6771,13 +6769,15 @@
       if (rule === "request") {
         return requestAppAccess(child, app, trigger);
       }
+      const requestedGameSection = trigger?.dataset?.gameSection === "learning"
+        ? "learning-games"
+        : "arcade-games";
       const hubPages = {
-        arcade: "games/",
+        arcade: `games/index.html#${requestedGameSection}`,
         studio: "creator-studio.html",
         explore: "nature-explorer.html",
         move: "move-breaks.html",
-        story: "story-theater.html",
-        arcade: "games/index.html"
+        story: "story-theater.html"
       };
       // The standalone hubs are safe, child-facing pages and understand both
       // real-family and tab-scoped demo state. Always open the complete hub so

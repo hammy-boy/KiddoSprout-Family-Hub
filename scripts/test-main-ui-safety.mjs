@@ -545,8 +545,12 @@ assert.doesNotMatch(index, /class="tabs" role="tablist"/);
 assert.equal((index.match(/data-filter="[^\"]+" aria-pressed="(?:true|false)"/g) || []).length, 5);
 assert.match(index, /data-filter="play" aria-pressed="false"/,
   "The child hub needs a dedicated Play filter for its game choices.");
-assert.match(index, /class="hub-card arcade" data-kind="play"[\s\S]*?data-app-status-label="arcade"[\s\S]*?data-open-app="arcade"/,
-  "Sprout Arcade must expose the same parent-rule status and launch control as other hubs.");
+assert.match(index, /class="hub-card learning-games" data-kind="learn"[\s\S]*?data-app-status-label="arcade"[\s\S]*?data-open-app="arcade" data-game-section="learning"/,
+  "Learning Games must be a parent-approved choice under the Learn filter.");
+assert.match(index, /class="hub-card arcade" data-kind="play"[\s\S]*?data-app-status-label="arcade"[\s\S]*?data-open-app="arcade" data-game-section="arcade"/,
+  "Arcade Games must be a parent-approved choice under the Play filter.");
+assert.equal((index.match(/data-app-status-label="arcade"/g) || []).length, 2,
+  "Both game cards must expose their shared parent-approval status.");
 assert.match(app, /item\.setAttribute\("aria-pressed", String\(selected\)\)/);
 assert.match(app, /card\.hidden = filter !== "all" && card\.dataset\.kind !== filter/);
 assert.match(style, /\.hub-card\[hidden\]\s*\{\s*display:\s*none;/);
@@ -674,8 +678,8 @@ assert.doesNotMatch(app, /child\.appRules\.spending\s*=\s*"allowed"/,
 const extensionRules = functionRange(app, "extensionBlockRules", "broadcastExtensionBlockRules");
 assert.match(extensionRules, /rule:\s*effectiveAppRule\(child, id\)/,
   "The browser blocker must receive Homework Mode's effective game rules.");
-assert.match(app, /const hubPages\s*=\s*\{[\s\S]*?arcade:\s*"games\/index\.html"[\s\S]*?if \(hubPages\[app\]\) \{[\s\S]*?window\.location\.href = hubPages\[app\]/,
-  "An approved Sprout Arcade must navigate through an explicit portable index path.");
+assert.match(app, /const requestedGameSection[\s\S]*?trigger\?\.dataset\?\.gameSection === "learning"[\s\S]*?arcade:\s*`games\/index\.html#\$\{requestedGameSection\}`[\s\S]*?if \(hubPages\[app\]\) \{[\s\S]*?window\.location\.href = hubPages\[app\]/,
+  "Approved game navigation must target the selected learning or arcade side.");
 
 const familyScheduleRenderer = functionRange(app, "renderFamilySchedule", "refreshTimeSensitiveDashboard");
 assert.match(familyScheduleRenderer, /const bedtimeEnabled = Boolean\(child\?\.bedtime\)/);
@@ -829,6 +833,8 @@ assert.match(app, /appModal\.classList\.contains\("open"\)[\s\S]*?!appModal\.con
   "An open child app dialog must recover focus after the background becomes inert.");
 const hubAccessRenderer = functionRange(app, "renderHubAccess", "setChildControlsDisabled");
 assert.match(hubAccessRenderer, /isAppPausedByHomework\(child, id\)/);
+assert.match(hubAccessRenderer, /querySelectorAll\(`\[data-app-status-label="\$\{id\}"\]`\)\.forEach/,
+  "Every card sharing the game permission must receive the same live approval label.");
 assert.match(hubAccessRenderer, /Paused for Homework Mode/,
   "A game paused by Homework Mode must be labelled truthfully in the child hub.");
 assert.match(hubAccessRenderer, /rule === "allowed"[\s\S]*?`Open \$\{app\.title\}`/,
