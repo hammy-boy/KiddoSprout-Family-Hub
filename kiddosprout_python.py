@@ -3,6 +3,7 @@ import os
 import re
 import secrets
 import smtplib
+import ssl
 import time
 from email.message import EmailMessage
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -162,8 +163,17 @@ def send_recovery_email(email, code):
         "This code expires in 10 minutes. If you did not request it, ignore this email."
     )
 
-    with smtplib.SMTP(settings["host"], settings["port"], timeout=12) as smtp:
-        smtp.starttls()
+    tls_context = ssl.create_default_context()
+    if settings["port"] in {465, 2465}:
+        smtp_connection = smtplib.SMTP_SSL(
+            settings["host"], settings["port"], timeout=12, context=tls_context
+        )
+    else:
+        smtp_connection = smtplib.SMTP(settings["host"], settings["port"], timeout=12)
+
+    with smtp_connection as smtp:
+        if settings["port"] not in {465, 2465}:
+            smtp.starttls(context=tls_context)
         smtp.login(settings["user"], settings["password"])
         smtp.send_message(message)
 

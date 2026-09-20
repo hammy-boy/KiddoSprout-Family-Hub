@@ -162,6 +162,10 @@ assert.match(responses.application_missing.content_type, /^text\/html/);
 assert.match(responses.application_missing.sample, /<!doctype html>/i);
 assert.match(source, /ThreadingHTTPServer\(\("127\.0\.0\.1", port\)/,
   "The legacy Python preview must bind only to loopback.");
+assert.match(source, /settings\["port"\] in \{465, 2465\}[\s\S]*?smtplib\.SMTP_SSL/,
+  "Implicit-TLS SMTP ports must use SMTP_SSL rather than attempting STARTTLS.");
+assert.match(source, /settings\["port"\] not in \{465, 2465\}[\s\S]*?smtp\.starttls\(context=tls_context\)/,
+  "STARTTLS SMTP ports must upgrade using a certificate-validating TLS context.");
 assert.match(source, /PUBLIC_FILES = frozenset/,
   "The legacy Python preview needs a positive static-file allow-list.");
 assert.match(source, /STATIC_SECURITY_HEADERS = \(/,
