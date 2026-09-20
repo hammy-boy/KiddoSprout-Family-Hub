@@ -75,13 +75,15 @@ for (const [index, spec] of GAME_SPECS.entries()) {
   }
 }
 assert.equal((chooser.match(/<a\b[^>]*class=["'][^"']*\bcard\b[^"']*["']/gi) || []).length, 16,
-  "The chooser must contain fifteen browser games plus one clearly separate Chess download.");
+  "The chooser must contain fifteen built-in browser games plus one clearly separate Chess Academy link.");
 assert.match(
   chooser,
-  /<a\b[^>]*href=["']\.\.\/Game%201\.game["'][^>]*download=["']KiddoSprout-Chess-Match\.game["'][^>]*>[\s\S]*?<h2>Saved Chess Match<\/h2>[\s\S]*?Mac-only saved Chess match/,
-  "Chess must be presented as a Mac saved-match download, not as a sixteenth browser game."
+  /<a\b[^>]*href=["']https:\/\/davidolufunmilayo1-blip\.github\.io\/advaced-chess-academy\/["'][^>]*target=["']_blank["'][^>]*rel=["']noopener noreferrer["'][^>]*>[\s\S]*?<h2>Advaced Chess Academy<\/h2>[\s\S]*?Opens the separate chess website/,
+  "Chess must use the reviewed live Academy URL and clearly identify it as a separate website."
 );
-assert.equal(await isFile("Game 1.game"), true, "The chooser's saved Chess match is missing.");
+assert.doesNotMatch(chooser, /href=["']\.\.\/Game%201\.game["']/,
+  "The arcade card must not fall back to the obsolete Mac-only Chess download.");
+assert.equal(await isFile("Game 1.game"), true, "The legacy saved Chess fixture is missing.");
 assert.match(await read("Game 1.game"), /^<\?xml[\s\S]*?<plist\b/i,
   "The Chess download must remain a real macOS property-list game document.");
 
@@ -276,6 +278,6 @@ const publishedGames = (await collectRelativeFiles(new URL("games/", `file://${O
 assert.deepEqual(publishedGames, [...PUBLIC_GAME_FILES].sort(),
   "The public colleague build must publish all and only the fifteen reviewed web games.");
 assert.equal((await stat(new URL("Game%201.game", `file://${OUTPUT_DIRECTORY}/`))).isFile(), true,
-  "The public build is missing the clearly labelled Mac Chess download.");
+  "The public build is missing the reviewed legacy Chess fixture.");
 
-console.log("Sprout Arcade checks passed: 15 gated web games, truthful Chess download, and reviewed public/offline files.");
+console.log("Sprout Arcade checks passed: 15 gated web games, reviewed Chess Academy link, and reviewed public/offline files.");
