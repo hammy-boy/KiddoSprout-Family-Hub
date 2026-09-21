@@ -13,3 +13,15 @@ Colour expansion: six colour names in every pack. Yoruba yellow/blue and basic c
 Counting expansion: numbers four through ten in all 40 packs, completing the starter range one through ten. Yoruba cardinal forms cross-checked against Yoruba Yé Mi, Chapter 4, page 90: https://coerll.utexas.edu/yemi/pdfs/yy_ch4.pdf . Notes distinguish cardinal forms, Japanese counters and native Korean counting. These additions have not received fluent-speaker review.
 
 Igbo starter pack: 13 cards (greetings and numbers 1–10); total 41 courses and 1,253 cards. Introductory spellings do not fully mark tone and are not a fluent-speaker-reviewed curriculum. Greeting references: https://elias.fas.harvard.edu/languages/igbo/beginning/3/greetings-and-responses-ekele and https://igbokwenuct.org/wp-content/uploads/2022/09/IgboKwenu-21-Phrases.pdf . Number reference: https://www.omniglot.com/language/numbers/igbo.htm .
+
+Next expansion: 47 starter courses and 1,337 cards. Hausa, Zulu, Welsh, Irish, Hebrew and Bengali each add 13 greeting/counting cards. Igbo now has 19 cards, with family, home, food and water. Original 40 packs retain 31 cards each. These remain authored introductory samples, not reviewed curricula.
+References used to check the new packs:
+- Hausa: https://www.omniglot.com/language/phrases/hausa.php and https://www.omniglot.com/language/numbers/hausa.htm
+- Zulu: https://www.omniglot.com/language/phrases/zulu.php and https://www.omniglot.com/language/numbers/zulu.htm ; noun-class counting forms vary.
+- Welsh: https://www.omniglot.com/language/phrases/welsh.php and https://www.omniglot.com/language/numbers/welsh.htm
+- Irish standalone counting: https://irishlanguage.ie/an-caighdean-oifigiuil-numbers/
+- Hebrew feminine counting forms: https://www.teachmehebrew.com/numbers-in-hebrew.html
+- Bengali: https://www.omniglot.com/language/phrases/bengali.php and https://www.omniglot.com/language/numbers/bengali.htm
+- Igbo: https://nkowaokwu.com/search?word=mmiri , https://nkowaokwu.com/search?word=nri and https://okwuid.com/2019/02/09/learn-igbo-family-members-simple-sentences11/
+
+Family/home/food expansion: 18 additional authored words in English, Spanish, French, German, Italian, Portuguese, Dutch and Swedish. Those eight packs now contain 49 cards. Other packs keep their existing cards. Total: 47 starter courses and 1,481 cards. Notes distinguish fruit from colour, Spanish fish as food, regional banana terms and child/gender forms. Fluent-speaker review is still pending.

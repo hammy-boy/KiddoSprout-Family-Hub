@@ -24,12 +24,12 @@ const totalCards = (courses) => Object.values(courses)
 const sourceCardCounts = new Set(Object.values(sourceCourses)
   .map((course) => course.cards.length));
 
-assert.ok(sourceIds.length >= 40,
-  "Language Garden must keep at least the reviewed forty starter courses.");
-assert.equal(sourceCourses.ig.cards.length, 13, "Igbo needs its authored starter pack.");
+assert.ok(sourceIds.length >= 47,
+  "Language Garden must keep at least the original forty starter courses.");
+assert.equal(sourceCourses.ig.cards.length, 19, "Igbo needs its authored starter pack.");
 assert.equal(sourceCourses.yo.cards.length, 31, "Yoruba must retain all its cards.");
 for (const [id, course] of Object.entries(sourceCourses)) {
-  assert.ok(course.cards.length >= (id === 'ig' ? 13 : 31));
+  assert.ok(course.cards.length >= (['ha','zu','cy','ga','he','bn'].includes(id) ? 13 : id === 'ig' ? 19 : 31));
   assert.equal(new Set(course.cards.map(card => card.meaning)).size, course.cards.length);
 }
 assert.deepEqual(publishedIds, sourceIds,
