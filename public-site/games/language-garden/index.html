@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Language Garden · KiddoSprout</title>
 <link rel="icon" href="../../kiddosprout_logo_128.png" type="image/png">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=tutor-1">
 <link rel="stylesheet" href="../arcade-shell.css">
 </head>
 <body>
@@ -62,6 +62,7 @@
 <div class="actions">
 <button id="flash" class="primary">Study word cards</button>
 <button id="quiz">Practise meanings</button>
+<button id="tutor-start">Practise with Sprout Tutor</button>
 </div>
 <p id="progress" class="small"></p>
 <section id="study" class="hidden">
@@ -81,6 +82,23 @@
 <div class="actions">
 <button id="reveal">Reveal meaning</button>
 <button id="study-next" class="primary">Next word →</button>
+</div>
+</section>
+<section id="tutor-panel" class="hidden" aria-labelledby="tutor-title">
+<div class="study-top"><h2 id="tutor-title">Sprout Tutor</h2><button id="tutor-close">Close tutor</button></div>
+<p>A built-in vocabulary coach using your word cards and their notes. Guided practice, not an AI chat service.</p>
+<div class="tutor-settings">
+<label>Practise <select id="tutor-direction"><option value="meaning">Understand the word</option><option value="word">Write the word</option></select></label>
+<label>Topic <select id="tutor-topic"><option value="all">All topics</option></select></label>
+<button id="tutor-begin" class="primary">Start a five-word round</button>
+</div>
+<div id="tutor-round" hidden>
+<p id="tutor-step" class="eyebrow"></p><h3 id="tutor-prompt" dir="auto"></h3>
+<form id="tutor-form"><label for="tutor-answer" id="tutor-answer-label">Type the meaning</label>
+<div class="tutor-input"><input id="tutor-answer" maxlength="100" autocomplete="off" spellcheck="false" aria-describedby="tutor-feedback"><button id="tutor-submit" class="primary">Check answer</button></div></form>
+<p id="tutor-feedback" role="status" aria-live="polite"></p>
+<div class="actions"><button id="tutor-hint">Hint</button><button id="tutor-reveal">Teach me this word</button><button id="tutor-next">Next word</button><button id="tutor-review" hidden>Revisit tricky words</button></div>
+<p id="tutor-saved" class="small"></p>
 </div>
 </section>
 <div class="detail-columns">
@@ -120,6 +138,6 @@
 <p data-lock-message>Open the child dashboard to request arcade access.</p>
 <a href="../../index.html#child">Back to KiddoSprout</a>
 </section>
-<script src="../arcade-access.js?v=2" data-root="../../" data-files="catalogue.js,courses.js?v=packs-47-home2,game.js?v=packs-47-home2"></script>
+<script src="../arcade-access.js?v=2" data-root="../../" data-files="catalogue.js,courses.js?v=tutor-1,tutor-engine.js?v=1,tutor.js?v=1,game.js?v=tutor-1"></script>
 </body>
 </html>

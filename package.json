@@ -39,7 +39,7 @@
     "test:auth-request-safety": "node scripts/test-auth-request-safety.mjs",
     "test:hubs": "node scripts/test-child-hub-ui.mjs",
     "test:language": "node scripts/test-language-setting.mjs",
-    "test:language-garden": "node scripts/test-language-garden.mjs",
+    "test:language-garden": "node scripts/test-language-garden.mjs && node --test scripts/test-language-tutor.cjs",
     "test:links": "node scripts/test-public-links.mjs && npm run test:local-redirect",
     "test:local-redirect": "node scripts/test-local-docker-redirect.mjs",
     "test:main-ui": "node scripts/test-main-ui-safety.mjs",

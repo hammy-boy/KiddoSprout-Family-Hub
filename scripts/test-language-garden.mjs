@@ -12,7 +12,9 @@ const LANGUAGE_FILES = Object.freeze([
   "style.css",
   "catalogue.js",
   "courses.js",
-  "game.js"
+  "game.js",
+  "tutor-engine.js",
+  "tutor.js"
 ]);
 
 const sourceCourses = require(fileURLToPath(new URL("courses.js", SOURCE_DIRECTORY))).courses;
@@ -26,10 +28,10 @@ const sourceCardCounts = new Set(Object.values(sourceCourses)
 
 assert.ok(sourceIds.length >= 47,
   "Language Garden must keep at least the original forty starter courses.");
-assert.equal(sourceCourses.ig.cards.length, 19, "Igbo needs its authored starter pack.");
+assert.equal(sourceCourses.ig.cards.length, 22, "Igbo needs its authored starter pack.");
 assert.equal(sourceCourses.yo.cards.length, 31, "Yoruba must retain all its cards.");
 for (const [id, course] of Object.entries(sourceCourses)) {
-  assert.ok(course.cards.length >= (['ha','zu','cy','ga','he','bn'].includes(id) ? 13 : id === 'ig' ? 19 : 31));
+  assert.ok(course.cards.length >= (['ha','zu','cy','ga','he','bn'].includes(id) ? 13 : id === 'ig' ? 22 : 31));
   assert.equal(new Set(course.cards.map(card => card.meaning)).size, course.cards.length);
 }
 assert.deepEqual(publishedIds, sourceIds,
