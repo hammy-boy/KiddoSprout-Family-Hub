@@ -25,3 +25,5 @@ References used to check the new packs:
 - Igbo: https://nkowaokwu.com/search?word=mmiri , https://nkowaokwu.com/search?word=nri and https://okwuid.com/2019/02/09/learn-igbo-family-members-simple-sentences11/
 
 Family/home/food expansion: 18 additional authored words in English, Spanish, French, German, Italian, Portuguese, Dutch and Swedish. Those eight packs now contain 49 cards. Other packs keep their existing cards. Total: 47 starter courses and 1,481 cards. Notes distinguish fruit from colour, Spanish fish as food, regional banana terms and child/gender forms. Fluent-speaker review is still pending.
+
+Further family/home/food expansion: 18 authored cards each in Arabic, Japanese, Korean, Mandarin, Russian, Polish, Greek, Romanian, Turkish and Hindi (+180). Total: 47 courses and 1,661 cards. Notes distinguish Japanese parent terms, uncooked rice, Korean fish as food, Polish door grammar and Hindi paneer. Fluent-speaker review remains pending.
