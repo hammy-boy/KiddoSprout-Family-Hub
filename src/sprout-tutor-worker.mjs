@@ -7,14 +7,28 @@ const HEALTH_PATH = "/api/sprout-tutor/health";
 const BROWSER_CONFIG_PATH = "/supabase-config.js";
 const VERIFIED_OWNER_HEADER = "X-KiddoSprout-Verified-Owner";
 const VERIFIED_CHILD_HEADER = "X-KiddoSprout-Verified-Child";
+const EXPECTED_OWNER_HEADER = "X-KiddoSprout-Expected-Owner";
+const EXPECTED_CHILD_HEADER = "X-KiddoSprout-Expected-Child";
 const UUID_V4_SOURCE = "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}";
 const UUID_V4_PATTERN = new RegExp(`^${UUID_V4_SOURCE}$`);
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const CHILD_KEY_PATTERN = /^[0-9a-f]{64}$/;
+const CHILD_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{0,159}$/;
+const UNSAFE_CHILD_IDS = new Set(["__proto__", "constructor", "prototype"]);
 const AGENT_PATH_PATTERN = new RegExp(`^${AGENT_PATH_PREFIX}(${UUID_V4_SOURCE})$`);
 const MANAGED_SUPABASE_URL = /^https:\/\/[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.supabase\.co$/i;
 const MODERN_PUBLISHABLE_KEY = /^sb_publishable_[A-Za-z0-9_-]{12,}$/;
 const SAFE_TURNSTILE_SITE_KEY = /^[A-Za-z0-9_-]{20,}$/;
+const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
+const PLAID_SCRIPT_ORIGIN = "https://cdn.plaid.com";
+const LIVE_CONNECT_ORIGINS = Object.freeze([
+  TURNSTILE_ORIGIN,
+  "https://www.themealdb.com",
+  "https://en.wikipedia.org",
+  "https://production.plaid.com",
+  "https://sandbox.plaid.com",
+  "https://development.plaid.com"
+]);
 const TURNSTILE_TEST_SITE_KEYS = new Set([
   "1x00000000000000000000AA",
   "2x00000000000000000000AB",
@@ -40,12 +54,10 @@ const STAGES = Object.freeze({
 const ALLOWED_SUBJECTS = new Set(Object.keys(SUBJECTS));
 const ALLOWED_STAGES = new Set(Object.keys(STAGES));
 const ALLOWED_BODY_KEYS = new Set(["message", "subject", "stage"]);
-const TRUSTED_CROSS_ORIGIN = "https://hammy-boy.github.io";
-const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
 const MAX_BODY_BYTES = 4_096;
 const MAX_AUTH_RESPONSE_BYTES = 256 * 1024;
-const MAX_FAMILY_RESPONSE_BYTES = (1024 * 1024) + (64 * 1024);
+const MAX_APPROVAL_RESPONSE_BYTES = 8 * 1024;
 const MAX_MESSAGE_CHARS = 600;
 const MAX_REPLY_CHARS = 1_200;
 const MAX_HISTORY_MESSAGES = 12;
@@ -64,6 +76,9 @@ const UNSAFE_REQUEST_REPLY =
   "I can’t help with sexual, violent, illegal, or dangerous instructions. Please ask a safe learning question in your chosen subject. If this is happening to you or you feel unsafe, tell a trusted adult now.";
 const TEMPORARY_ERROR_REPLY =
   "Sprout Tutor is resting just now. Please try again in a little while.";
+const LINK_REPLY =
+  "I can’t safely share links here. Ask your learning question without a website or link, and we can keep working together.";
+const CRISIS_GUARD_CATEGORIES = new Set(["S4", "S11"]);
 
 class RequestProblem extends Error {
   constructor(status, publicMessage, headers = undefined) {
@@ -169,14 +184,8 @@ function inspectOrigin(request, env = undefined) {
   const requestOrigin = new URL(request.url).origin;
   if (
     rawOrigin === requestOrigin
-    || rawOrigin === TRUSTED_CROSS_ORIGIN
     || rawOrigin === configuredAccountOrigin(env)
   ) {
-    return { allowed: true, origin: rawOrigin };
-  }
-
-  const localProtocol = origin.protocol === "http:" || origin.protocol === "https:";
-  if (localProtocol && LOCAL_HOSTS.has(origin.hostname)) {
     return { allowed: true, origin: rawOrigin };
   }
   return { allowed: false, origin: null };
@@ -210,23 +219,30 @@ function errorResponse(request, error, status = 400, additions = undefined, env 
   return jsonResponse(request, { error }, status, additions, env);
 }
 
-function preflightResponse(request, env = undefined) {
+function preflightResponse(request, allowedMethods, env = undefined) {
+  const methods = [...allowedMethods, "OPTIONS"];
   const requestedMethod = request.headers.get("Access-Control-Request-Method");
-  if (requestedMethod && !["GET", "POST", "DELETE"].includes(requestedMethod)) {
-    return errorResponse(request, "Method not allowed.", 405, { Allow: "GET, POST, DELETE, OPTIONS" }, env);
+  if (requestedMethod && !allowedMethods.includes(requestedMethod)) {
+    return errorResponse(request, "Method not allowed.", 405, { Allow: methods.join(", ") }, env);
   }
 
   const requestedHeaders = (request.headers.get("Access-Control-Request-Headers") || "")
     .split(",")
     .map((header) => header.trim().toLowerCase())
     .filter(Boolean);
-  if (requestedHeaders.some((header) => header !== "content-type" && header !== "authorization")) {
+  const allowedHeaders = new Set([
+    "content-type",
+    "authorization",
+    EXPECTED_OWNER_HEADER.toLowerCase(),
+    EXPECTED_CHILD_HEADER.toLowerCase()
+  ]);
+  if (requestedHeaders.some((header) => !allowedHeaders.has(header))) {
     return errorResponse(request, "Request headers are not allowed.", 400, undefined, env);
   }
 
   const headers = responseHeaders(request, {
-    "Access-Control-Allow-Headers": "Authorization, Content-Type",
-    "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": `Authorization, Content-Type, ${EXPECTED_OWNER_HEADER}, ${EXPECTED_CHILD_HEADER}`,
+    "Access-Control-Allow-Methods": methods.join(", "),
     "Access-Control-Max-Age": "600"
   }, env);
   headers.delete("Content-Type");
@@ -312,10 +328,72 @@ function browserConfigurationResponse(request, env) {
   return new Response(browserConfigurationSource(request, env), { status: 200, headers });
 }
 
+function liveContentSecurityPolicy(account) {
+  const supabase = new URL(account.url);
+  const supabaseRealtimeOrigin = `wss://${supabase.host}`;
+  return [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+    `script-src 'self' 'unsafe-inline' ${TURNSTILE_ORIGIN} ${PLAID_SCRIPT_ORIGIN}`,
+    "script-src-attr 'none'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https:",
+    "media-src 'self' blob: https:",
+    `connect-src 'self' ${account.url} ${supabaseRealtimeOrigin} ${LIVE_CONNECT_ORIGINS.join(" ")}`,
+    `frame-src ${TURNSTILE_ORIGIN} ${PLAID_SCRIPT_ORIGIN}`,
+    "worker-src 'self'",
+    "manifest-src 'self'",
+    "font-src 'self'"
+  ].join("; ");
+}
+
+async function hostedAssetResponse(request, env) {
+  if (typeof env?.ASSETS?.fetch !== "function") {
+    return errorResponse(request, "Hosted application assets are not configured.", 503, {
+      "Retry-After": "30"
+    }, env);
+  }
+
+  const response = await env.ASSETS.fetch(exactAssetRequest(request));
+  const account = accountModeConfiguration(env);
+  if (!account || account.accountOrigin !== new URL(request.url).origin) return response;
+
+  const headers = new Headers(response.headers);
+  headers.set("Content-Security-Policy", liveContentSecurityPolicy(account));
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  });
+}
+
+function exactAssetRequest(request) {
+  if (request.method !== "GET" && request.method !== "HEAD") return request;
+  const url = new URL(request.url);
+  if (!url.pathname.endsWith("/")) return request;
+  url.pathname = `${url.pathname}index.html`;
+  return new Request(url.href, {
+    method: request.method,
+    headers: request.headers
+  });
+}
+
 function bearerToken(request) {
   const match = String(request.headers.get("Authorization") || "").match(/^Bearer\s+([^\s]+)$/i);
   const token = match ? match[1] : "";
   return token.length <= 8_192 ? token : "";
+}
+
+function expectedFamilyIdentity(request) {
+  const ownerId = String(request.headers.get(EXPECTED_OWNER_HEADER) || "").trim().toLowerCase();
+  const childId = String(request.headers.get(EXPECTED_CHILD_HEADER) || "").trim();
+  if (!UUID_PATTERN.test(ownerId) || !isSafeChildId(childId)) {
+    throw new RequestProblem(400, "The family profile binding is missing or invalid.");
+  }
+  return { ownerId, childId };
 }
 
 async function discardBody(response) {
@@ -388,13 +466,10 @@ async function fetchAccountJson(url, options, maximumBytes) {
   return { response, payload: await readBoundedResponseJson(response, maximumBytes) };
 }
 
-function approvedTutorChild(familyState) {
-  if (!isPlainObject(familyState) || familyState.parentAccountCreated !== true) return null;
-  if (!isPlainObject(familyState.children)) return null;
-  const activeChild = String(familyState.activeChild ?? "");
-  const child = familyState.children[activeChild];
-  if (!isPlainObject(child) || !isPlainObject(child.appRules)) return null;
-  return child.appRules.sproutTutor === "allowed" ? { child, childId: activeChild } : null;
+function isSafeChildId(value) {
+  return typeof value === "string"
+    && CHILD_ID_PATTERN.test(value)
+    && !UNSAFE_CHILD_IDS.has(value);
 }
 
 async function privateChildKey(ownerId, childId) {
@@ -403,7 +478,7 @@ async function privateChildKey(ownerId, childId) {
   return Array.from(digest, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-async function authenticateAndAuthorize(request, env) {
+async function authenticateConfirmedParent(request, env) {
   const token = bearerToken(request);
   if (!token) throw new RequestProblem(401, "A parent needs to sign in before using Sprout Tutor.");
   const config = accountModeConfiguration(env);
@@ -426,35 +501,59 @@ async function authenticateAndAuthorize(request, env) {
 
   const ownerId = String(auth.payload?.id || "").toLowerCase();
   const email = String(auth.payload?.email || "").trim();
-  if (!UUID_PATTERN.test(ownerId) || !email || auth.payload?.is_anonymous === true) {
+  const emailConfirmedAt = auth.payload?.email_confirmed_at;
+  const emailIsConfirmed = typeof emailConfirmedAt === "string"
+    && emailConfirmedAt.trim().length > 0;
+  if (
+    !UUID_PATTERN.test(ownerId)
+    || !email
+    || !emailIsConfirmed
+    || auth.payload?.is_anonymous === true
+  ) {
     throw new RequestProblem(401, "A verified parent account is required for Sprout Tutor.");
   }
 
-  const familyUrl = new URL(`${config.url}/rest/v1/family_state`);
-  familyUrl.searchParams.set("select", "owner_id,state");
-  familyUrl.searchParams.set("owner_id", `eq.${ownerId}`);
-  familyUrl.searchParams.set("limit", "1");
-  const family = await fetchAccountJson(familyUrl.href, {
+  return { config, ownerId, token };
+}
+
+async function authenticateAndAuthorize(request, env, expectedIdentity) {
+  const { config, ownerId, token } = await authenticateConfirmedParent(request, env);
+  if (!expectedIdentity || expectedIdentity.ownerId !== ownerId) {
+    throw new RequestProblem(403, "The parent account changed. Reopen Sprout Tutor from the Child Site.");
+  }
+
+  const approvalUrl = new URL(`${config.url}/rest/v1/rpc/sprout_tutor_active_child_approval`);
+  const approval = await fetchAccountJson(approvalUrl.href, {
+    method: "POST",
     headers: {
       Accept: "application/json",
       apikey: config.key,
-      Authorization: `Bearer ${token}`
-    }
-  }, MAX_FAMILY_RESPONSE_BYTES);
-  if (!family.response.ok) {
-    if (family.response.status === 401 || family.response.status === 403) {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ p_expected_child_id: expectedIdentity.childId })
+  }, MAX_APPROVAL_RESPONSE_BYTES);
+  if (!approval.response.ok) {
+    if (approval.response.status === 401 || approval.response.status === 403) {
       throw new RequestProblem(403, "Sprout Tutor could not verify parent approval.");
     }
     throw new RequestProblem(503, "Parent approval could not be checked just now.", {
       "Retry-After": "5"
     });
   }
-  const row = Array.isArray(family.payload) && family.payload.length === 1 ? family.payload[0] : null;
-  const approvedChild = isPlainObject(row) ? approvedTutorChild(row.state) : null;
-  if (!isPlainObject(row) || String(row.owner_id || "").toLowerCase() !== ownerId || !approvedChild) {
+  const row = Array.isArray(approval.payload) && approval.payload.length === 1
+    ? approval.payload[0]
+    : null;
+  const childId = isPlainObject(row) ? row.child_id : null;
+  if (
+    !isPlainObject(row)
+    || row.approved !== true
+    || !isSafeChildId(childId)
+    || childId !== expectedIdentity.childId
+  ) {
     throw new RequestProblem(403, "A parent must approve Sprout Tutor for the active child first.");
   }
-  return { ownerId, childKey: await privateChildKey(ownerId, approvedChild.childId) };
+  return { ownerId, childKey: await privateChildKey(ownerId, childId) };
 }
 
 async function enforceAccountRateLimit(env, ownerId) {
@@ -553,7 +652,16 @@ function containsCrisisLanguage(message) {
     /\b(?:i (?:do not|don't) feel safe|i feel unsafe)(?: at home)?\b/,
     /\b(?:someone touched me|someone is touching me|an adult (?:made me|asked me to) keep (?:a )?secret)\b/,
     /\b(?:i am|i'm|we are|we're) in (?:immediate )?danger\b/,
-    /\b(?:going to|plan(?:ning)? to|want to) (?:hurt|kill) (?:myself|someone|somebody)\b/
+    /\b(?:going to|plan(?:ning)? to|want to) (?:hurt|kill) (?:myself|someone|somebody)\b/,
+    /\b(?:i (?:cut|burned|burnt|stabbed|poisoned) myself|i (?:have )?overdosed|i took an? overdose)\b/,
+    /\b(?:i (?:took|swallowed|drank))\b[^.!?]{0,60}\b(?:pills?|tablets?|medicine|medication|poison|bleach)\b/,
+    /\b(?:i(?:'m| am) going to|i want to|i plan to) jump (?:off|from)\b/,
+    /\b(?:my (?:mum|mom|dad|parent|carer|teacher)|someone|an adult) (?:hits|beats|hurts|threatens|touches) me\b/,
+    /\b(?:i am|i'm|i was|i've been) (?:being )?(?:groomed|abused|molested|assaulted)\b/,
+    /\b(?:an adult|someone|my (?:mum|mom|dad|parent|carer|teacher)) sexually assaulted me\b/,
+    /\b(?:i was|i am|i'm|i've been) (?:raped|sexually assaulted|beaten|hit)\b/,
+    /\b(?:i wish i was dead|i wish i were dead|better off dead)\b/,
+    /\b(?:i cannot|i can't) breathe\b|\b(?:i am|i'm) choking\b|\b(?:someone is|they are) unconscious\b/
   ].some((pattern) => pattern.test(text));
 }
 
@@ -564,16 +672,20 @@ function containsPersonalData(message) {
     /\b[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)+\b/i,
     /(?:^|\D)(?:\+?\d[\d ().-]{7,}\d)(?:\D|$)/,
     /\b(?:my (?:full )?name is|i am called|you can call me)\s+[a-z]/,
+    /\b(?:my name['’]?s|my real name['’]?s)\s+[a-z]/,
     /\b(?:me llamo|mi nombre es|je m'appelle|mon nom est|ich hei(?:ß|ss)e|mein name ist|eu me chamo|meu nome (?:é|e)|mi chiamo|il mio nome (?:è|e))(?=\s|$|[,:;.!?])/,
-    /\b(?:my (?:home )?address(?: is)?|i live (?:at|on)|my postcode is)\b/,
+    /\b(?:my (?:home )?address(?: is)?|i live (?:at|on|in|near)|my postcode is|my (?:town|city|village) is|our (?:home|house)(?: address)? is)\b/,
     /\b(?:vivo en|mi dirección es|j'habite|mon adresse est|ich wohne|meine adresse ist|eu moro|meu endereço (?:é|e)|abito|il mio indirizzo (?:è|e))(?=\s|$|[,:;.!?])/,
+    /\b(?:i am|i'm) at \d{1,6}\s+[a-z]/,
     /\b(?:g(?:ir)?\d{1,2}|[a-pr-uwyz][a-hk-y]?\d{1,2}) ?\d[a-z]{2}\b/i,
     /\b(?:my school (?:is|is called|address is)|i (?:go|study) (?:to|at)|i attend)\b/,
     /\b(?:mi (?:escuela|colegio) (?:es|se llama)|voy (?:a|al)|mon école (?:est|s'appelle)|je vais à|meine schule (?:ist|heißt)|ich gehe (?:in|zur)|minha escola (?:é|se chama)|eu estudo (?:na|no)|la mia scuola (?:è|si chiama)|vado (?:a|alla))\b/,
     /\b(?:my (?:phone|mobile|email|e-mail)(?: number| address)? is)\b/,
+    /\bmy (?:discord|snapchat|instagram|tiktok|roblox|xbox|playstation|steam) (?:username|handle|id|name) is\b/,
+    /\bmy (?:ip address|passport number|student id|school id|national insurance number) is\b/,
     /\b(?:my password is|my pin is|my username is|my login is)\b/,
-    /\b(?:date of birth|my birthday is|nací el|mi cumpleaños es|je suis né(?:e)? le|mon anniversaire est|ich bin geboren|mein geburtstag ist|nasci em|meu aniversário (?:é|e)|sono nato|il mio compleanno (?:è|e))(?=\s|$|[,:;.!?])/
-  ].some((pattern) => pattern.test(text)) || /\bI(?:'m| am)\s+[A-Z][\p{L}'-]+(?:\s+[A-Z][\p{L}'-]+){1,3}\b/u.test(original);
+    /\b(?:date of birth|my birthday is|i was born (?:on|in)|nací el|mi cumpleaños es|je suis né(?:e)? le|mon anniversaire est|ich bin geboren|mein geburtstag ist|nasci em|meu aniversário (?:é|e)|sono nato|il mio compleanno (?:è|e))(?=\s|$|[,:;.!?])/
+  ].some((pattern) => pattern.test(text)) || /\b[Ii](?:'m| am)\s+\p{Lu}[\p{L}'-]*(?:\s+\p{Lu}[\p{L}'-]*){0,3}\b/u.test(original);
 }
 
 function containsUnsafeRequest(message) {
@@ -624,12 +736,29 @@ function modelReplyCrossesBoundary(reply) {
   ].some((pattern) => pattern.test(text));
 }
 
-function guardResultIsSafe(result) {
-  const verdict = extractModelReply(result).normalize("NFKC").trim().toLowerCase();
-  return /^safe(?:\s|$)/.test(verdict) && !/^unsafe(?:\s|$)/.test(verdict);
+function guardClassification(result) {
+  const lines = extractModelReply(result).normalize("NFKC")
+    .replace(/\r\n?/g, "\n")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const verdict = String(lines.shift() || "").toLowerCase();
+  if (verdict === "safe" && lines.length === 0) return { safe: true, crisis: false };
+  if (verdict !== "unsafe") return { safe: false, crisis: false };
+
+  const tokens = lines.join(" ").split(/[\s,;]+/).filter(Boolean);
+  const validCategories = tokens.length > 0
+    && tokens.every((token) => /^S(?:[1-9]|1[0-4])$/i.test(token));
+  const categories = validCategories
+    ? new Set(tokens.map((token) => token.toUpperCase()))
+    : new Set();
+  return {
+    safe: false,
+    crisis: [...categories].some((category) => CRISIS_GUARD_CATEGORIES.has(category))
+  };
 }
 
-async function contentIsSafe(ai, messages) {
+async function classifyContentSafety(ai, messages) {
   let result;
   try {
     result = await ai.run(SAFETY_MODEL, {
@@ -641,17 +770,30 @@ async function contentIsSafe(ai, messages) {
     console.error(JSON.stringify({ event: "sprout_tutor_safety_check_failed" }));
     throw new RequestProblem(503, TEMPORARY_ERROR_REPLY, { "Retry-After": "5" });
   }
-  return guardResultIsSafe(result);
+  return guardClassification(result);
+}
+
+function containsLink(message) {
+  const text = String(message || "").normalize("NFKC");
+  return [
+    /\b(?:https?|ftp|ftps|mailto|tel|sms|file|data|javascript):\s*(?:\/\/)?\S+/i,
+    /\bwww\s*\.\s*[a-z0-9-]+(?:\s*\.\s*[a-z0-9-]+)+\b/i,
+    /(?:^|[\s([{"'])\/\/(?:[a-z0-9-]+(?:\.[a-z0-9-]+)+|(?:\d{1,3}\.){3}\d{1,3})(?::\d{1,5})?(?:[/?#][^\s]*)?/i,
+    /\b(?:\d{1,3}\.){3}\d{1,3}(?::\d{1,5})?\/(?:[^\s]*)/i,
+    /\b(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,24}|xn--[a-z0-9-]{2,59})(?:\/[^\s]*)?\b/i,
+    /\b[a-z0-9-]+\s*(?:\[\s*\.\s*\]|\(\s*dot\s*\)|\s+dot\s+)\s*(?:[a-z]{2,24}|xn--[a-z0-9-]{2,59})\b/i
+  ].some((pattern) => pattern.test(text));
 }
 
 function normaliseReply(reply) {
   let safeReply = String(reply || "").normalize("NFKC")
     .replace(/<think\b[^>]*>[\s\S]*?<\/think>/gi, " ")
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, " ")
-    .replace(/\bhttps?:\/\/\S+/gi, "")
     .replace(/\s+/g, " ")
     .trim();
-  if (modelReplyCrossesBoundary(safeReply)) {
+  if (containsLink(safeReply)) {
+    safeReply = LINK_REPLY;
+  } else if (modelReplyCrossesBoundary(safeReply)) {
     safeReply = "Let’s keep this safe and focused on learning. What would you like to practise in your chosen subject?";
   }
   if (!safeReply) safeReply = "Let’s try one small step together. What part would you like help understanding?";
@@ -682,7 +824,7 @@ export class SproutTutorAgent extends Agent {
     const origin = inspectOrigin(request, this.env);
     if (!origin.allowed) return errorResponse(request, "Origin not allowed.", 403, undefined, this.env);
     if (!hasExactAgentPath(request)) return errorResponse(request, "Not found.", 404, undefined, this.env);
-    if (request.method === "OPTIONS") return preflightResponse(request, this.env);
+    if (request.method === "OPTIONS") return preflightResponse(request, ["POST", "DELETE"], this.env);
     try {
       requireBrowserOrigin(request);
     } catch (error) {
@@ -691,20 +833,20 @@ export class SproutTutorAgent extends Agent {
     const ownerId = String(request.headers.get(VERIFIED_OWNER_HEADER) || "").toLowerCase();
     const childKey = String(request.headers.get(VERIFIED_CHILD_HEADER) || "").toLowerCase();
     if (!UUID_PATTERN.test(ownerId)) return errorResponse(request, "Parent verification is required.", 401, undefined, this.env);
-    if (!CHILD_KEY_PATTERN.test(childKey)) return errorResponse(request, "Child approval verification is required.", 401, undefined, this.env);
-    if (request.method !== "POST") {
-      if (request.method === "DELETE") {
-        try {
-          return await this.clearHistory(request, ownerId, childKey);
-        } catch (error) {
-          if (error instanceof RequestProblem) {
-            return errorResponse(request, error.publicMessage, error.status, error.headers, this.env);
-          }
-          return errorResponse(request, TEMPORARY_ERROR_REPLY, 503, { "Retry-After": "5" }, this.env);
+    if (request.method === "DELETE") {
+      try {
+        return await this.clearHistory(request, ownerId);
+      } catch (error) {
+        if (error instanceof RequestProblem) {
+          return errorResponse(request, error.publicMessage, error.status, error.headers, this.env);
         }
+        return errorResponse(request, TEMPORARY_ERROR_REPLY, 503, { "Retry-After": "5" }, this.env);
       }
+    }
+    if (request.method !== "POST") {
       return errorResponse(request, "Method not allowed.", 405, { Allow: "POST, DELETE, OPTIONS" }, this.env);
     }
+    if (!CHILD_KEY_PATTERN.test(childKey)) return errorResponse(request, "Child approval verification is required.", 401, undefined, this.env);
 
     try {
       return await this.teach(request, ownerId, childKey);
@@ -717,10 +859,10 @@ export class SproutTutorAgent extends Agent {
     }
   }
 
-  async clearHistory(request, ownerId, childKey) {
+  async clearHistory(request, ownerId) {
     const state = isValidState(this.state) ? this.state : freshState();
-    if (state.ownerId && (state.ownerId !== ownerId || state.childKey !== childKey)) {
-      return errorResponse(request, "This tutor conversation belongs to a different approved child.", 403, undefined, this.env);
+    if (state.ownerId && state.ownerId !== ownerId) {
+      return errorResponse(request, "This tutor conversation belongs to a different parent account.", 403, undefined, this.env);
     }
     try {
       await this.destroy();
@@ -762,10 +904,19 @@ export class SproutTutorAgent extends Agent {
     if (containsUnsafeRequest(input.message)) {
       return jsonResponse(request, { reply: UNSAFE_REQUEST_REPLY }, 200, undefined, this.env);
     }
-    const inputIsSafe = await contentIsSafe(this.env.AI, [
+
+    // Deterministic safety replies above must remain available even when the
+    // AI request budget is exhausted or its limiter is temporarily offline.
+    // Everything that can reach either model is still account-rate-limited.
+    await enforceAccountRateLimit(this.env, ownerId);
+    const inputSafety = await classifyContentSafety(this.env.AI, [
       { role: "user", content: input.message }
     ]);
-    if (!inputIsSafe) return jsonResponse(request, { reply: UNSAFE_REQUEST_REPLY }, 200, undefined, this.env);
+    if (!inputSafety.safe) {
+      return jsonResponse(request, {
+        reply: inputSafety.crisis ? CRISIS_REPLY : UNSAFE_REQUEST_REPLY
+      }, 200, undefined, this.env);
+    }
 
     const now = Date.now();
     const state = isValidState(this.state) ? this.state : freshState();
@@ -838,11 +989,11 @@ export class SproutTutorAgent extends Agent {
       if (containsPersonalData(reply)) {
         reply = "I can’t safely show that answer. Let’s keep our lesson free of personal details and try a different learning question.";
       }
-      const outputIsSafe = await contentIsSafe(this.env.AI, [
+      const outputSafety = await classifyContentSafety(this.env.AI, [
         { role: "user", content: input.message },
         { role: "assistant", content: reply }
       ]);
-      if (!outputIsSafe) {
+      if (!outputSafety.safe) {
         reply = "I can’t safely show that answer. Please ask a trusted adult for help, or try a different learning question.";
       }
     } catch (error) {
@@ -884,45 +1035,80 @@ export default {
     if (url.pathname === HEALTH_PATH && !url.search) {
       const origin = inspectOrigin(request, env);
       if (!origin.allowed) return errorResponse(request, "Origin not allowed.", 403, undefined, env);
-      if (request.method === "OPTIONS") return preflightResponse(request, env);
+      if (request.method === "OPTIONS") return preflightResponse(request, ["GET"], env);
       if (request.method !== "GET") {
         return errorResponse(request, "Method not allowed.", 405, { Allow: "GET, OPTIONS" }, env);
       }
-      const configured = Boolean(
+      const bindingsConfigured = Boolean(
         accountModeConfiguration(env)
         && env?.AI
         && env?.SproutTutorAgent
         && typeof env?.TUTOR_RATE_LIMITER?.limit === "function"
+        && typeof env?.ASSETS?.fetch === "function"
       );
-      return configured
-        ? jsonResponse(request, {
-            status: "ready",
-            authentication: "parent-account",
-            retentionHours: RETENTION_SECONDS / 3_600
-          }, 200, undefined, env)
-        : errorResponse(request, "Sprout Tutor is not configured.", 503, { "Retry-After": "30" }, env);
+      if (!bindingsConfigured) {
+        return errorResponse(request, "Sprout Tutor is not configured.", 503, {
+          "Retry-After": "30"
+        }, env);
+      }
+
+      const authorizationWasSent = request.headers.has("Authorization");
+      const token = bearerToken(request);
+      if (!authorizationWasSent) {
+        return jsonResponse(request, {
+          status: "configured",
+          authentication: "parent-account",
+          retentionHours: RETENTION_SECONDS / 3_600
+        }, 200, undefined, env);
+      }
+      if (!token) {
+        return errorResponse(request, "Please ask a parent to sign in again before using Sprout Tutor.", 401, undefined, env);
+      }
+
+      try {
+        await authenticateAndAuthorize(request, env, expectedFamilyIdentity(request));
+        return jsonResponse(request, {
+          status: "ready",
+          authentication: "parent-account",
+          retentionHours: RETENTION_SECONDS / 3_600
+        }, 200, undefined, env);
+      } catch (error) {
+        if (error instanceof RequestProblem) {
+          return errorResponse(request, error.publicMessage, error.status, error.headers, env);
+        }
+        return errorResponse(request, "Sprout Tutor is temporarily unavailable.", 503, {
+          "Retry-After": "5"
+        }, env);
+      }
     }
-    if (!url.pathname.startsWith("/agents/")) return env.ASSETS.fetch(request);
+    if (!url.pathname.startsWith("/agents/")) return hostedAssetResponse(request, env);
 
     const origin = inspectOrigin(request, env);
     if (!origin.allowed) return errorResponse(request, "Origin not allowed.", 403, undefined, env);
     if (!hasExactAgentPath(request)) return errorResponse(request, "Not found.", 404, undefined, env);
-    if (request.method === "OPTIONS") return preflightResponse(request, env);
+    if (request.method === "OPTIONS") return preflightResponse(request, ["POST", "DELETE"], env);
     if (request.method !== "POST" && request.method !== "DELETE") {
       return errorResponse(request, "Method not allowed.", 405, { Allow: "POST, DELETE, OPTIONS" }, env);
     }
 
     try {
       requireBrowserOrigin(request);
-      const { ownerId, childKey } = await authenticateAndAuthorize(request, env);
-      if (request.method === "POST") await enforceAccountRateLimit(env, ownerId);
+      const expectedIdentity = request.method === "POST"
+        ? expectedFamilyIdentity(request)
+        : null;
+      const identity = request.method === "DELETE"
+        ? await authenticateConfirmedParent(request, env)
+        : await authenticateAndAuthorize(request, env, expectedIdentity);
+      const { ownerId } = identity;
 
       const headers = new Headers(request.headers);
       headers.delete("Authorization");
       headers.delete(VERIFIED_OWNER_HEADER);
       headers.delete(VERIFIED_CHILD_HEADER);
+      headers.delete(EXPECTED_OWNER_HEADER);
+      headers.delete(EXPECTED_CHILD_HEADER);
       headers.set(VERIFIED_OWNER_HEADER, ownerId);
-      headers.set(VERIFIED_CHILD_HEADER, childKey);
+      if (request.method === "POST") headers.set(VERIFIED_CHILD_HEADER, identity.childKey);
       const verifiedRequest = new Request(request, { headers });
       return (await routeAgentRequest(verifiedRequest, env))
         ?? errorResponse(request, "Not found.", 404, undefined, env);

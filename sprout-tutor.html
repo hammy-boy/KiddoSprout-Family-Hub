@@ -5,13 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#effbf5">
+  <meta name="robots" content="noindex, nofollow, noarchive">
   <title>Sprout Tutor | KiddoSprout</title>
   <link rel="icon" type="image/png" href="kiddosprout_logo_128.png">
   <link rel="apple-touch-icon" href="kiddosprout_logo_128.png">
-  <link rel="stylesheet" href="sprout-tutor.css?v=1">
+  <link rel="stylesheet" href="sprout-tutor.css?v=2">
 </head>
 <body>
-  <a class="skip-link" href="#main-content">Skip to the tutor</a>
+  <a class="skip-link" href="#noscript-content">Skip to the tutor</a>
 
   <div class="page-glow page-glow-one" aria-hidden="true"></div>
   <div class="page-glow page-glow-two" aria-hidden="true"></div>
@@ -27,6 +28,13 @@
     </nav>
   </header>
 
+  <noscript>
+    <main class="noscript-card" id="noscript-content" aria-labelledby="noscript-title" tabindex="-1">
+      <h1 id="noscript-title">JavaScript is needed for Sprout Tutor</h1>
+      <p>Sprout Tutor cannot safely check parent approval or connect to its AI service without JavaScript. Ask a trusted adult to turn it on, or return to the <a href="learning-path.html">Homeschool Hub</a>.</p>
+    </main>
+  </noscript>
+
   <main class="hidden" id="main-content" tabindex="-1" data-hub-page>
     <section class="welcome-card" aria-labelledby="page-title">
       <div class="welcome-copy">
@@ -34,12 +42,13 @@
         <h1 id="page-title">Meet Sprout Tutor</h1>
         <p class="welcome-text">Pick a subject and learning stage, then ask for an explanation, a clue, or some practice. You can take it one small step at a time.</p>
 
-        <div class="mode-banner is-loading" id="mode-banner" role="status" aria-live="polite" aria-atomic="true">
+        <div class="mode-banner is-loading" id="mode-banner">
           <span class="mode-dot" aria-hidden="true"></span>
-          <div>
-            <strong id="mode-title">Getting your learning space ready…</strong>
-            <span id="mode-description">Checking which tutor is available.</span>
+          <div class="mode-copy">
+            <strong id="mode-title">Connecting to Sprout Tutor AI…</strong>
+            <span id="mode-description">Checking the secure KiddoSprout AI service.</span>
           </div>
+          <button class="retry-tutor-button" id="retry-tutor" type="button" hidden>Try AI again</button>
         </div>
       </div>
 
@@ -48,7 +57,7 @@
         <div>
           <h2 id="privacy-title">Keep private things private</h2>
           <p>Do not type your full name, address, school, phone number, email, passwords, photos, or anything private. Ask a trusted adult if you are unsure.</p>
-          <p class="privacy-storage" id="privacy-storage">This page keeps a short, limited copy of the chat in this browser tab while it checks which learning helper is available.</p>
+          <p class="privacy-storage" id="privacy-storage">This page keeps a short, limited copy of the chat in this browser tab while it securely connects to Sprout Tutor AI.</p>
         </div>
       </aside>
     </section>
@@ -111,29 +120,30 @@
               <span class="tutor-face">S</span>
             </span>
             <div>
-              <p class="section-kicker" id="chat-kicker">Learning helper</p>
+              <p class="section-kicker" id="chat-kicker">AI learning helper</p>
               <h2 id="chat-title">Sprout Tutor</h2>
             </div>
           </div>
           <button class="reset-button" id="reset-chat" type="button" aria-label="Reset chat and start a new conversation" title="Clear this conversation and start a new chat">New chat</button>
         </header>
 
-        <ol class="chat-log" id="chat-log" role="log" aria-label="Conversation" aria-live="polite" aria-relevant="additions text" aria-busy="false"></ol>
+        <ol class="chat-log" id="chat-log" role="log" aria-label="Conversation" aria-live="off" aria-relevant="additions text" aria-busy="false"></ol>
 
         <div class="request-status" id="request-status" role="status" aria-live="polite" aria-atomic="true"></div>
 
         <form class="composer" id="tutor-form" novalidate>
           <label for="message-input">What would you like help with?</label>
           <div class="message-box">
-            <textarea id="message-input" name="message" rows="3" maxlength="600" enterkeyhint="send" aria-describedby="message-help character-count" placeholder="Ask a question or tell me what feels tricky…" required></textarea>
+            <textarea id="message-input" name="message" rows="3" maxlength="600" enterkeyhint="send" aria-describedby="message-help character-count" aria-errormessage="request-status" placeholder="Ask a question or tell me what feels tricky…" required disabled></textarea>
             <div class="message-meta">
               <span id="message-help">Enter sends · Shift + Enter starts a new line</span>
               <span id="character-count">0 / 600</span>
             </div>
           </div>
           <div class="composer-actions">
+            <button class="retry-question-button" id="retry-question" type="button" hidden>Try question again</button>
             <button class="stop-button" id="stop-request" type="button" hidden>Stop</button>
-            <button class="send-button" id="send-message" type="submit">
+            <button class="send-button" id="send-message" type="submit" disabled>
               <span>Ask for help</span>
               <span aria-hidden="true">→</span>
             </button>
@@ -168,19 +178,12 @@
     </nav>
   </footer>
 
-  <noscript>
-    <section class="noscript-card">
-      <h2>JavaScript is needed for Sprout Tutor</h2>
-      <p>Ask a trusted adult to turn it on, or return to the <a href="learning-path.html">Homeschool Hub</a>.</p>
-    </section>
-  </noscript>
-
   <script src="supabase-config.js?v=7"></script>
   <script src="demo-mode.js?v=2"></script>
   <script src="auth-session.js?v=7"></script>
   <script src="family-state-cloud.js?v=2"></script>
   <script src="kid-hub-gate.js?v=10"></script>
-  <script src="sprout-tutor-config.js?v=1"></script>
-  <script src="sprout-tutor.js?v=1"></script>
+  <script src="sprout-tutor-config.js?v=2"></script>
+  <script src="sprout-tutor.js?v=2"></script>
 </body>
 </html>

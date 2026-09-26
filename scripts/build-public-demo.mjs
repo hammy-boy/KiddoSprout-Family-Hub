@@ -102,7 +102,7 @@ const PUBLIC_GAME_FILES = Object.freeze([
 // This is the browser-only surface served by the Docker preview. It is an
 // allow-list on purpose: adding a new server, migration, secret, installer, or
 // development file to the repository can never add it to the public bundle.
-const PUBLIC_FILES = Object.freeze([
+export const PUBLIC_FILES = Object.freeze([
   "404.html",
   "index.html",
   "family-call.html",

@@ -360,8 +360,8 @@ assert.match(source, /waitingWorker\.postMessage\(\{ type: "SKIP_WAITING" \}\)/,
   "The update action must explicitly release the waiting worker.");
 assert.match(source, /kiddoServiceWorkerReloadRequested[\s\S]*?window\.location\.reload\(\)/,
   "A user-approved update must reload once the new worker controls the page.");
-assert.match(worker, /const KIDDOSPROUT_CACHE_VERSION = "shell-v116";/,
-  "The latest offline-navigation updates must ship in a fresh offline cache.");
+assert.match(worker, /const KIDDOSPROUT_CACHE_VERSION = "shell-v117";/,
+  "The Sprout Tutor AI runtime changes must ship in a fresh offline cache.");
 assert.match(worker, /const KIDDOSPROUT_RUNTIME_CACHE_VERSION = "runtime-v1";/,
   "Viewed runtime content must survive shell cache upgrades.");
 assert.match(worker, /const KIDDOSPROUT_CACHE_PREFIX = `kiddosprout-app-\$\{encodeURIComponent\(KIDDOSPROUT_SCOPE_PATH\)\}-`;/,

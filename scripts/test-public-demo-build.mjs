@@ -351,8 +351,8 @@ for (const [control] of publicChecksumControls) {
 const wranglerSource = await readFile(new URL("wrangler.jsonc", ROOT), "utf8");
 assert.match(wranglerSource, /"not_found_handling"\s*:\s*"404-page"/,
   "Unknown public routes must return a real 404 instead of masquerading as the dashboard.");
-assert.match(wranglerSource, /"html_handling"\s*:\s*"auto-trailing-slash"/,
-  "Workers must serve the root index and canonical HTML routes for the colleague link.");
+assert.match(wranglerSource, /"html_handling"\s*:\s*"none"/,
+  "Workers must preserve the exact .html URLs used by the PWA cache without redirects.");
 
 const secretMarkers = /(?:SUPABASE_SERVICE_ROLE|SERVICE_ROLE_KEY|TURNSTILE_SECRET|ELEVENLABS_API_KEY|SMTP_PASS|PLAID_SECRET|postgres(?:ql)?:\/\/)/i;
 for (const file of files.filter((candidate) => TEXT_EXTENSIONS.has(extname(candidate)))) {
@@ -393,9 +393,11 @@ const projectScope = inspectWorkerScope({
   location: { origin: "https://demo.example" },
   registration: { scope: "https://demo.example/KiddoSprout-Family-Hub/" }
 }, URL, Set);
+const currentCacheMatch = workerSource.match(/const KIDDOSPROUT_CACHE_VERSION = "([^"]+)";/);
+assert.ok(currentCacheMatch, "Could not read the current service-worker cache name.");
 assert.equal(projectScope.scopePath, "/KiddoSprout-Family-Hub/");
 assert.equal(projectScope.cachePrefix, "kiddosprout-app-%2FKiddoSprout-Family-Hub%2F-");
-assert.equal(projectScope.shellCache.endsWith("-shell-v116"), true);
+assert.equal(projectScope.shellCache.endsWith(`-${currentCacheMatch[1]}`), true);
 assert.equal(projectScope.runtimeCache.endsWith("-runtime-v1"), true);
 assert.equal(
   [...projectScope.shellAssets, ...projectScope.runtimeAssets]
@@ -409,8 +411,6 @@ assert.equal(
 );
 assert.equal(projectScope.logicalAssetPath("/other-project/index.html"), "",
   "A project-scoped worker accepted a sibling GitHub Pages project's path.");
-const currentCacheMatch = workerSource.match(/const KIDDOSPROUT_CACHE_VERSION = "([^"]+)";/);
-assert.ok(currentCacheMatch, "Could not read the current service-worker cache name.");
 const currentCacheName = `kiddosprout-app-%2F-${currentCacheMatch[1]}`;
 const runtimeCacheMatch = workerSource.match(/const KIDDOSPROUT_RUNTIME_CACHE_VERSION = "([^"]+)";/);
 assert.ok(runtimeCacheMatch, "Could not read the stable service-worker runtime cache name.");
@@ -1471,13 +1471,23 @@ assert.equal(wrangler.name, "kiddosprout", "The permanent Worker must use the Ki
 assert.equal(wrangler.assets.directory, "./.cloudflare/public-demo");
 assert.equal(wrangler.assets.not_found_handling, "404-page",
   "The permanent Worker must return 404.html with a 404 status for unknown pages and API routes.");
-assert.equal(wrangler.assets.html_handling, "auto-trailing-slash",
-  "The permanent colleague link must serve the root index and canonical HTML routes.");
+assert.equal(wrangler.assets.html_handling, "none",
+  "The permanent Worker must preserve exact .html URLs used by the PWA cache.");
 assert.equal(wrangler.workers_dev, true);
 assert.equal(wrangler.preview_urls, false, "Only the stable production workers.dev route should be enabled.");
 assert.equal(wrangler.main, "src/sprout-tutor-worker.mjs",
   "The permanent deployment must run the reviewed Sprout Tutor Worker before static assets.");
 assert.equal(wrangler.ai?.binding, "AI", "Sprout Tutor needs the server-side Workers AI binding.");
+assert.deepEqual(wrangler.vars, { KIDDOSPROUT_ACCOUNT_MODE: "true" },
+  "The permanent Worker deploy must explicitly select live account mode.");
+assert.deepEqual(wrangler.secrets, {
+  required: [
+    "KIDDOSPROUT_ACCOUNT_ORIGIN",
+    "SUPABASE_URL",
+    "SUPABASE_PUBLISHABLE_KEY",
+    "TURNSTILE_SITE_KEY"
+  ]
+}, "Wrangler must refuse a real tutor deployment when a required account setting is absent.");
 assert.deepEqual(wrangler.durable_objects?.bindings, [{
   name: "SproutTutorAgent",
   class_name: "SproutTutorAgent"
@@ -1486,8 +1496,8 @@ assert.equal(wrangler.migrations?.some((migration) => (
   migration.tag === "v1" && migration.new_sqlite_classes?.includes("SproutTutorAgent")
 )), true, "The tutor Agent needs a SQLite Durable Object migration.");
 assert.equal(wrangler.assets.binding, "ASSETS");
-assert.deepEqual(wrangler.assets.run_worker_first, ["/agents/*", "/api/sprout-tutor/*", "/supabase-config.js"],
-  "Only the tutor API, its health check, and fail-closed runtime account config should run before static assets.");
+assert.equal(wrangler.assets.run_worker_first, true,
+  "All live asset responses must run through the Worker so its exact-origin account CSP replaces the static demo CSP.");
 assert.deepEqual(wrangler.ratelimits, [{
   name: "TUTOR_RATE_LIMITER",
   namespace_id: "73026",
@@ -1495,13 +1505,32 @@ assert.deepEqual(wrangler.ratelimits, [{
 }], "The tutor needs a parent-account rate limiter that cannot be reset with a new chat ID.");
 
 const packageJson = JSON.parse(await readFile(new URL("package.json", ROOT), "utf8"));
-assert.equal(packageJson.scripts.deploy, "npm run deploy:public-demo",
-  "The standard deploy command must route through the guarded KiddoSprout deployment.");
-assert.equal(packageJson.scripts["deploy:public-demo"], "npm run test:public-demo-build && wrangler deploy",
-  "Permanent deployment must rebuild and validate the safe public bundle before upload.");
-assert.equal(packageJson.scripts["check:public-demo-deploy"], "npm run test:public-demo-build && wrangler deploy --dry-run",
-  "The deployment preflight must run the same safe build before Wrangler's dry run.");
+const gitignore = await readFile(new URL(".gitignore", ROOT), "utf8");
+assert.match(gitignore, /^\.env\.\*$/m,
+  "Every environment-specific secret file, including .env.production, must stay out of Git.");
+assert.match(gitignore, /^\.dev\.vars$/m,
+  "Local Wrangler secret values must never be committed.");
+assert.equal(packageJson.scripts.deploy, "npm run deploy:sprout-tutor",
+  "The standard deploy command must route through the real Sprout Tutor deployment.");
+assert.equal(packageJson.scripts["deploy:sprout-tutor"],
+  "npm run test:public-demo-build && npm run test:sprout-tutor && wrangler deploy",
+  "Permanent deployment must rebuild and validate both the public assets and real tutor before upload.");
+assert.equal(packageJson.scripts["deploy:sprout-tutor:first"],
+  "npm run check:sprout-tutor-secrets && npm run check:sprout-tutor-database && npm run test:public-demo-build && npm run test:sprout-tutor && wrangler deploy --secrets-file .env.production",
+  "The first deployment must verify its narrow database RPC before atomically uploading required settings.");
+assert.equal(packageJson.scripts["check:sprout-tutor-secrets"],
+  "node scripts/check-sprout-tutor-secrets.mjs",
+  "The first deployment must validate every account setting before Wrangler uploads anything.");
+assert.equal(packageJson.scripts["check:sprout-tutor-database"],
+  "node scripts/check-sprout-tutor-database.mjs",
+  "The first deployment must verify that the tutor approval RPC exists and rejects anonymous callers.");
+assert.equal(packageJson.scripts["check:sprout-tutor-deploy"],
+  "npm run test:public-demo-build && npm run test:sprout-tutor && wrangler deploy --dry-run",
+  "The deployment preflight must check the browser integration, Worker, database probe, and assets before Wrangler's dry run.");
+assert.equal(packageJson.scripts["verify:sprout-tutor-deploy"],
+  "node scripts/verify-sprout-tutor-deployment.mjs",
+  "The deployment needs a no-secret live readiness check.");
 assert.equal(Object.values(packageJson.scripts).some((script) => /wrangler deploy\s+--temporary(?:\s|$)/.test(script)), false,
   "Wrangler 4 no longer supports the old --temporary deploy flag.");
 
-console.log("Public demo build safety passed: demo-only config, complete runtime assets, no secrets/backends/installers, and guarded permanent deployment.");
+console.log("Public demo build safety passed: demo-only GitHub config, complete runtime assets, no secrets/backends/installers, and guarded AI Worker deployment.");

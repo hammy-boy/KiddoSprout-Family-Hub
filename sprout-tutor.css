@@ -267,9 +267,9 @@ html.theme-night .header-links a:first-child {
 
 .mode-banner {
   display: flex;
-  width: fit-content;
+  width: min(100%, 720px);
   max-width: 100%;
-  align-items: flex-start;
+  align-items: center;
   gap: 11px;
   margin-top: 22px;
   padding: 12px 15px;
@@ -279,8 +279,10 @@ html.theme-night .header-links a:first-child {
   background: var(--panel);
 }
 
-.mode-banner > div {
+.mode-copy {
   display: grid;
+  min-width: 0;
+  flex: 1 1 auto;
   gap: 2px;
 }
 
@@ -310,9 +312,27 @@ html.theme-night .header-links a:first-child {
   box-shadow: 0 0 0 2px var(--green);
 }
 
-.mode-banner.is-coach {
-  border-color: color-mix(in srgb, var(--gold) 48%, var(--line));
-  background: var(--gold-soft);
+.mode-banner.is-unavailable {
+  border-color: color-mix(in srgb, var(--danger) 44%, var(--line));
+  background: var(--danger-soft);
+}
+
+.mode-banner.is-unavailable .mode-dot {
+  background: var(--danger);
+  box-shadow: 0 0 0 2px var(--danger);
+}
+
+.retry-tutor-button,
+.retry-question-button {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--line));
+  border-radius: 11px;
+  color: var(--ink);
+  background: var(--panel);
+  font-size: 13px;
+  font-weight: 900;
 }
 
 .privacy-card {
@@ -640,7 +660,8 @@ html.theme-night .tutor-mark {
 }
 
 .reset-button,
-.stop-button {
+.stop-button,
+.retry-question-button {
   padding: 8px 13px;
   border: 1px solid var(--line-strong);
   border-radius: 11px;
@@ -717,9 +738,9 @@ html.theme-night .chat-log {
   background: var(--violet-soft);
 }
 
-.message.is-coach .message-body {
-  border-color: color-mix(in srgb, var(--gold) 42%, var(--line));
-  background: var(--gold-soft);
+.message.is-notice .message-body {
+  border-color: color-mix(in srgb, var(--danger) 38%, var(--line));
+  background: var(--danger-soft);
 }
 
 .request-status {
@@ -791,7 +812,7 @@ textarea {
 }
 
 textarea::placeholder {
-  color: color-mix(in srgb, var(--muted) 78%, transparent);
+  color: var(--muted);
   opacity: 1;
 }
 
@@ -831,6 +852,11 @@ textarea[aria-invalid="true"] {
 .stop-button {
   border-color: color-mix(in srgb, var(--danger) 50%, var(--line));
   color: var(--danger);
+}
+
+.retry-question-button {
+  border-color: color-mix(in srgb, var(--gold) 56%, var(--line));
+  background: var(--gold-soft);
 }
 
 .send-button {
@@ -907,7 +933,7 @@ html.theme-night .reminder-symbol {
 }
 
 .site-footer a {
-  min-height: 38px;
+  min-height: 44px;
   padding-block: 6px;
 }
 
@@ -988,6 +1014,7 @@ html.theme-night .lock-action {
   left: 16px;
   z-index: 10;
   max-width: 720px;
+  max-height: calc(100vh - 32px);
   margin-inline: auto;
   padding: 18px;
   border: 2px solid var(--danger);
@@ -995,9 +1022,10 @@ html.theme-night .lock-action {
   color: var(--ink);
   background: var(--panel);
   box-shadow: var(--shadow);
+  overflow: auto;
 }
 
-.noscript-card h2 {
+.noscript-card h1 {
   margin: 0 0 5px;
   font-size: 18px;
 }
@@ -1014,15 +1042,17 @@ html.theme-night .lock-action {
 @media (hover: hover) {
   .header-links a:hover,
   .site-footer a:hover,
-  .prompt-button:hover,
-  .reset-button:hover,
-  .stop-button:hover,
-  .send-button:hover {
+  .prompt-button:not(:disabled):hover,
+  .reset-button:not(:disabled):hover,
+  .retry-tutor-button:not(:disabled):hover,
+  .retry-question-button:not(:disabled):hover,
+  .stop-button:not(:disabled):hover,
+  .send-button:not(:disabled):hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-small);
   }
 
-  .prompt-button:hover {
+  .prompt-button:not(:disabled):hover {
     border-color: var(--green);
     background: var(--green-soft);
   }
@@ -1139,6 +1169,19 @@ html.theme-night .lock-action {
     padding: 17px;
   }
 
+  .mode-banner {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .mode-copy {
+    flex-basis: calc(100% - 25px);
+  }
+
+  .retry-tutor-button {
+    width: 100%;
+  }
+
   .learning-controls {
     padding: 20px;
     border-radius: 20px;
@@ -1231,8 +1274,13 @@ html.theme-night .lock-action {
 }
 
 @media (max-width: 390px) {
-  .header-links a:first-child {
-    display: none;
+  .site-header {
+    gap: 8px;
+  }
+
+  .header-links a {
+    padding-inline: 8px;
+    font-size: 11px;
   }
 
   .welcome-card,
@@ -1251,6 +1299,7 @@ html.theme-night .lock-action {
 
   .chat-header {
     align-items: flex-start;
+    flex-wrap: wrap;
   }
 
   .tutor-identity {
@@ -1262,12 +1311,18 @@ html.theme-night .lock-action {
   }
 
   .reset-button {
+    margin-left: auto;
     padding-inline: 10px;
     font-size: 12px;
   }
 
   .composer-actions {
     align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .retry-question-button {
+    width: 100%;
   }
 
   .send-button {
@@ -1317,6 +1372,8 @@ html.theme-night .lock-action {
   .header-links a,
   .site-footer a,
   .reset-button,
+  .retry-tutor-button,
+  .retry-question-button,
   .stop-button {
     border-width: 2px;
   }
@@ -1353,6 +1410,8 @@ html.theme-night .lock-action {
   .learning-reminder,
   .message-body,
   .prompt-button,
+  .retry-tutor-button,
+  .retry-question-button,
   .stage-option > span {
     border: 2px solid CanvasText;
   }

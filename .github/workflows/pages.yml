@@ -46,6 +46,7 @@ jobs:
           npm run test:public-demo-build
           npm run test:links
           node --test scripts/test-include-chess-academy.mjs
+          npm run test:public-artifact-audit
 
       - name: Build the reviewed public demo
         run: |
@@ -54,6 +55,9 @@ jobs:
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
+
+      - name: Audit the exact Pages upload
+        run: npm run audit:public-artifact
 
       - name: Upload the generated public demo only
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0

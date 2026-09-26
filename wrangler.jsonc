@@ -6,6 +6,17 @@
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
   "preview_urls": false,
+  "vars": {
+    "KIDDOSPROUT_ACCOUNT_MODE": "true"
+  },
+  "secrets": {
+    "required": [
+      "KIDDOSPROUT_ACCOUNT_ORIGIN",
+      "SUPABASE_URL",
+      "SUPABASE_PUBLISHABLE_KEY",
+      "TURNSTILE_SITE_KEY"
+    ]
+  },
   "ai": {
     "binding": "AI"
   },
@@ -36,9 +47,9 @@
   "assets": {
     "directory": "./.cloudflare/public-demo",
     "binding": "ASSETS",
-    "run_worker_first": ["/agents/*", "/api/sprout-tutor/*", "/supabase-config.js"],
+    "run_worker_first": true,
     "not_found_handling": "404-page",
-    "html_handling": "auto-trailing-slash"
+    "html_handling": "none"
   },
   "observability": {
     "enabled": true,

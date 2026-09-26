@@ -2,6 +2,10 @@
 __pycache__/
 *.pyc
 .env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
 docker-compose.override.yml
 supabase-config.js
 !public-site/supabase-config.js
