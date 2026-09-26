@@ -69,6 +69,8 @@ function drawStudyBoard(target, position, selectedSquare, onSquare, reverse=fals
     if(!onSquare||!event.isPrimary||event.button!==0||drag)return;
     const from=squareAt(event);
     if(from===null||core.color(position.board[from])!==position.turn)return;
+    // Native text dragging can steal pointer capture after a previous selection.
+    event.preventDefault();event.target.closest('.square')?.focus({preventScroll:true});
     drag={id:event.pointerId,from,x:event.clientX,y:event.clientY,moved:false};
     board.setPointerCapture(event.pointerId);
   };
@@ -105,15 +107,27 @@ try{const ids=JSON.parse(localStorage.getItem('chess-club-expert'));if(Array.isA
 $('#puzzle-options').insertAdjacentHTML('afterend','<p id="expert-score" role="status" hidden></p>');
 function startExpertPuzzle(index=TRAINING.expert.findIndex(p=>p.deep)){++puzzleGeneration;expertIndex=index;$('#puzzle-source').value='expert';$('#puzzle-difficulty').value=TRAINING.expert[index].deep?'expert':'hard';puzzleOptions();showPuzzle({...TRAINING.expert[index],level:TRAINING.expert[index].deep?'Hardest (+600)':'Harder (+300)'},`Challenge ${TRAINING.expert.filter((p,i)=>i<=index&&!!p.deep===!!TRAINING.expert[index].deep).length} / ${TRAINING.expert.filter(p=>!!p.deep===!!TRAINING.expert[index].deep).length}`);trainingSession.mistakes=0;trainingFeedback('Drag a piece, or tap it then tap its destination. Highlighted destinations are legal moves. Find the full mate in '+(TRAINING.expert[index].mateMoves||2)+'.')}
 function solutionDepth(tree){return tree===true?0:1+Math.max(...Object.values(tree).map(branches=>branches===true?0:Math.max(...Object.values(branches).map(solutionDepth))))}
+function showIncorrectPuzzleMove(t,move,next,message){
+ const before=t.state;
+ t.state=next;t.selected=null;t.busy=true;t.previewingMistake=true;
+ trainingFeedback('Incorrect. '+message+' The piece will return so you can try again.','incorrect');
+ rememberProgress();renderTraining([move.from,move.to]);
+ clearTimeout(trainingTimer);
+ trainingTimer=setTimeout(()=>{
+  if(trainingSession!==t||t.done)return;
+  t.state=before;t.busy=false;t.previewingMistake=false;
+  trainingFeedback('Incorrect attempt. Try a different move.','incorrect');renderTraining();
+ },1100);
+}
 function chooseExpert(i){
  const t=trainingSession;if(!t||t.done||t.busy)return;let m=t.selected===null?null:core.legal(t.state,t.selected).find(m=>m.to===i);
  if(!m){const previous=t.selected;t.selected=core.color(t.state.board[i])===t.state.turn?(previous===i?null:i):null;if(t.selected!==null)trainingFeedback('Choose a highlighted destination, or drag the selected piece there.');else if(previous!==null&&previous!==i)trainingFeedback('That square is not a legal destination. Select your piece and try a highlighted square.','incorrect');return renderTraining()}
  if(t.state.board[m.from].toLowerCase()==='p'&&(m.to<8||m.to>=56))m={...m,promotion:'q'};
  const uci=core.square(m.from)+core.square(m.to)+(m.promotion||''),next=core.apply(t.state,m);progress.attempts++;t.selected=null;
- const plans=t.solutionPlans||t.item.plans;const correct=t.item.deep?!!plans[uci]:t.step===0?!!t.item.plans[uci]:core.check(next,next.turn)&&!core.allMoves(next).length;
- if(!correct){t.mistakes++;t.assisted=true;trainingFeedback('That move is legal, but does not force the required mate. Try another move — the board is still playable. Retry for a clean completion.','incorrect');rememberProgress();return renderTraining()}
- t.state=next;t.step++;if(core.check(next,next.turn)&&!core.allMoves(next).length)return finishTraining();
- t.busy=true;trainingFeedback('Your opponent is defending…');renderTraining();
+ const plans=t.solutionPlans||t.item.plans;const mate=core.check(next,next.turn)&&!core.allMoves(next).length;const correct=mate||(t.item.deep?!!plans[uci]:t.step===0?!!t.item.plans[uci]:false);
+ if(!correct){t.mistakes++;t.assisted=true;return showIncorrectPuzzleMove(t,m,next,'That does not solve this mate challenge.')}
+ t.state=next;t.step++;if(mate)return finishTraining();
+ t.busy=true;trainingFeedback('Correct move. Your opponent is defending…','correct');renderTraining();
  const branches=plans[uci],replies=Object.keys(branches);const reply=t.item.deep?replies.sort((a,b)=>solutionDepth(branches[b])-solutionDepth(branches[a]))[0]:replies[Math.floor(Math.random()*replies.length)];
  trainingTimer=setTimeout(()=>{if(trainingSession!==t)return;t.state=core.apply(t.state,core.moveFromUCI(t.state,reply));t.step++;if(t.item.deep)t.solutionPlans=branches[reply];t.busy=false;trainingFeedback(t.item.deep?'Keep calculating. Find the next forcing move.':'Find the checkmate.');renderTraining()},650);
 }
@@ -144,11 +158,11 @@ function renderTraining(highlight=[]) {
   const t=trainingSession;if(!t)return;const prefix=t.kind==='puzzle'?'puzzle':'lesson';
   const reverse=t.item.fen.split(' ')[1]==='b';
   drawStudyBoard('#'+prefix+'-board',t.state,t.selected,trainingChoose,reverse,highlight);
-  if(t.kind==='puzzle')$('#puzzle-turn').textContent=t.done?'Position complete':(t.state.turn==='w'?'White':'Black')+' to move';
+  if(t.kind==='puzzle')$('#puzzle-turn').textContent=t.done?'Position complete':t.previewingMistake?'Incorrect move · returning piece…':(t.state.turn==='w'?'White':'Black')+' to move';
 }
 function finishTraining() {
   const t=trainingSession; t.done=true;
-  trainingFeedback(t.kind==='puzzle'?t.item.explain:t.item.success,'correct');
+  trainingFeedback(t.kind==='puzzle'?'Correct! '+t.item.explain:t.item.success,'correct');
   const bucket=t.kind==='puzzle'?'puzzles':'lessons';
   if(t.item.expert){if(!t.revealed&&!t.assisted&&!expertSolved.includes(t.item.id)){expertSolved.push(t.item.id);try{localStorage.setItem('chess-club-expert',JSON.stringify(expertSolved))}catch{}}puzzleOptions();
   }else if(t.item.generated&&t.kind==='lesson'){
@@ -174,7 +188,7 @@ function trainingChoose(i) {
   // Accept equivalent mating moves, while retaining a deterministic teaching line.
   const next=core.apply(t.state,move);
   const alternativeMate=t.kind==='puzzle'&&t.item.theme==='Checkmate'&&core.check(next,next.turn)&&!core.allMoves(next).length;
-  if(uci!==expected&&!alternativeMate){t.selected=null;trainingFeedback(t.kind==='puzzle'?'That’s legal, but there’s a stronger move. Look again.':'That move is legal. Try the move described in the lesson.','incorrect');rememberProgress();return renderTraining()}
+  if(uci!==expected&&!alternativeMate){if(t.kind==='puzzle')return showIncorrectPuzzleMove(t,move,next,'There is a stronger move.');t.selected=null;trainingFeedback('That move is legal. Try the move described in the lesson.','incorrect');rememberProgress();return renderTraining()}
   t.state=next;t.selected=null;t.step++;
   if(t.step>=(t.item.line||t.item.moves).length||alternativeMate)return finishTraining();
   trainingFeedback('Good start. Your opponent responds…');t.busy=true;renderTraining([move.from,move.to]);
