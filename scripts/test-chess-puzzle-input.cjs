@@ -21,6 +21,19 @@ for(const touch of [false,true])for(const level of ['medium','hard','expert']){
  if(touch)await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true},sessionId);
  await ev(`{const d=document.querySelector('#puzzle-difficulty');d.value='${level}';d.dispatchEvent(new Event('change'))}`);
  await until('!!trainingSession && !trainingSession.busy');
+ if(level!=='medium'){
+ // Reproduce the actual failure: repeated legal but incorrect attempts must not lock the board.
+ const wrong=await ev(`(()=>{const t=trainingSession;const m=core.allMoves(t.state).find(m=>!t.item.plans[core.square(m.from)+core.square(m.to)+(m.promotion||'')]);return core.square(m.from)+core.square(m.to)})()`);
+ for(let attempt=0;attempt<4;attempt++){
+ await ev(`document.querySelector('#puzzle-board [aria-label^="${wrong.slice(0,2)} "]').click()`);
+ assert.ok(await ev(`document.querySelectorAll('#puzzle-board .legal').length`)>0,level+' shows legal destinations');
+ await ev(`document.querySelector('#puzzle-board [aria-label^="${wrong.slice(2,4)} "]').click()`);
+ assert.equal(await ev('trainingSession.done'),false,level+' must remain playable after a mistake');
+ assert.equal(await ev('trainingSession.step'),0,'Incorrect moves do not advance the puzzle');
+ assert.match(await ev(`document.querySelector('#puzzle-board-feedback').textContent`),/still playable/);
+ }
+ assert.equal(await ev('trainingSession.assisted'),true);
+ }
  let turn=0;
  while(!(await ev('trainingSession.done'))){
  const uci=await ev(`(()=>{const t=trainingSession;if(!t.item.expert)return t.item.line[t.step];if(t.item.deep)return Object.keys(t.solutionPlans||t.item.plans)[0];if(t.step===0)return Object.keys(t.item.plans)[0];const m=core.allMoves(t.state).find(m=>{const n=core.apply(t.state,m);return core.check(n,n.turn)&&!core.allMoves(n).length});return core.square(m.from)+core.square(m.to)+(m.promotion||'')})()`);
@@ -28,8 +41,8 @@ for(const touch of [false,true])for(const level of ['medium','hard','expert']){
  assert.ok(await ev('trainingSession.step')>old,`${level} ${touch?'touch':'mouse'} turn ${turn} must move`);
  await until('!trainingSession.busy');assert.ok(++turn<10);
  }
- assert.equal(await ev('trainingSession.revealed'),false);
+ assert.equal(await ev('trainingSession.revealed'),false);if(level!=='medium')assert.equal(await ev('expertSolved.includes(trainingSession.item.id)'),false,'Practice attempts must not earn clean completion');
  console.log('PASS',level,touch?'touch drag + taps':'mouse drag + clicks','completed');
 }
-assert.deepEqual(errors,[]);assert.equal(await ev('past.length'),1);
+await ev(`document.querySelector('#puzzle-retry').click()`);assert.equal(await ev('trainingSession.done'),false);assert.equal(await ev('!!trainingSession.assisted'),false);assert.equal(await ev('trainingSession.mistakes'),0);assert.deepEqual(errors,[]);assert.equal(await ev('past.length'),1);
 }finally{ws?.close();chrome.kill();server.close()}})().catch(e=>{console.error(e);process.exitCode=1});

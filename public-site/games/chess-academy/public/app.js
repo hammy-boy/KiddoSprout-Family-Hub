@@ -51,7 +51,7 @@ function drawStudyBoard(target, position, selectedSquare, onSquare, reverse=fals
   const board = $(target), focusedIndex=Array.from(board.children).indexOf(document.activeElement);
   const baseReverse=reverse;board.academyFlip=()=>{board.dataset.manualFlip=board.dataset.manualFlip==='yes'?'no':'yes';drawStudyBoard(target,position,selectedSquare,onSquare,baseReverse,highlighted)};
   reverse=reverse!==(board.dataset.manualFlip==='yes');board.innerHTML = '';
-  const moves = selectedSquare===null || (target==='#puzzle-board'&&trainingSession?.item.expert) ? [] : core.legal(position,selectedSquare);
+  const moves = selectedSquare===null ? [] : core.legal(position,selectedSquare);
   for(let pos=0;pos<64;pos++) {
     const i=reverse?63-pos:pos, p=position.board[i], r=Math.floor(i/8), c=i%8;
     const el=document.createElement('button'); el.type='button'; el.className='square'+((r+c)%2?' dark':'')+(selectedSquare===i?' selected':'')+(moves.some(m=>m.to===i)?' legal'+(p?' capture':''):'')+(highlighted.includes(i)?' last':'');
@@ -95,6 +95,7 @@ function drawStudyBoard(target, position, selectedSquare, onSquare, reverse=fals
     board.addEventListener('click',event=>{if(event.detail&&board.dataset.ignoreDragClick==='yes'){delete board.dataset.ignoreDragClick;event.preventDefault();event.stopImmediatePropagation()}},true);
   }
 }
+$('#puzzle-board').closest('.board-frame').insertAdjacentHTML('afterend','<p id="puzzle-board-feedback" class="feedback" role="status"></p>');
 let puzzleIndex=0, puzzleFilter='All', lessonIndex=0;
 let puzzleGeneration=0,generatedNumber=0,recentGenerated=[],endlessSolved=0,endlessSolvedIds=[];
 try{const saved=JSON.parse(localStorage.getItem('chess-club-endless'));if(Number.isSafeInteger(saved?.solved)&&saved.solved>=0)endlessSolved=saved.solved;if(Array.isArray(saved?.recent))endlessSolvedIds=saved.recent.filter(x=>typeof x==='string').slice(-200)}catch{}
@@ -102,16 +103,15 @@ $('#puzzle-filters').insertAdjacentHTML('beforebegin','<div class="feature-toolb
 let expertIndex=0,expertSolved=[],lastGeneratedDifficulty='easy';
 try{const ids=JSON.parse(localStorage.getItem('chess-club-expert'));if(Array.isArray(ids))expertSolved=[...new Set(ids.filter(id=>TRAINING.expert.some(p=>p.id===id)))]}catch{}
 $('#puzzle-options').insertAdjacentHTML('afterend','<p id="expert-score" role="status" hidden></p>');
-function startExpertPuzzle(index=TRAINING.expert.findIndex(p=>p.deep)){++puzzleGeneration;expertIndex=index;$('#puzzle-source').value='expert';$('#puzzle-difficulty').value=TRAINING.expert[index].deep?'expert':'hard';puzzleOptions();showPuzzle({...TRAINING.expert[index],level:TRAINING.expert[index].deep?'Hardest (+600)':'Harder (+300)'},`Challenge ${TRAINING.expert.filter((p,i)=>i<=index&&!!p.deep===!!TRAINING.expert[index].deep).length} / ${TRAINING.expert.filter(p=>!!p.deep===!!TRAINING.expert[index].deep).length}`);trainingSession.mistakes=0;trainingFeedback('Drag a piece, or tap it then tap its destination. No move markers. Calculate the full mate in '+(TRAINING.expert[index].mateMoves||2)+'.')}
+function startExpertPuzzle(index=TRAINING.expert.findIndex(p=>p.deep)){++puzzleGeneration;expertIndex=index;$('#puzzle-source').value='expert';$('#puzzle-difficulty').value=TRAINING.expert[index].deep?'expert':'hard';puzzleOptions();showPuzzle({...TRAINING.expert[index],level:TRAINING.expert[index].deep?'Hardest (+600)':'Harder (+300)'},`Challenge ${TRAINING.expert.filter((p,i)=>i<=index&&!!p.deep===!!TRAINING.expert[index].deep).length} / ${TRAINING.expert.filter(p=>!!p.deep===!!TRAINING.expert[index].deep).length}`);trainingSession.mistakes=0;trainingFeedback('Drag a piece, or tap it then tap its destination. Highlighted destinations are legal moves. Find the full mate in '+(TRAINING.expert[index].mateMoves||2)+'.')}
 function solutionDepth(tree){return tree===true?0:1+Math.max(...Object.values(tree).map(branches=>branches===true?0:Math.max(...Object.values(branches).map(solutionDepth))))}
 function chooseExpert(i){
  const t=trainingSession;if(!t||t.done||t.busy)return;let m=t.selected===null?null:core.legal(t.state,t.selected).find(m=>m.to===i);
- if(!m){t.selected=core.color(t.state.board[i])===t.state.turn?i:null;return renderTraining()}
+ if(!m){const previous=t.selected;t.selected=core.color(t.state.board[i])===t.state.turn?(previous===i?null:i):null;if(t.selected!==null)trainingFeedback('Choose a highlighted destination, or drag the selected piece there.');else if(previous!==null&&previous!==i)trainingFeedback('That square is not a legal destination. Select your piece and try a highlighted square.','incorrect');return renderTraining()}
  if(t.state.board[m.from].toLowerCase()==='p'&&(m.to<8||m.to>=56))m={...m,promotion:'q'};
  const uci=core.square(m.from)+core.square(m.to)+(m.promotion||''),next=core.apply(t.state,m);progress.attempts++;t.selected=null;
  const plans=t.solutionPlans||t.item.plans;const correct=t.item.deep?!!plans[uci]:t.step===0?!!t.item.plans[uci]:core.check(next,next.turn)&&!core.allMoves(next).length;
- const limit=t.item.deep?1:3;
- if(!correct){t.mistakes++;if(t.mistakes>=limit){t.done=true;t.revealed=true;trainingFeedback('Mistake limit reached. Retry this challenge or reveal the line.','incorrect')}else trainingFeedback(`That move does not force the required mate. ${limit-t.mistakes} mistakes remaining.`,'incorrect');rememberProgress();return renderTraining()}
+ if(!correct){t.mistakes++;t.assisted=true;trainingFeedback('That move is legal, but does not force the required mate. Try another move — the board is still playable. Retry for a clean completion.','incorrect');rememberProgress();return renderTraining()}
  t.state=next;t.step++;if(core.check(next,next.turn)&&!core.allMoves(next).length)return finishTraining();
  t.busy=true;trainingFeedback('Your opponent is defending…');renderTraining();
  const branches=plans[uci],replies=Object.keys(branches);const reply=t.item.deep?replies.sort((a,b)=>solutionDepth(branches[b])-solutionDepth(branches[a]))[0]:replies[Math.floor(Math.random()*replies.length)];
@@ -126,7 +126,7 @@ function showPuzzle(item,label){
   if(item.difficulty==='easiest'){trainingSession.selected=core.indexOfSquare(item.line[0].slice(0,2));trainingFeedback('Start with the highlighted piece. '+item.hint)}else trainingFeedback('Your move. Drag a piece, or tap it then tap its destination.');renderTraining();
 }
 async function nextGeneratedPuzzle(){
-  const request=++puzzleGeneration;clearTimeout(trainingTimer);trainingSession=null;$('#puzzle-board').replaceChildren();$('#puzzle-title').textContent='Creating your puzzle…';$('#puzzle-objective').textContent='Checking that the position has a legal checkmate.';$('#puzzle-turn').textContent='';$('#puzzle-position').textContent='';$('#puzzle-level').textContent=$('#puzzle-difficulty').selectedOptions[0].textContent;$('#puzzle-feedback').textContent='Preparing a fresh position…';
+  const request=++puzzleGeneration;clearTimeout(trainingTimer);trainingSession=null;$('#puzzle-board-feedback').textContent='Preparing a fresh position…';$('#puzzle-board').replaceChildren();$('#puzzle-title').textContent='Creating your puzzle…';$('#puzzle-objective').textContent='Checking that the position has a legal checkmate.';$('#puzzle-turn').textContent='';$('#puzzle-position').textContent='';$('#puzzle-level').textContent=$('#puzzle-difficulty').selectedOptions[0].textContent;$('#puzzle-feedback').textContent='Preparing a fresh position…';
   for(const id of ['puzzle-hint','puzzle-retry','puzzle-reveal'])$('#'+id).disabled=true;
   try{const item=await EndlessPuzzles.generate(core,$('#puzzle-difficulty').value,recentGenerated,()=>request!==puzzleGeneration);if(!item||request!==puzzleGeneration)return;recentGenerated.push(item.fen);recentGenerated=recentGenerated.slice(-200);showPuzzle(item,`Endless puzzle ${++generatedNumber}`)}catch(error){if(request===puzzleGeneration){$('#puzzle-title').textContent='Try another puzzle';$('#puzzle-feedback').textContent=error.message}}
 }
@@ -135,7 +135,7 @@ $('#puzzle-difficulty').onchange=()=>{if($('#puzzle-difficulty').value==='expert
 
 
 for(const theme of ['All','Checkmate','Win material','Fork','Promotion']) { const b=document.createElement('button'); b.className='filter-chip'+(theme==='All'?' active':''); b.textContent=theme; b.onclick=()=>{puzzleFilter=theme;$('#puzzle-filters').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));startPuzzle(TRAINING.puzzles.findIndex(p=>theme==='All'||p.theme===theme))}; $('#puzzle-filters').append(b); }
-function trainingFeedback(text, type='') { const el=$('#'+(trainingSession.kind==='puzzle'?'puzzle':'lesson')+'-feedback'); el.textContent=text; el.className='feedback'+(type?' '+type:''); }
+function trainingFeedback(text, type='') { if(trainingSession.kind==='puzzle'){$('#puzzle-board-feedback').textContent=text;$('#puzzle-board-feedback').className='feedback'+(type?' '+type:'')}const el=$('#'+(trainingSession.kind==='puzzle'?'puzzle':'lesson')+'-feedback'); el.textContent=text; el.className='feedback'+(type?' '+type:''); }
 function startPuzzle(index) {
   ++puzzleGeneration;puzzleIndex=index;$('#puzzle-source').value='library';$('#puzzle-difficulty').value=TRAINING.puzzles[index].level==='Starter'?'easy':'medium';puzzleOptions();
   showPuzzle(TRAINING.puzzles[index],`Puzzle ${index+1} / ${TRAINING.puzzles.length}`);
