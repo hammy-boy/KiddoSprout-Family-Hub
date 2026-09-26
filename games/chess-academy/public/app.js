@@ -25,7 +25,7 @@ $('main').insertBefore(views, $('footer'));
 $('.layout > section').insertAdjacentHTML('afterbegin', '<div id="online-summary" class="online-summary" hidden></div>');
 $('aside').insertAdjacentHTML('beforeend', '<section class="panel content-card online-extras" id="online-chat" hidden><h3>At the board</h3><div class="chat-list" id="chat-list" aria-live="polite"></div><form id="chat-form" class="chat-form"><input id="chat-input" aria-label="Message to opponent" placeholder="Say good luck…" maxlength="200" required><button class="secondary">Send</button></form></section>');
 function switchView(view) {
-  if (!['play','online','puzzles','learn','review','history','tournaments','train','tools','glossary','mates','openings','endgames','rush','coaches','profile','plan','clinic','lab','workshop'].includes(view)) return;
+  if (!['play','online','puzzles','learn','review','history','tournaments','train','tools','glossary','mates','openings','endgames','rush','coaches','profile','plan','clinic','lab','workshop','repertoire'].includes(view)) return;
   activeView = view;
   if(view!=='learn')++lessonGeneration;
   if(view!=='puzzles')++puzzleGeneration;
