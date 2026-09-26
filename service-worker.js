@@ -6,7 +6,7 @@ const KIDDOSPROUT_SCOPE_PATH = KIDDOSPROUT_SCOPE_URL.pathname.endsWith("/")
   : `${KIDDOSPROUT_SCOPE_URL.pathname}/`;
 const KIDDOSPROUT_CACHE_PREFIX = `kiddosprout-app-${encodeURIComponent(KIDDOSPROUT_SCOPE_PATH)}-`;
 // Change this version whenever a public runtime page or shared stylesheet changes.
-const KIDDOSPROUT_CACHE_VERSION = "shell-v115";
+const KIDDOSPROUT_CACHE_VERSION = "shell-v116";
 const KIDDOSPROUT_CACHE = `${KIDDOSPROUT_CACHE_PREFIX}${KIDDOSPROUT_CACHE_VERSION}`;
 // Runtime content deliberately survives shell upgrades. Keeping it separate
 // avoids downloading a second copy of every viewed story before an update can
@@ -62,6 +62,10 @@ const KIDDOSPROUT_RUNTIME_ASSETS = [
   "/learning-path.css",
   "/learning-curriculum.js",
   "/learning-path.js",
+  "/sprout-tutor.html",
+  "/sprout-tutor.css",
+  "/sprout-tutor-config.js",
+  "/sprout-tutor.js",
   "/creator-studio.html",
   "/nature-explorer.html",
   "/move-breaks.html",

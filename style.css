@@ -2962,6 +2962,10 @@
       background: linear-gradient(135deg, #0d6570, #26744c 56%, #77651d);
     }
 
+    .hub-card.sprout-tutor {
+      background: linear-gradient(135deg, #14546f, #176b62 56%, #65521d);
+    }
+
     .hub-card.arcade {
       background: linear-gradient(135deg, #174f68, #17665f 55%, #5d4d18);
     }
@@ -4363,6 +4367,11 @@
     body.theme-night.mode-child #hubs .hub-card.homeschool {
       border-color: #83d993;
       background: linear-gradient(135deg, #115a69, #286f45 58%, #695b1d);
+    }
+
+    body.theme-night.mode-child #hubs .hub-card.sprout-tutor {
+      border-color: #73ded2;
+      background: linear-gradient(135deg, #174b69, #17695f 58%, #66531d);
     }
 
     body.theme-night.mode-child #hubs .hub-card.arcade {

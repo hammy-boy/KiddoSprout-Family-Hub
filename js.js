@@ -316,6 +316,7 @@
     ];
     const APP_CATALOG = {
       homeschool: { title: "Homeschool Hub", initial: "H", kind: "Guided learning", defaultRule: "allowed" },
+      sproutTutor: { title: "Sprout Tutor", initial: "T", kind: "Guided learning tutor", defaultRule: "request" },
       arcade: { title: "Learning & Arcade Games", initial: "G", kind: "Game libraries", defaultRule: "request" },
       studio: { title: "Creator Studio", initial: "C", kind: "Create", defaultRule: "request" },
       explore: { title: "Explorer Lab", initial: "E", kind: "Learning", defaultRule: "allowed" },
@@ -625,6 +626,7 @@
         flyerBest: 8,
         appRules: {
           homeschool: "allowed",
+          sproutTutor: "allowed",
           studio: "allowed",
           explore: "allowed",
           move: "allowed",
@@ -7168,6 +7170,7 @@
         : "arcade-games";
       const hubPages = {
         homeschool: "learning-path.html",
+        sproutTutor: "sprout-tutor.html",
         arcade: `games/index.html#${requestedGameSection}`,
         studio: "creator-studio.html",
         explore: "nature-explorer.html",

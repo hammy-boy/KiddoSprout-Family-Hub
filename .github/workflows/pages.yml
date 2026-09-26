@@ -41,6 +41,7 @@ jobs:
       - name: Check the Homeschool Hub and offline publication
         run: |
           npm run test:homeschool
+          npm run test:sprout-tutor
           npm run test:pwa
           npm run test:public-demo-build
           npm run test:links

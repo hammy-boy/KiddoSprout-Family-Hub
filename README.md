@@ -210,6 +210,21 @@ authorization code to another person.
 
 `npm run deploy` always rebuilds and runs the strict public-demo safety checks before Wrangler uploads anything. `npm run check:public-demo-deploy` performs the same checks plus a Wrangler dry run and does not publish. This permanent Worker deployment is separate from the Docker Quick Tunnel, so it neither stops nor changes the temporary preview.
 
+The public colleague demo labels Sprout Tutor's fixed offline helper as **Practice Coach · not AI**. The permanent Worker stays in that demo mode unless account mode is explicitly enabled. Before the same Worker deployment can serve the real account site and AI tutor, add the managed Supabase project URL, browser-safe publishable key, real Turnstile sitekey, and the exact `true` account-mode switch without committing their values:
+
+```sh
+npx wrangler secret put SUPABASE_URL
+npx wrangler secret put SUPABASE_PUBLISHABLE_KEY
+npx wrangler secret put TURNSTILE_SITE_KEY
+npx wrangler secret put KIDDOSPROUT_ACCOUNT_MODE
+npx wrangler secret put KIDDOSPROUT_ACCOUNT_ORIGIN
+npm run deploy
+```
+
+Enter `true` for `KIDDOSPROUT_ACCOUNT_MODE`; any other value fails closed to the account-free demo configuration. Set `KIDDOSPROUT_ACCOUNT_ORIGIN` to the one exact public HTTPS origin that will host the account UI (no trailing slash or path). When it matches the Worker/custom-domain origin, the Worker serves the live browser configuration there and existing-account login can work without Docker. For a separately hosted account frontend, set it to that frontend origin and set the frontend's browser-side `KIDDO_SPROUT_TUTOR_ORIGIN` to the Worker origin. No wildcard origins are accepted. Only after hosted email or Google sign-in is tested should the matching `AUTH_EMAIL_DELIVERY_READY` or `GOOGLE_AUTH_READY` Worker setting be set to `true`.
+
+The Worker verifies every parent access token with Supabase, checks the active child's saved `sproutTutor` approval, applies a parent-account rate limit, runs input and output safety checks, and destroys each conversation after 24 hours or when the child chooses Stop/New chat. It never accepts a service-role key or an AI API key. Keep `KIDDO_SPROUT_TUTOR_ORIGIN` empty in the GitHub Pages demo: without live parent accounts, it must remain the non-AI Practice Coach.
+
 Do not set `PUBLIC_DEMO_ONLY=false` until the hosted account service and its matching production Turnstile widget have both been configured and tested. Account mode requires `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and a nonempty real `TURNSTILE_SITE_KEY`; startup rejects every official Cloudflare test sitekey. The local `npm run dev` workflow is separate and continues to use Cloudflare's always-pass test key with the loopback Supabase stack only.
 
 The local account stack is for development only. It uses local credentials and HTTP and must never be exposed publicly. For an internet-facing account deployment, set `PUBLIC_DEMO_ONLY=false`, use a managed or properly hardened self-hosted account service, then set `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and the public `TURNSTILE_SITE_KEY` in the deployment environment. Configure the matching Turnstile secret, exact HTTPS Site URL, and redirect allow-list in the hosted Auth settings. Enable at least one secure route there: a tested Google provider or custom SMTP. Set the browser-safe `GOOGLE_AUTH_READY=true` or `AUTH_EMAIL_DELIVERY_READY=true` flag only after its matching hosted provider works. For Google, register the hosted Supabase callback shown by the provider settings. For email, use a verified custom SMTP provider with **KiddoSprout** as the sender name and a real address you control, and include `{{ .Token }}` in the hosted Magic Link template so parent-passcode recovery sends the six-digit code. Never place an OAuth client secret, SMTP password, or service-role key in the website container.

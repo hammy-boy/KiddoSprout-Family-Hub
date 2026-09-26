@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#effbf5">
+  <title>Sprout Tutor | KiddoSprout</title>
+  <link rel="icon" type="image/png" href="kiddosprout_logo_128.png">
+  <link rel="apple-touch-icon" href="kiddosprout_logo_128.png">
+  <link rel="stylesheet" href="sprout-tutor.css?v=1">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to the tutor</a>
+
+  <div class="page-glow page-glow-one" aria-hidden="true"></div>
+  <div class="page-glow page-glow-two" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand" href="index.html#child" aria-label="KiddoSprout Child Site">
+      <img src="kiddosprout_logo_128.png" width="44" height="44" alt="">
+      <span>KiddoSprout</span>
+    </a>
+    <nav class="header-links" aria-label="Sprout Tutor navigation">
+      <a href="learning-path.html">Homeschool Hub</a>
+      <a href="index.html#child">Child Site</a>
+    </nav>
+  </header>
+
+  <main class="hidden" id="main-content" tabindex="-1" data-hub-page>
+    <section class="welcome-card" aria-labelledby="page-title">
+      <div class="welcome-copy">
+        <p class="eyebrow">A calm place to ask and learn</p>
+        <h1 id="page-title">Meet Sprout Tutor</h1>
+        <p class="welcome-text">Pick a subject and learning stage, then ask for an explanation, a clue, or some practice. You can take it one small step at a time.</p>
+
+        <div class="mode-banner is-loading" id="mode-banner" role="status" aria-live="polite" aria-atomic="true">
+          <span class="mode-dot" aria-hidden="true"></span>
+          <div>
+            <strong id="mode-title">Getting your learning space ready…</strong>
+            <span id="mode-description">Checking which tutor is available.</span>
+          </div>
+        </div>
+      </div>
+
+      <aside class="privacy-card" aria-labelledby="privacy-title">
+        <span class="privacy-icon" aria-hidden="true">♥</span>
+        <div>
+          <h2 id="privacy-title">Keep private things private</h2>
+          <p>Do not type your full name, address, school, phone number, email, passwords, photos, or anything private. Ask a trusted adult if you are unsure.</p>
+          <p class="privacy-storage" id="privacy-storage">This page keeps a short, limited copy of the chat in this browser tab while it checks which learning helper is available.</p>
+        </div>
+      </aside>
+    </section>
+
+    <div class="tutor-layout">
+      <aside class="learning-controls" aria-labelledby="controls-title">
+        <div class="section-heading">
+          <span class="step-number" aria-hidden="true">1</span>
+          <div>
+            <p class="section-kicker">Make it yours</p>
+            <h2 id="controls-title">Choose your lesson</h2>
+          </div>
+        </div>
+
+        <div class="control-block">
+          <label for="subject-select">Subject</label>
+          <select id="subject-select" name="subject">
+            <option value="maths">Maths</option>
+            <option value="english">English</option>
+            <option value="science">Science</option>
+            <option value="languages">Languages</option>
+            <option value="computing">Computing</option>
+          </select>
+        </div>
+
+        <fieldset class="stage-fieldset" aria-describedby="stage-help">
+          <legend>Learning stage</legend>
+          <div class="stage-options">
+            <label class="stage-option">
+              <input type="radio" name="stage" value="sprouts">
+              <span><strong>Sprouts</strong><small>Gentle starts</small></span>
+            </label>
+            <label class="stage-option">
+              <input type="radio" name="stage" value="growers" checked>
+              <span><strong>Growers</strong><small>Build confidence</small></span>
+            </label>
+            <label class="stage-option">
+              <input type="radio" name="stage" value="explorers">
+              <span><strong>Explorers</strong><small>Stretch thinking</small></span>
+            </label>
+          </div>
+          <p class="stage-help" id="stage-help">Clear explanations with a little challenge.</p>
+        </fieldset>
+
+        <section class="quick-prompts" aria-labelledby="quick-prompts-title">
+          <div class="quick-heading">
+            <h3 id="quick-prompts-title">Quick questions</h3>
+            <p>Choose one to put it in the message box.</p>
+          </div>
+          <div class="prompt-list" id="prompt-list"></div>
+        </section>
+      </aside>
+
+      <section class="chat-card" aria-labelledby="chat-title">
+        <header class="chat-header">
+          <div class="tutor-identity">
+            <span class="tutor-mark" aria-hidden="true">
+              <span class="tutor-leaf tutor-leaf-left"></span>
+              <span class="tutor-leaf tutor-leaf-right"></span>
+              <span class="tutor-face">S</span>
+            </span>
+            <div>
+              <p class="section-kicker" id="chat-kicker">Learning helper</p>
+              <h2 id="chat-title">Sprout Tutor</h2>
+            </div>
+          </div>
+          <button class="reset-button" id="reset-chat" type="button" aria-label="Reset chat and start a new conversation" title="Clear this conversation and start a new chat">New chat</button>
+        </header>
+
+        <ol class="chat-log" id="chat-log" role="log" aria-label="Conversation" aria-live="polite" aria-relevant="additions text" aria-busy="false"></ol>
+
+        <div class="request-status" id="request-status" role="status" aria-live="polite" aria-atomic="true"></div>
+
+        <form class="composer" id="tutor-form" novalidate>
+          <label for="message-input">What would you like help with?</label>
+          <div class="message-box">
+            <textarea id="message-input" name="message" rows="3" maxlength="600" enterkeyhint="send" aria-describedby="message-help character-count" placeholder="Ask a question or tell me what feels tricky…" required></textarea>
+            <div class="message-meta">
+              <span id="message-help">Enter sends · Shift + Enter starts a new line</span>
+              <span id="character-count">0 / 600</span>
+            </div>
+          </div>
+          <div class="composer-actions">
+            <button class="stop-button" id="stop-request" type="button" hidden>Stop</button>
+            <button class="send-button" id="send-message" type="submit">
+              <span>Ask for help</span>
+              <span aria-hidden="true">→</span>
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <section class="learning-reminder" aria-labelledby="reminder-title">
+      <div aria-hidden="true" class="reminder-symbol">★</div>
+      <div>
+        <h2 id="reminder-title">A tutor can help you think—it can still make mistakes</h2>
+        <p>Check important answers with a parent, carer, teacher, book, or trusted website. If something feels worrying or unsafe, close the chat and tell a trusted adult.</p>
+      </div>
+    </section>
+  </main>
+
+  <section class="lock-card hidden" data-hub-lock role="main" tabindex="-1">
+    <div>
+      <span class="lock-mark" aria-hidden="true">S</span>
+      <h1 data-lock-title>Parent approval needed</h1>
+      <p data-lock-message>Sprout Tutor needs permission from the family dashboard.</p>
+      <a class="lock-action" href="index.html#child">Back to Child Site</a>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <p>Keep growing, one question at a time.</p>
+    <nav aria-label="Footer navigation">
+      <a href="learning-path.html">Go to Homeschool Hub</a>
+      <a href="index.html#child">Back to Child Site</a>
+    </nav>
+  </footer>
+
+  <noscript>
+    <section class="noscript-card">
+      <h2>JavaScript is needed for Sprout Tutor</h2>
+      <p>Ask a trusted adult to turn it on, or return to the <a href="learning-path.html">Homeschool Hub</a>.</p>
+    </section>
+  </noscript>
+
+  <script src="supabase-config.js?v=7"></script>
+  <script src="demo-mode.js?v=2"></script>
+  <script src="auth-session.js?v=7"></script>
+  <script src="family-state-cloud.js?v=2"></script>
+  <script src="kid-hub-gate.js?v=10"></script>
+  <script src="sprout-tutor-config.js?v=1"></script>
+  <script src="sprout-tutor.js?v=1"></script>
+</body>
+</html>

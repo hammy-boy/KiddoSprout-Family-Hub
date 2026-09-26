@@ -29,6 +29,7 @@ const PUBLIC_HTML = [
   "games/racing-game/index.html",
   "games/snake-game/index.html",
   "learning-path.html",
+  "sprout-tutor.html",
   "move-breaks.html",
   "nature-explorer.html",
   "report_problem.html",
@@ -39,6 +40,7 @@ const PUBLIC_CSS = [
   "style.css",
   "kid-hubs.css",
   "learning-path.css",
+  "sprout-tutor.css",
   "blocker-setup.css",
   "games/arcade-shell.css",
   "games/language-garden/style.css",
@@ -281,6 +283,7 @@ const blockerCss = await readFile(join(OUTPUT_DIRECTORY, "blocker-setup.css"), "
 const arcadeShellCss = await readFile(join(OUTPUT_DIRECTORY, "games/arcade-shell.css"), "utf8");
 const voiceCss = await readFile(join(OUTPUT_DIRECTORY, "story-voices.css"), "utf8");
 const learningCss = await readFile(join(OUTPUT_DIRECTORY, "learning-path.css"), "utf8");
+const tutorCss = await readFile(join(OUTPUT_DIRECTORY, "sprout-tutor.css"), "utf8");
 const mainCss = await readFile(join(OUTPUT_DIRECTORY, "style.css"), "utf8");
 for (const [file, source] of htmlSources) {
   const linkedCss = ["index.html", "family-call.html"].includes(file)
@@ -291,6 +294,8 @@ for (const [file, source] of htmlSources) {
         ? arcadeShellCss
       : file === "learning-path.html"
         ? `${sharedHubCss}\n${learningCss}`
+      : file === "sprout-tutor.html"
+        ? tutorCss
       : ["creator-studio.html", "nature-explorer.html", "move-breaks.html", "story-theater.html", "story-voices.html"].includes(file)
         ? `${sharedHubCss}\n${file === "story-voices.html" ? voiceCss : ""}`
         : "";

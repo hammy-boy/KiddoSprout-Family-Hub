@@ -169,6 +169,10 @@ for (const required of [
   "learning-path.css",
   "learning-curriculum.js",
   "learning-path.js",
+  "sprout-tutor.html",
+  "sprout-tutor.css",
+  "sprout-tutor-config.js",
+  "sprout-tutor.js",
   "blocker-setup.html",
   "blocker-setup.css",
   "blocker-setup.js",
@@ -391,7 +395,7 @@ const projectScope = inspectWorkerScope({
 }, URL, Set);
 assert.equal(projectScope.scopePath, "/KiddoSprout-Family-Hub/");
 assert.equal(projectScope.cachePrefix, "kiddosprout-app-%2FKiddoSprout-Family-Hub%2F-");
-assert.equal(projectScope.shellCache.endsWith("-shell-v115"), true);
+assert.equal(projectScope.shellCache.endsWith("-shell-v116"), true);
 assert.equal(projectScope.runtimeCache.endsWith("-runtime-v1"), true);
 assert.equal(
   [...projectScope.shellAssets, ...projectScope.runtimeAssets]
@@ -1471,7 +1475,24 @@ assert.equal(wrangler.assets.html_handling, "auto-trailing-slash",
   "The permanent colleague link must serve the root index and canonical HTML routes.");
 assert.equal(wrangler.workers_dev, true);
 assert.equal(wrangler.preview_urls, false, "Only the stable production workers.dev route should be enabled.");
-assert.equal(Object.hasOwn(wrangler, "main"), false, "The demo should be static-only with no Worker backend.");
+assert.equal(wrangler.main, "src/sprout-tutor-worker.mjs",
+  "The permanent deployment must run the reviewed Sprout Tutor Worker before static assets.");
+assert.equal(wrangler.ai?.binding, "AI", "Sprout Tutor needs the server-side Workers AI binding.");
+assert.deepEqual(wrangler.durable_objects?.bindings, [{
+  name: "SproutTutorAgent",
+  class_name: "SproutTutorAgent"
+}], "Each tutor conversation needs an isolated Agent binding.");
+assert.equal(wrangler.migrations?.some((migration) => (
+  migration.tag === "v1" && migration.new_sqlite_classes?.includes("SproutTutorAgent")
+)), true, "The tutor Agent needs a SQLite Durable Object migration.");
+assert.equal(wrangler.assets.binding, "ASSETS");
+assert.deepEqual(wrangler.assets.run_worker_first, ["/agents/*", "/api/sprout-tutor/*", "/supabase-config.js"],
+  "Only the tutor API, its health check, and fail-closed runtime account config should run before static assets.");
+assert.deepEqual(wrangler.ratelimits, [{
+  name: "TUTOR_RATE_LIMITER",
+  namespace_id: "73026",
+  simple: { limit: 8, period: 60 }
+}], "The tutor needs a parent-account rate limiter that cannot be reset with a new chat ID.");
 
 const packageJson = JSON.parse(await readFile(new URL("package.json", ROOT), "utf8"));
 assert.equal(packageJson.scripts.deploy, "npm run deploy:public-demo",

@@ -7,6 +7,7 @@
   const DEMO_STATE_KEY = "kiddosprout.demo.v1.family";
   const DEFAULT_RULES = Object.freeze({
     homeschool: "allowed",
+    sproutTutor: "request",
     studio: "request",
     explore: "allowed",
     move: "allowed",

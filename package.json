@@ -23,7 +23,7 @@
     "check:email": "node scripts/email-readiness.mjs",
     "check:email:hosted": "node scripts/email-readiness.mjs --hosted",
     "setup:email": "sh scripts/setup-email.sh",
-    "test": "npm run test:auth && npm run test:passcode && npm run test:blockers && npm run test:bank && npm run test:voice && npm run test:story && npm run test:hubs && npm run test:calls && npm run test:language-garden && npm run test:games && npm run test:main-ui && npm run test:pwa && npm run test:links && npm run test:language && npm run test:theme && npm run test:accessibility && npm run test:recipes && npm run test:spending-ui && npm run test:recipe-quality && npm run test:report && npm run test:legacy-apps && npm run test:python-preview && npm run test:public-demo-build",
+    "test": "npm run test:auth && npm run test:passcode && npm run test:blockers && npm run test:bank && npm run test:voice && npm run test:story && npm run test:hubs && npm run test:calls && npm run test:language-garden && npm run test:games && npm run test:main-ui && npm run test:pwa && npm run test:links && npm run test:language && npm run test:theme && npm run test:accessibility && npm run test:recipes && npm run test:spending-ui && npm run test:recipe-quality && npm run test:report && npm run test:legacy-apps && npm run test:python-preview && npm run test:sprout-tutor && npm run test:public-demo-build",
     "test:bank": "node scripts/test-bank-api.mjs",
     "test:calls": "node scripts/test-family-calls.mjs",
     "test:calls:db": "supabase test db supabase/tests/family_calls_rls_test.sql",
@@ -55,6 +55,7 @@
     "test:report": "node scripts/test-report-problem.mjs",
     "test:session-safety": "node scripts/test-session-safety.mjs",
     "test:spending-ui": "node scripts/test-smart-spending-ui.mjs",
+    "test:sprout-tutor": "node scripts/test-sprout-tutor-integration.mjs && node --test scripts/test-sprout-tutor-worker.mjs",
     "test:story": "node scripts/test-story-reader.mjs",
     "test:theme": "node scripts/test-theme-setting.mjs",
     "test:accessibility": "node scripts/test-accessibility-resilience.mjs",
@@ -73,6 +74,7 @@
     "wrangler": "^4.131.1"
   },
   "dependencies": {
-    "@supabase/supabase-js": "2.116.0"
+    "@supabase/supabase-js": "2.116.0",
+    "agents": "0.24.0"
   }
 }
