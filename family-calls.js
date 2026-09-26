@@ -30,6 +30,7 @@
       declined: "The parent could not answer this time.",
       cancelled: "The call was cancelled.",
       ended: "The call has ended.",
+      "answered-elsewhere": "This call was answered on another parent device.",
       "connection-failed": "The audio connection could not be completed. Try again or use Parent Chat."
     };
     return messages[reason] || fallback || "The family call could not continue.";
@@ -68,6 +69,7 @@
     let destroyed = false;
     let subscribed = false;
     let offerStarted = false;
+    let callAccepted = false;
 
     function publish(patch) {
       state = Object.freeze({ ...state, ...patch });
@@ -78,6 +80,12 @@
     function stopTimer() {
       if (ringTimer && clearTimer) clearTimer(ringTimer);
       ringTimer = 0;
+    }
+
+    function ringTimeoutFor(expiresAt) {
+      const parsedExpiry = Date.parse(String(expiresAt || ""));
+      const remaining = Number.isFinite(parsedExpiry) ? parsedExpiry - now() : RING_TIMEOUT_MS;
+      return Math.max(0, Math.min(RING_TIMEOUT_MS, remaining));
     }
 
     function stopStream(stream) {
@@ -101,6 +109,7 @@
       peer = null;
       pendingRemoteCandidates = [];
       offerStarted = false;
+      callAccepted = false;
       if (subscribed || signaling) {
         subscribed = false;
         try { await signaling?.close?.(); } catch (error) {}
@@ -143,7 +152,7 @@
         if (!peer || peer !== connection) return;
         if (connection.connectionState === "connected") {
           stopTimer();
-          publish({ phase: "active", reason: "", message: "Audio call connected." });
+          publish({ phase: "active", reason: "", message: "Audio call connected.", startedAt: now() });
         } else if (["failed", "closed"].includes(connection.connectionState) && !TERMINAL_PHASES.has(state.phase)) {
           void finish("connection-failed", "end");
         }
@@ -203,15 +212,20 @@
 
     async function handleCallChange(change = {}) {
       if (TERMINAL_PHASES.has(state.phase)) return;
+      const changedCallId = String(change.id || change.call_id || change.new?.id || change.new?.call_id || "");
+      if (changedCallId && state.callId && changedCallId !== state.callId) return state;
       const status = String(change.status || change.call_status || change.new?.status || "");
-      if (!status) return;
+      if (!status) return state;
       if (status === "active" && state.role === "child" && ["preparing", "ringing"].includes(state.phase)) {
         publish({ phase: "connecting", message: "Parent answered. Connecting audio…" });
         await sendOffer();
+      } else if (status === "active" && state.role === "parent" && state.phase === "incoming") {
+        await finish("answered-elsewhere");
       } else if (["declined", "cancelled", "ended", "missed"].includes(status)) {
         const reason = status === "missed" ? "timeout" : status;
         await finish(reason);
       }
+      return state;
     }
 
     async function subscribeToCall(call, ticket) {
@@ -281,7 +295,7 @@
         });
         if (!await subscribeToCall({ ...call, id: callId, topic }, ticket)) return state;
         publish({ phase: "ringing", message: "Calling parent…" });
-        ringTimer = setTimer?.(() => finish("timeout", "cancel"), RING_TIMEOUT_MS) || 0;
+        ringTimer = setTimer?.(() => finish("timeout", "cancel"), ringTimeoutFor(state.expiresAt)) || 0;
       } catch (error) {
         if (ticket !== operation || destroyed) return state;
         if (state.callId) {
@@ -303,17 +317,22 @@
       if (publicDemoOnly || destroyed) return state;
       const callId = String(call.id || call.call_id || "");
       if (!callId || !["idle", "ended", "error"].includes(state.phase)) return state;
-      return publish({
+      const expiresAt = String(call.expiresAt || call.call_expires_at || "");
+      stopTimer();
+      callAccepted = false;
+      const incomingState = publish({
         phase: "incoming",
         role: "parent",
         reason: "",
         message: `${String(call.childName || call.child_name || "Your child")} is calling.`,
         callId,
         topic: String(call.topic || `family-call:${callId}`),
-        expiresAt: String(call.expiresAt || call.call_expires_at || ""),
+        expiresAt,
         startedAt: now(),
         muted: false
       });
+      ringTimer = setTimer?.(() => finish("timeout"), ringTimeoutFor(expiresAt)) || 0;
+      return incomingState;
     }
 
     async function acceptIncomingCall(call = {}) {
@@ -338,6 +357,7 @@
         if (!await subscribeToCall(activeCall, ticket)) return state;
         await signaling.update("accept", state.callId);
         if (ticket !== operation || destroyed) return state;
+        callAccepted = true;
         publish({ phase: "connecting", message: "Connecting to your child…" });
         await signaling.send("ready", { ready: true });
       } catch (error) {
@@ -361,16 +381,30 @@
       return state.phase === "incoming" ? finish("declined", "decline") : state;
     }
 
+    function stopAction() {
+      if (state.phase === "incoming") return "decline";
+      if (state.role === "child" && ["preparing", "ringing"].includes(state.phase)) return "cancel";
+      if (state.role === "parent" && state.phase === "preparing" && !callAccepted) return "decline";
+      return "end";
+    }
+
+    function reasonForStopAction(action) {
+      return action === "decline" ? "declined" : action === "cancel" ? "cancelled" : "ended";
+    }
+
     async function cancelCall() {
       if (["idle", "ended", "demo"].includes(state.phase)) return state;
-      const action = state.phase === "incoming" ? "decline" : state.role === "child" ? "cancel" : "end";
-      return finish(state.phase === "incoming" ? "declined" : "cancelled", action);
+      const action = stopAction();
+      return finish(reasonForStopAction(action), action);
     }
 
     async function endCall() {
       if (["idle", "ended", "demo"].includes(state.phase)) return state;
-      try { await signaling?.send?.("hangup", { ended: true }); } catch (error) {}
-      return finish("ended", "end");
+      const action = stopAction();
+      if (action === "end") {
+        try { await signaling?.send?.("hangup", { ended: true }); } catch (error) {}
+      }
+      return finish(reasonForStopAction(action), action);
     }
 
     function toggleMuted() {
@@ -404,6 +438,7 @@
       endCall,
       getState,
       receiveIncomingCall,
+      receiveCallChange: handleCallChange,
       startChildCall,
       toggleMuted
     });

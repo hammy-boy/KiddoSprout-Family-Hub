@@ -160,7 +160,8 @@
     const source = isPlainObject(value) ? value : {};
     const stageCandidate = source.stageId || source.stage;
     const stageId = stageById.has(stageCandidate) ? stageCandidate : fallbackStage;
-    const assignedLessonId = lessonById.has(source.assignedLessonId) ? source.assignedLessonId : "";
+    const assignedLesson = lessonById.get(source.assignedLessonId);
+    const assignedLessonId = assignedLesson?.stage === stageId ? assignedLesson.id : "";
     const completedLessonIds = Array.isArray(source.completedLessonIds)
       ? [...new Set(source.completedLessonIds.filter((id) => lessonById.has(id)))].slice(0, MAX_COMPLETED)
       : [];
@@ -409,6 +410,8 @@
   function selectStage(stageId) {
     if (!stageById.has(stageId) || learning.stageId === stageId) return;
     learning.stageId = stageId;
+    const assignedLesson = lessonById.get(learning.assignedLessonId);
+    if (assignedLesson && assignedLesson.stage !== stageId) learning.assignedLessonId = "";
     renderStages();
     renderAllViews();
     const stage = stageById.get(stageId);

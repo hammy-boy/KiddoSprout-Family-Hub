@@ -15,6 +15,7 @@
   target.hash = window.location.hash;
 
   const healthEndpoint = new URL("/healthz", target.origin);
+  const publicSite = new URL("https://hammy-boy.github.io/KiddoSprout-Family-Hub/");
   const probeTimeoutMs = 1_200;
   let checking = false;
 
@@ -53,7 +54,12 @@
       retry.textContent = "Try KiddoSprout again";
       retry.addEventListener("click", () => probeAndRedirect({ retry, notice }));
 
-      notice.append(heading, detail, retry);
+      const online = document.createElement("a");
+      online.href = publicSite.href;
+      online.style.cssText = "display:inline-flex;align-items:center;min-height:44px;box-sizing:border-box;margin:.8rem 0 0 .55rem;padding:.55rem 1rem;border:2px solid #b9fff7;border-radius:12px;color:#fff;text-decoration:none;font:800 16px/1.2 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
+      online.textContent = "Open online KiddoSprout";
+
+      notice.append(heading, detail, retry, online);
       document.body.append(notice);
     });
   }

@@ -418,10 +418,14 @@ function handleParentRing(payload) {
   if (!call) return;
   if (call.status === "ringing" && (!call.expiresAt || Date.parse(call.expiresAt) > Date.now())) {
     const childName = childNameFor(call.childId);
-    parentController?.receiveIncomingCall({ ...call, childName });
+    const received = parentController?.receiveIncomingCall({ ...call, childName });
+    if (received?.phase !== "incoming" || received?.callId !== call.id) return;
     setIncomingVisible(true, childName);
     setStatus(byId("familyCallPairingStatus"), `${childName} is calling.`, "incoming");
   } else if (["active", "declined", "cancelled", "ended", "missed"].includes(call.status)) {
+    const current = parentController?.getState?.();
+    if (!current?.callId || current.callId !== call.id) return;
+    void parentController?.receiveCallChange?.(call);
     setIncomingVisible(false);
   }
 }

@@ -6,6 +6,7 @@ import { buildPublicDemo, OUTPUT_DIRECTORY } from "./build-public-demo.mjs";
 const PUBLIC_HTML = [
   "404.html",
   "index.html",
+  "family-call.html",
   "offline.html",
   "recipe.html",
   "app_7.html",
@@ -282,7 +283,7 @@ const voiceCss = await readFile(join(OUTPUT_DIRECTORY, "story-voices.css"), "utf
 const learningCss = await readFile(join(OUTPUT_DIRECTORY, "learning-path.css"), "utf8");
 const mainCss = await readFile(join(OUTPUT_DIRECTORY, "style.css"), "utf8");
 for (const [file, source] of htmlSources) {
-  const linkedCss = file === "index.html"
+  const linkedCss = ["index.html", "family-call.html"].includes(file)
     ? mainCss
     : file === "blocker-setup.html"
       ? blockerCss

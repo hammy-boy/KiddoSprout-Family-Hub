@@ -14,6 +14,7 @@ class FakeElement {
     this.id = "";
     this.textContent = "";
     this.type = "";
+    this.href = "";
   }
 
   append(...children) {
@@ -166,6 +167,10 @@ assert.match(notice.children[0].textContent, /isn’t running locally/i);
 assert.match(notice.children[1].textContent, /Open Docker Desktop.*start KiddoSprout.*try again/i);
 assert.equal(notice.children[2].tagName, "BUTTON");
 assert.equal(notice.children[2].getAttribute("aria-describedby"), notice.children[1].id);
+assert.equal(notice.children[3].tagName, "A");
+assert.equal(notice.children[3].href, "https://hammy-boy.github.io/KiddoSprout-Family-Hub/");
+assert.match(notice.children[3].textContent, /Open online KiddoSprout/i,
+  "A stopped local stack must offer the permanent online site without requiring Docker.");
 
 let retryAttempt = 0;
 const retryable = await runRedirect(

@@ -200,6 +200,7 @@ const forbiddenPaths = [
   "app_4.html",
   "app_5.html",
   "app_6.html",
+  "Game 1.game",
   "kiddosprout_blocker_upload.zip"
 ];
 for (const forbidden of forbiddenPaths) {

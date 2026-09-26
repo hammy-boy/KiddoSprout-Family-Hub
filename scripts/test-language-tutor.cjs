@@ -7,6 +7,7 @@ test('Assisted answers cannot earn unassisted credit and all tricky words return
 test('Writing practice preserves accents, allows punctuation and declared alternatives',()=>{
  const s=create(cards,{direction:'word',topic:'Nature',size:1,random:()=>.999});assert.equal(s.answer('arbol').kind,'almost');assert.equal(s.answer(' ÁRBOL! ').kind,'correct');assert.equal(s.state().clean,0);
  const variants=create([{text:'obrigado / obrigada',meaning:'Thank you'}],{direction:'word'});assert.equal(variants.answer('obrigada').kind,'correct');
+ const displayedVariant=create([{text:'obrigado / obrigada',meaning:'Thank you'}],{direction:'word'});assert.equal(displayedVariant.answer('obrigado / obrigada').kind,'correct');
 });
 test('Topics, empty decks and user text remain bounded and do not mutate course data',()=>{
  const snapshot=JSON.stringify(cards);const s=create(cards,{topic:'Absent'});assert.equal(s.state().done,true);assert.equal(s.answer('anything').kind,'inactive');assert.equal(s.reveal(),'');assert.equal(s.review(),false);assert.equal(JSON.stringify(cards),snapshot);

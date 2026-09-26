@@ -3,11 +3,12 @@ import { readFile } from "node:fs/promises";
 import vm from "node:vm";
 
 const ROOT = new URL("../", import.meta.url);
-const [markup, styles, curriculumSource, controllerSource] = await Promise.all([
+const [markup, styles, curriculumSource, controllerSource, dashboardSource] = await Promise.all([
   readFile(new URL("learning-path.html", ROOT), "utf8"),
   readFile(new URL("learning-path.css", ROOT), "utf8"),
   readFile(new URL("learning-curriculum.js", ROOT), "utf8"),
-  readFile(new URL("learning-path.js", ROOT), "utf8")
+  readFile(new URL("learning-path.js", ROOT), "utf8"),
+  readFile(new URL("js.js", ROOT), "utf8")
 ]);
 
 new vm.Script(curriculumSource, { filename: "learning-curriculum.js" });
@@ -179,6 +180,21 @@ assert.match(controllerSource, /window\.KiddoHubGate\.writeState\(latestFamily\)
   "Progress must use the shared family-state writer.");
 assert.match(controllerSource, /progress\.attempts < 1 && !progress\.completed/,
   "A lesson must not be completed without trying its practice activity.");
+assert.match(
+  controllerSource,
+  /function selectStage\(stageId\)[\s\S]*?assignedLesson = lessonById\.get\(learning\.assignedLessonId\);[\s\S]*?assignedLesson\.stage !== stageId\)[^\n]+learning\.assignedLessonId = "";/,
+  "Changing learning stage must clear a parent pick from the previous stage."
+);
+assert.match(
+  controllerSource,
+  /assignedLesson = lessonById\.get\(source\.assignedLessonId\);[\s\S]*?assignedLesson\?\.stage === stageId \? assignedLesson\.id : "";/,
+  "Stored Homeschool data must repair a parent pick that belongs to another stage."
+);
+assert.match(
+  dashboardSource,
+  /knownAssignedLesson && knownAssignedLesson\.stage !== stageId[\s\S]*?assignedLessonId,[\s\S]*?completedLessonIds/,
+  "The parent and child dashboards must repair a known assignment from another stage."
+);
 assert.match(controllerSource, /heading\.id = "lesson-title";[\s\S]*?heading\.tabIndex = -1;/,
   "The dynamic lesson workspace must create its accessible heading before it opens.");
 assert.match(controllerSource, /\["ArrowLeft", "ArrowRight", "Home", "End"\]/,

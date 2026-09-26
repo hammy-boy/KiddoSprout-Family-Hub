@@ -315,7 +315,10 @@ assert.match(
   /<a\b[^>]*href=["']https:\/\/davidolufunmilayo1-blip\.github\.io\/advaced-chess-academy\/["'][^>]*target=["']_blank["'][^>]*rel=["']noopener noreferrer["'][^>]*>[\s\S]*?<h3>Advaced Chess Academy<\/h3>[\s\S]*?Opens the separate Chess website/,
   "The public build must replace private Chess with the reviewed separate Academy URL."
 );
-assert.equal((await stat(new URL("Game%201.game", `file://${OUTPUT_DIRECTORY}/`))).isFile(), true,
-  "The public build is missing the reviewed legacy Chess fixture.");
+await assert.rejects(
+  stat(new URL("Game%201.game", `file://${OUTPUT_DIRECTORY}/`)),
+  { code: "ENOENT" },
+  "The public build must omit the obsolete macOS-only Chess fixture."
+);
 
 console.log("Sprout Arcade checks passed: 15 public gated games, private Rookavelle source, safe public Chess link, and reviewed offline files.");

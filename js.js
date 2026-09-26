@@ -2696,6 +2696,13 @@
       const source = isPlainFamilyRecord(value) ? value : {};
       const safeFallbackStage = LEARNING_STAGE_IDS.has(fallbackStage) ? fallbackStage : "sprouts";
       const stageId = LEARNING_STAGE_IDS.has(source.stageId) ? source.stageId : safeFallbackStage;
+      const normalizedAssignedLessonId = normalizeLearningLessonId(source.assignedLessonId);
+      const knownAssignedLesson = HOMESCHOOL_LESSON_CATALOG.find(
+        (lesson) => lesson.id === normalizedAssignedLessonId
+      );
+      const assignedLessonId = knownAssignedLesson && knownAssignedLesson.stage !== stageId
+        ? ""
+        : normalizedAssignedLessonId;
       const completedLessonIds = [];
       const completedSet = new Set();
       const addCompletedLesson = (candidate) => {
@@ -2752,7 +2759,7 @@
       return {
         version: 1,
         stageId,
-        assignedLessonId: normalizeLearningLessonId(source.assignedLessonId),
+        assignedLessonId,
         completedLessonIds,
         progress,
         updatedAt: normalizeLearningTimestamp(source.updatedAt)

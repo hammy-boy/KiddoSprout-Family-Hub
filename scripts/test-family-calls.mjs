@@ -557,6 +557,44 @@ assert.ok(api && typeof api.createController === "function",
 }
 
 {
+  const timers = new FakeTimers();
+  const signaling = fakeSignaling();
+  signaling.startCall = async () => ({
+    id: "11111111-1111-4111-8111-111111111111",
+    topic: "family-call:11111111-1111-4111-8111-111111111111",
+    status: "ringing",
+    expiresAt: new Date(30_000).toISOString()
+  });
+  const harness = createHarness(api, { signaling, timers });
+  await harness.controller.startChildCall({ childId: "child-a", parentMemberId: "parent-a" });
+  await timers.advance(30_001);
+  assert.equal(harness.controller.getState().reason, "timeout",
+    "The child kept ringing past the server-provided call expiry.");
+}
+
+{
+  const timers = new FakeTimers();
+  const harness = createHarness(api, { timers });
+  await harness.controller.startChildCall({ childId: "child-a", parentMemberId: "parent-a" });
+  await timers.advance(5_000);
+  harness.peers[0].connectionState = "connected";
+  harness.peers[0].emit("connectionstatechange");
+  assert.equal(harness.controller.getState().startedAt, 5_000,
+    "The connected-call timer incorrectly included time spent ringing.");
+  await harness.controller.endCall();
+}
+
+{
+  const harness = createHarness(api);
+  await harness.controller.startChildCall({ childId: "child-a", parentMemberId: "parent-a" });
+  await harness.controller.endCall();
+  assert.equal(harness.signaling.calls.filter(([kind, action]) => kind === "update" && action === "cancel").length, 1,
+    "Ending while the child is still ringing did not cancel the server call.");
+  assert.equal(harness.signaling.calls.filter(([kind, action]) => kind === "update" && action === "end").length, 0,
+    "Ending a still-ringing child call used the active-call transition.");
+}
+
+{
   const harness = createHarness(api, { isOnline: () => false });
   await harness.controller.startChildCall({ childId: "child-a", parentMemberId: "parent-a" });
   assert.equal(harness.getUserMediaCalls.length, 0, "An offline call unnecessarily opened the microphone.");
@@ -580,6 +618,74 @@ assert.ok(api && typeof api.createController === "function",
   assert.equal(harness.controller.getState().phase, "ended");
   assert.equal(harness.controller.getState().reason, "declined");
 }
+
+{
+  const timers = new FakeTimers();
+  const harness = createHarness(api, { timers });
+  const callId = "22222222-2222-4222-8222-222222222222";
+  harness.controller.receiveIncomingCall({ id: callId, childName: "Child A" });
+  await timers.advance(Number(api.constants.RING_TIMEOUT_MS) + 1);
+  assert.equal(harness.controller.getState().phase, "ended",
+    "An unanswered incoming call stayed open after its bounded ring window.");
+  assert.equal(harness.controller.getState().reason, "timeout",
+    "An unanswered incoming call did not end as a timeout.");
+}
+
+{
+  const mediaResult = deferred();
+  const lateTrack = fakeTrack();
+  const harness = createHarness(api, {
+    mediaDevices: { getUserMedia: () => mediaResult.promise }
+  });
+  harness.controller.receiveIncomingCall({
+    id: "22222222-2222-4222-8222-222222222222",
+    childName: "Child A"
+  });
+  const accepting = harness.controller.acceptIncomingCall();
+  await Promise.resolve();
+  await harness.controller.endCall();
+  mediaResult.resolve(fakeStream(lateTrack));
+  await accepting;
+  assert.equal(harness.signaling.calls.filter(([kind, action]) => kind === "update" && action === "decline").length, 1,
+    "Ending during parent microphone setup left the server call ringing.");
+  assert.equal(harness.signaling.calls.filter(([kind, action]) => kind === "update" && action === "end").length, 0,
+    "Ending before the parent accepted used the active-call transition.");
+  assert.equal(lateTrack.stopCalls, 1,
+    "A parent microphone stream that resolved after ending was leaked.");
+}
+
+{
+  const harness = createHarness(api);
+  const currentCallId = "22222222-2222-4222-8222-222222222222";
+  const otherCallId = "33333333-3333-4333-8333-333333333333";
+  harness.controller.receiveIncomingCall({ id: currentCallId, childName: "Child A" });
+  await harness.controller.receiveCallChange({ id: otherCallId, status: "cancelled" });
+  assert.equal(harness.controller.getState().phase, "incoming",
+    "An unrelated call update dismissed the current incoming call.");
+  assert.equal(harness.controller.getState().callId, currentCallId,
+    "An unrelated call update replaced the current incoming call.");
+  await harness.controller.receiveCallChange({ id: currentCallId, status: "cancelled" });
+  assert.equal(harness.controller.getState().phase, "ended",
+    "The matching child cancellation left the parent stuck in an incoming call.");
+  assert.equal(harness.controller.getState().reason, "cancelled");
+}
+
+{
+  const harness = createHarness(api);
+  const callId = "22222222-2222-4222-8222-222222222222";
+  harness.controller.receiveIncomingCall({ id: callId, childName: "Child A" });
+  await harness.controller.receiveCallChange({ id: callId, status: "active" });
+  assert.equal(harness.controller.getState().phase, "ended",
+    "A call answered on another parent device left this device ringing.");
+  assert.equal(harness.controller.getState().reason, "answered-elsewhere");
+}
+
+assert.match(appSource,
+  /const received = parentController\?\.receiveIncomingCall[\s\S]{0,300}received\?\.callId !== call\.id/,
+  "The parent ring UI must not display a second call that its controller rejected.");
+assert.match(appSource,
+  /current\.callId !== call\.id[\s\S]{0,300}receiveCallChange\?\.\(call\)/,
+  "A call update must be correlated before it can dismiss the parent's incoming-call state.");
 
 {
   const harness = createHarness(api);

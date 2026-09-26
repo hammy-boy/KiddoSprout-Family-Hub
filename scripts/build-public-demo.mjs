@@ -151,7 +151,6 @@ const PUBLIC_FILES = Object.freeze([
   "kiddosprout_logo_192.png",
   "kiddosprout_blocked_1280x800.png",
   "service-worker.js",
-  "Game 1.game",
   ...PUBLIC_GAME_FILES
 ]);
 

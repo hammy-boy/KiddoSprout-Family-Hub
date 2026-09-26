@@ -194,7 +194,7 @@ assert.equal(trustedContactsStatus.dataset.i18n, "settings.contacts.cleared");
 assert.equal(trustedContactSaveCount, 3);
 assert.equal(trustedContactRenderCount, 3);
 
-const childConstantsStart = app.indexOf("const CHILD_PROFILE_LIMIT");
+const childConstantsStart = app.indexOf("const HOMESCHOOL_LESSON_CATALOG");
 const childConstantsEnd = app.indexOf("const todayTasks", childConstantsStart);
 assert.ok(childConstantsStart >= 0 && childConstantsEnd > childConstantsStart,
   "Missing child-profile safety limits.");

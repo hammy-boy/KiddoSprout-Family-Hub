@@ -12,7 +12,7 @@ function create(cards,{direction='meaning',topic='all',size=5,random=Math.random
   const state=()=>({card:deck[index],prompt:direction==='word'?deck[index]?.meaning:deck[index]?.text,target:target(),index,total:deck.length,done:index>=deck.length,solved,clean,missed:missed.length,direction});
   return {state,
     answer(value){if(index>=deck.length||solved)return {kind:'inactive'};if(!normalize(value))return {kind:'empty'};
-      const answers=direction==='word'?target().split(/\s*\/\s*/):[target()];
+      const answers=direction==='word'?[target(),...target().split(/\s*\/\s*/)]:[target()];
       if(answers.some(a=>normalize(a)===normalize(value))){if(!helped&&!attempted)clean++;solved=true;return {kind:'correct',note:deck[index].note||''};}
       attempted=true;remember();return {kind:answers.some(a=>loose(a)===loose(value))?'almost':'retry'};
     },
