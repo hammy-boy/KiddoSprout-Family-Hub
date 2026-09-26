@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <script src="local-docker-redirect.js?v=1"></script>
+  <title>Homeschool Hub | KiddoSprout</title>
+  <link rel="icon" type="image/png" href="kiddosprout_logo_128.png">
+  <link rel="stylesheet" href="kid-hubs.css?v=10">
+  <link rel="stylesheet" href="learning-path.css?v=1">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <svg class="learning-symbols" aria-hidden="true" focusable="false">
+    <symbol id="icon-maths" viewBox="0 0 48 48">
+      <path d="M8 13h12M14 7v12M29 9l11 11M40 9 29 20M8 33h12M29 29h12M29 38h12"/>
+    </symbol>
+    <symbol id="icon-english" viewBox="0 0 48 48">
+      <path d="M9 9h19a6 6 0 0 1 6 6v24H15a6 6 0 0 1-6-6V9Z"/>
+      <path d="M15 15h13M15 22h13M15 29h9M34 16h5v23H15"/>
+    </symbol>
+    <symbol id="icon-science" viewBox="0 0 48 48">
+      <path d="M19 6h10M21 6v13L10 37a3 3 0 0 0 3 5h22a3 3 0 0 0 3-5L27 19V6"/>
+      <path d="M16 31h16M19 36h3M27 34h3"/>
+    </symbol>
+    <symbol id="icon-check" viewBox="0 0 48 48">
+      <path d="m10 25 9 9 19-21"/>
+    </symbol>
+    <symbol id="icon-path" viewBox="0 0 48 48">
+      <circle cx="12" cy="36" r="5"/><circle cx="36" cy="12" r="5"/>
+      <path d="M16 33c8-4 1-14 10-17l5-2"/>
+    </symbol>
+  </svg>
+
+  <main class="learning-shell hidden" id="main-content" tabindex="-1" data-hub-page>
+    <nav class="learning-topbar" aria-label="Homeschool Hub navigation">
+      <a class="learning-back" href="index.html#child">Back to Child Site</a>
+      <div class="learning-top-actions">
+        <span class="learner-chip" id="learner-chip" hidden></span>
+        <a class="learning-games-link" href="games/index.html#learning-games">Learning Games</a>
+      </div>
+    </nav>
+
+    <header class="learning-hero">
+      <div>
+        <p class="learning-eyebrow">Homeschool Hub · starter path</p>
+        <h1>Your learning path</h1>
+        <p class="learning-hero-copy">Take one clear step at a time with short lessons, practice, and an activity away from the screen.</p>
+        <p class="learning-support-note">This is family-guided learning support, not an accredited school, qualification, or formal assessment.</p>
+      </div>
+      <svg class="hero-path-icon" aria-hidden="true"><use href="#icon-path"></use></svg>
+    </header>
+
+    <section class="stage-card" aria-labelledby="stage-heading">
+      <div class="stage-card-copy">
+        <p class="section-kicker">Choose the best fit</p>
+        <h2 id="stage-heading">Learning stage</h2>
+        <p>Ages are only a guide. A parent or carer can choose the stage that feels right.</p>
+      </div>
+      <div class="stage-options" id="stage-options" role="group" aria-label="Learning stage"></div>
+    </section>
+
+    <nav class="learning-tabs" role="tablist" aria-label="Learning path views">
+      <button id="tab-today" type="button" role="tab" aria-selected="true" aria-controls="view-today" data-view-tab="today">Today</button>
+      <button id="tab-subjects" type="button" role="tab" aria-selected="false" aria-controls="view-subjects" tabindex="-1" data-view-tab="subjects">Subjects</button>
+      <button id="tab-progress" type="button" role="tab" aria-selected="false" aria-controls="view-progress" tabindex="-1" data-view-tab="progress">Progress</button>
+    </nav>
+
+    <p class="learning-status" id="learning-status" role="status" aria-live="polite" aria-atomic="true">Getting your path ready…</p>
+
+    <div class="learning-views" id="learning-views">
+      <section class="learning-view" id="view-today" role="tabpanel" aria-labelledby="tab-today" data-view="today">
+        <div class="view-heading">
+          <div>
+            <p class="section-kicker">A small, useful plan</p>
+            <h2 id="today-heading">Today</h2>
+          </div>
+          <p id="today-summary">Choose one lesson to begin.</p>
+        </div>
+        <div id="today-focus"></div>
+        <div class="lesson-grid" id="today-lessons" aria-label="More lessons for today"></div>
+      </section>
+
+      <section class="learning-view" id="view-subjects" role="tabpanel" aria-labelledby="tab-subjects" data-view="subjects" hidden>
+        <div class="view-heading">
+          <div>
+            <p class="section-kicker">Explore the starter curriculum</p>
+            <h2>Subjects</h2>
+          </div>
+          <p>Every lesson includes an explanation, a practice activity, and an idea to try offline.</p>
+        </div>
+        <div class="subject-list" id="subject-list"></div>
+      </section>
+
+      <section class="learning-view" id="view-progress" role="tabpanel" aria-labelledby="tab-progress" data-view="progress" hidden>
+        <div class="view-heading">
+          <div>
+            <p class="section-kicker">Celebrate the steps taken</p>
+            <h2>Progress</h2>
+          </div>
+          <button class="quiet-button print-button" id="print-progress" type="button">Print progress</button>
+        </div>
+        <div id="progress-overview"></div>
+        <div class="progress-subjects" id="progress-subjects"></div>
+        <section class="recent-card" aria-labelledby="recent-heading">
+          <h3 id="recent-heading">Recently completed</h3>
+          <div id="recent-lessons"></div>
+        </section>
+      </section>
+    </div>
+
+    <section class="lesson-workspace" id="lesson-workspace" aria-labelledby="lesson-title" hidden>
+      <button class="lesson-close" id="lesson-close" type="button">Back to learning path</button>
+      <article id="lesson-content"></article>
+    </section>
+
+    <section class="practice-library" aria-labelledby="practice-heading">
+      <div class="practice-heading-copy">
+        <p class="section-kicker">Optional extra practice</p>
+        <h2 id="practice-heading">Keep exploring</h2>
+        <p>These existing games open in the Learning Games area and may need parent approval. Game records stay in this browser for now.</p>
+      </div>
+      <div class="practice-links">
+        <a href="games/word-builder/index.html"><strong>Word Builder</strong><span>Spelling practice</span></a>
+        <a href="games/multiplication-runner/index.html"><strong>Math Runner</strong><span>Number practice</span></a>
+        <a href="games/science-sorter/index.html"><strong>Science Sorter</strong><span>Three mini labs</span></a>
+        <a href="games/learning-world/index.html"><strong>Learning World</strong><span>Eight subjects</span></a>
+      </div>
+    </section>
+  </main>
+
+  <section class="lock-card hidden" data-hub-lock role="main" tabindex="-1">
+    <div>
+      <h1 data-lock-title>Parent approval needed</h1>
+      <p data-lock-message>A request was sent to the parent dashboard.</p>
+      <a class="primary-action" href="index.html#child">Back to Child Site</a>
+    </div>
+  </section>
+
+  <noscript><p class="learning-noscript">JavaScript is needed for the interactive learning path. Return to the Child Site and ask an adult for help.</p></noscript>
+
+  <script src="supabase-config.js?v=7"></script>
+  <script src="demo-mode.js?v=2"></script>
+  <script src="auth-session.js?v=7"></script>
+  <script src="family-state-cloud.js?v=2"></script>
+  <script src="kid-hub-gate.js?v=10"></script>
+  <script src="learning-curriculum.js?v=1"></script>
+  <script src="learning-path.js?v=1"></script>
+</body>
+</html>

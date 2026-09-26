@@ -37,6 +37,8 @@ const PUBLIC_GAME_FILES = Object.freeze([
   "games/language-garden/style.css",
   "games/language-garden/catalogue.js",
   "games/language-garden/courses.js",
+  "games/language-garden/tutor-engine.js",
+  "games/language-garden/tutor.js",
   "games/language-garden/game.js",
   "games/pattern-painter/index.html",
   "games/pattern-painter/style.css",
@@ -109,6 +111,7 @@ const PUBLIC_FILES = Object.freeze([
   "app_7.html",
   "blocker-setup.html",
   "creator-studio.html",
+  "learning-path.html",
   "move-breaks.html",
   "nature-explorer.html",
   "report_problem.html",
@@ -116,6 +119,7 @@ const PUBLIC_FILES = Object.freeze([
   "story-voices.html",
   "style.css",
   "kid-hubs.css",
+  "learning-path.css",
   "blocker-setup.css",
   "story-voices.css",
   "js.js",
@@ -129,6 +133,8 @@ const PUBLIC_FILES = Object.freeze([
   "language-packs.js",
   "language-settings.js",
   "kid-hub-gate.js",
+  "learning-curriculum.js",
+  "learning-path.js",
   "local-docker-redirect.js",
   "passcode-security.js",
   "recipe-cloud.js",
@@ -198,6 +204,8 @@ const PUBLIC_CONFIG = `window.KIDDO_SPROUT_SUPABASE = Object.freeze({
 // local static previews use their own ports and must remain in demo-only mode.
 const PUBLIC_LOCAL_DOCKER_REDIRECT = `// Public demo: local preview origins stay on this demo server.\n`;
 const LOCAL_DOCKER_REDIRECT_TAG = /[ \t]*<script\s+src=["']local-docker-redirect\.js(?:\?v=[A-Za-z0-9._-]{1,32})?["']><\/script>[ \t]*(?:\r?\n)?/gi;
+const PRIVATE_CHESS_ACADEMY_CARD = '<a class="card" href="chess-academy/"><span aria-hidden="true">♛</span><h3>Rookavelle Chess Academy</h3><p>Play chess, solve puzzles, explore lessons, and train in the Academy Lab. Includes move review, custom pieces, and practice variations.</p><b>Practise Chess →</b></a>';
+const PUBLIC_CHESS_ACADEMY_CARD = '<a class="card" href="https://davidolufunmilayo1-blip.github.io/advaced-chess-academy/" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">♛</span><h3>Advaced Chess Academy</h3><p>Play chess, solve puzzles, explore lessons, and train in the Academy Lab. Opens the separate Chess website.</p><b>Practise Chess →</b></a>';
 const PUBLIC_DEMO_BODY_TAG = "<body class=\"public-demo-only\">";
 const PUBLIC_MINIFIED_FILES = new Map([
   ["style.css", "css"],
@@ -576,6 +584,16 @@ export async function buildPublicDemo() {
           throw new Error("Public demo could not install its quiet background-update guard.");
         }
         publicSource = publicSource.replace(PUBLIC_UPDATE_NOTICE_MARKER, PUBLIC_UPDATE_NOTICE_GUARD);
+      }
+      // The bundled Rookavelle app has its own account/network policy and is
+      // intentionally outside this account-free publication allow-list. Keep
+      // the reviewed separate-site card useful instead of shipping a local
+      // link to files that the safe static bundle correctly omits.
+      if (file === "games/index.html") {
+        if (!publicSource.includes(PRIVATE_CHESS_ACADEMY_CARD)) {
+          throw new Error("Public demo could not replace the private Chess Academy card safely.");
+        }
+        publicSource = publicSource.replace(PRIVATE_CHESS_ACADEMY_CARD, PUBLIC_CHESS_ACADEMY_CARD);
       }
       for (const [sourceAsset, publicAsset] of storyAssets.replacements) {
         publicSource = publicSource.replaceAll(sourceAsset, publicAsset);

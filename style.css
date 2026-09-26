@@ -502,6 +502,44 @@
       box-shadow: 0 22px 54px rgba(0, 8, 20, .34), inset 5px 0 0 #58dcd4, inset 0 1px 0 rgba(255, 255, 255, .07);
     }
 
+    body.theme-night #homeschoolPlanner.setup-panel {
+      border-color: rgba(129, 220, 144, .42);
+      background:
+        radial-gradient(circle at 92% 14%, rgba(241, 202, 105, .25), transparent 27%),
+        radial-gradient(circle at 4% 118%, rgba(86, 222, 212, .19), transparent 38%),
+        linear-gradient(140deg, #163f42 0%, #1c4034 55%, #3c3b25 100%);
+      box-shadow: 0 22px 54px rgba(0, 8, 20, .36), inset 5px 0 0 #7bd68b, inset 0 1px 0 rgba(255, 255, 255, .07);
+    }
+
+    body.theme-night .homeschool-stage-panel,
+    body.theme-night .homeschool-assignment-panel,
+    body.theme-night .homeschool-completion {
+      border-color: rgba(142, 218, 188, .24);
+      background: rgba(7, 28, 32, .64);
+    }
+
+    body.theme-night .homeschool-stage-choice,
+    body.theme-night .homeschool-summary-grid > div {
+      color: var(--ink);
+      background: rgba(9, 35, 40, .9);
+      box-shadow: inset 0 0 0 1px rgba(132, 210, 200, .14);
+    }
+
+    body.theme-night .homeschool-stage-choice:has(input:checked) {
+      border-color: #79e4d8;
+      background: rgba(36, 100, 91, .64);
+    }
+
+    body.theme-night .homeschool-assignment {
+      border-color: rgba(121, 228, 216, .28);
+      background: linear-gradient(135deg, rgba(22, 77, 70, .82), rgba(31, 55, 88, .78));
+    }
+
+    body.theme-night .homeschool-subject {
+      color: #b8fff4;
+      background: rgba(5, 26, 31, .76);
+    }
+
     body.theme-night #advancedSettings.setup-panel {
       border-color: rgba(202, 153, 239, .4);
       background:
@@ -545,6 +583,7 @@
     }
 
     body.theme-night #manageChildren .summary-action,
+    body.theme-night #homeschoolPlanner .summary-action,
     body.theme-night #advancedSettings .summary-action,
     body.theme-night #childContentSettings .summary-action {
       min-width: 74px;
@@ -556,6 +595,10 @@
 
     body.theme-night #manageChildren .summary-action {
       background: linear-gradient(135deg, #78eadf, #70c9f4);
+    }
+
+    body.theme-night #homeschoolPlanner .summary-action {
+      background: linear-gradient(135deg, #91e59d, #f1d37c);
     }
 
     body.theme-night #advancedSettings .summary-action {
@@ -2315,6 +2358,152 @@
       margin: 0;
     }
 
+    .homeschool-planner-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .homeschool-stage-panel,
+    .homeschool-assignment-panel,
+    .homeschool-completion {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      background: linear-gradient(145deg, #fbfffc, #f0f7f4);
+    }
+
+    .homeschool-completion {
+      margin-top: 14px;
+    }
+
+    .homeschool-section-heading {
+      display: grid;
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+
+    .homeschool-section-heading :is(h3, p) {
+      margin: 0;
+    }
+
+    .homeschool-stage-options {
+      display: grid;
+      gap: 8px;
+    }
+
+    .homeschool-stage-choice {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 11px;
+      align-items: center;
+      min-height: 64px;
+      border: 2px solid transparent;
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: #fff;
+      box-shadow: 0 6px 16px rgba(20, 65, 61, .07);
+      cursor: pointer;
+    }
+
+    .homeschool-stage-choice:has(input:checked) {
+      border-color: var(--teal);
+      background: #eaf9f4;
+      box-shadow: 0 8px 20px rgba(20, 125, 127, .14);
+    }
+
+    .homeschool-stage-choice:has(input:disabled) {
+      cursor: not-allowed;
+      opacity: .68;
+    }
+
+    .homeschool-stage-choice:focus-within {
+      outline: 3px solid var(--focus-ring);
+      outline-offset: 2px;
+    }
+
+    .homeschool-stage-choice input {
+      width: 20px;
+      height: 20px;
+      margin: 0;
+      accent-color: var(--teal);
+    }
+
+    .homeschool-stage-choice span,
+    .homeschool-stage-choice strong,
+    .homeschool-stage-choice small {
+      display: block;
+      min-width: 0;
+    }
+
+    .homeschool-stage-choice small {
+      margin-top: 2px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .homeschool-assignment {
+      min-height: 144px;
+      border: 1px solid rgba(20, 125, 127, .2);
+      border-radius: 10px;
+      padding: 15px;
+      background: linear-gradient(135deg, #eaf8f3, #eef4ff);
+    }
+
+    .homeschool-assignment strong {
+      display: block;
+      margin: 9px 0 6px;
+      font-size: 20px;
+      line-height: 1.25;
+    }
+
+    .homeschool-assignment p {
+      margin: 0;
+    }
+
+    .homeschool-subject {
+      display: inline-flex;
+      border-radius: 999px;
+      padding: 5px 9px;
+      color: #0c6263;
+      background: rgba(255, 255, 255, .9);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .homeschool-planner-actions {
+      margin-top: 12px;
+    }
+
+    .homeschool-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .homeschool-summary-grid > div {
+      display: grid;
+      gap: 3px;
+      min-width: 0;
+      border-radius: 10px;
+      padding: 12px;
+      background: #fff;
+      box-shadow: inset 0 0 0 1px rgba(20, 125, 127, .12);
+    }
+
+    .homeschool-summary-grid strong {
+      color: var(--teal);
+      font-size: 22px;
+    }
+
+    .homeschool-summary-grid span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
     .status-strip .metric:nth-child(2),
     .grid > .card:nth-child(2),
     .plan-grid .plan-item:nth-child(2),
@@ -2645,6 +2834,11 @@
       transition: transform 260ms ease, box-shadow 260ms ease, filter 260ms ease;
     }
 
+    .hub-card > * {
+      position: relative;
+      z-index: 1;
+    }
+
     .hub-card[hidden] {
       display: none;
     }
@@ -2726,6 +2920,20 @@
       text-decoration: none;
     }
 
+    .hub-progress {
+      display: block;
+      width: fit-content;
+      max-width: 100%;
+      margin: -8px 0 14px;
+      border-radius: 999px;
+      padding: 5px 9px;
+      color: #fff;
+      background: rgba(7, 36, 39, .28);
+      font-size: 12px;
+      font-weight: 850;
+      line-height: 1.3;
+    }
+
     .studio {
       background: linear-gradient(135deg, #6b2e4c, #8d3b35);
     }
@@ -2748,6 +2956,10 @@
 
     .hub-card.learning-games {
       background: linear-gradient(135deg, #14636b, #267340 58%, #75621b);
+    }
+
+    .hub-card.homeschool {
+      background: linear-gradient(135deg, #0d6570, #26744c 56%, #77651d);
     }
 
     .hub-card.arcade {
@@ -4148,6 +4360,11 @@
       background: linear-gradient(135deg, #16556b, #287247 58%, #76631d);
     }
 
+    body.theme-night.mode-child #hubs .hub-card.homeschool {
+      border-color: #83d993;
+      background: linear-gradient(135deg, #115a69, #286f45 58%, #695b1d);
+    }
+
     body.theme-night.mode-child #hubs .hub-card.arcade {
       border-color: #69d1c7;
       background: linear-gradient(135deg, #174b68, #176558 58%, #66531d);
@@ -4672,7 +4889,8 @@
       .spark-layout,
       .goal-board,
       .app-layout,
-      .device-protection-grid {
+      .device-protection-grid,
+      .homeschool-planner-grid {
         grid-template-columns: 1fr;
       }
 
@@ -4821,6 +5039,19 @@
       .achievement-form,
       .achievement-lock-panel {
         grid-template-columns: 1fr;
+      }
+
+      .homeschool-summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .homeschool-planner-actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .homeschool-planner-actions button {
+        width: 100%;
       }
 
       .achievement-lock-panel .choice-row,

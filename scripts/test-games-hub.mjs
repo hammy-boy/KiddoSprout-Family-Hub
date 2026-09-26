@@ -6,13 +6,21 @@ import { buildPublicDemo, OUTPUT_DIRECTORY } from "./build-public-demo.mjs";
 const ROOT = new URL("../", import.meta.url);
 const read = (path, encoding = "utf8") => readFile(new URL(path, ROOT), encoding);
 const IANA_LANGUAGE_REGISTRY_URL = "https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry";
+const PRIVATE_GAME_DIRECTORIES = Object.freeze(["chess-academy"]);
 
 const GAME_SPECS = Object.freeze([
   {
     directory: "language-garden",
     title: "Language Garden",
     group: "learning",
-    scripts: ["catalogue.js", "courses.js", "game.js"],
+    scripts: ["catalogue.js", "courses.js", "tutor-engine.js", "tutor.js", "game.js"],
+    loaderFiles: [
+      "catalogue.js",
+      "courses.js?v=words-2087",
+      "tutor-engine.js?v=1",
+      "tutor.js?v=1",
+      "game.js?v=tutor-1"
+    ],
     metadataUrls: [IANA_LANGUAGE_REGISTRY_URL]
   },
   { directory: "pattern-painter", title: "Pattern Painter", group: "learning", scripts: ["engine.js", "game.js"] },
@@ -58,8 +66,8 @@ const localGameDirectories = (await readdir(new URL("games/", ROOT), { withFileT
   .sort();
 assert.deepEqual(
   localGameDirectories,
-  GAME_SPECS.map(({ directory }) => directory).sort(),
-  "The reviewed Sprout Arcade inventory must contain exactly fifteen web games."
+  [...GAME_SPECS.map(({ directory }) => directory), ...PRIVATE_GAME_DIRECTORIES].sort(),
+  "The source arcade must contain the fifteen public games plus the separately reviewed private Chess Academy."
 );
 
 const chooser = await read("games/index.html");
@@ -87,13 +95,13 @@ for (const [index, spec] of GAME_SPECS.entries()) {
   }
 }
 assert.equal((chooser.match(/<a\b[^>]*class=["'][^"']*\bcard\b[^"']*["']/gi) || []).length, 16,
-  "The chooser must contain fifteen built-in browser games plus one clearly separate Chess Academy link.");
+  "The chooser must contain fifteen public browser games plus the private Chess Academy.");
 assert.match(
   chooser,
-  /<a\b[^>]*href=["']https:\/\/davidolufunmilayo1-blip\.github\.io\/advaced-chess-academy\/["'][^>]*target=["']_blank["'][^>]*rel=["']noopener noreferrer["'][^>]*>[\s\S]*?<h3>Advaced Chess Academy<\/h3>[\s\S]*?Opens the separate Chess website/,
-  "Chess must use the reviewed live Academy URL and clearly identify it as a separate website."
+  /<a\b[^>]*href=["']chess-academy\/["'][^>]*>[\s\S]*?<h3>Rookavelle Chess Academy<\/h3>[\s\S]*?Includes move review, custom pieces, and practice variations/,
+  "The private source chooser must open the checked-in Rookavelle Chess Academy."
 );
-assert.match(learningGroup, /Advaced Chess Academy/,
+assert.match(learningGroup, /Rookavelle Chess Academy/,
   "Chess lessons and puzzles belong with the learning games.");
 assert.doesNotMatch(chooser, /href=["']\.\.\/Game%201\.game["']/,
   "The arcade card must not fall back to the obsolete Mac-only Chess download.");
@@ -112,7 +120,9 @@ for (const spec of GAME_SPECS) {
     `${spec.title} must use the reviewed asynchronous arcade gate.`);
   assert.match(html, /data-root=["']\.\.\/\.\.\/["']/i,
     `${spec.title} must load KiddoSprout's shared access dependencies from the app root.`);
-  assert.match(html, new RegExp(`data-files=["']${spec.scripts.join(",")}["']`, "i"),
+  const loaderFiles = (spec.loaderFiles || spec.scripts).join(",")
+    .replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  assert.match(html, new RegExp(`data-files=["']${loaderFiles}["']`, "i"),
     `${spec.title} must load only its reviewed game scripts after access is granted.`);
   for (const script of spec.scripts) {
     assert.equal(await isFile(`${base}/${script}`), true, `${spec.title} is missing ${script}.`);
@@ -271,8 +281,8 @@ assert.ok(workerRuntimeMatch, "The service worker runtime allow-list is missing.
 const runtimeGames = JSON.parse(workerRuntimeMatch[1]).filter((path) => path.startsWith("/games/")).sort();
 assert.deepEqual(runtimeGames, PUBLIC_GAME_FILES.map((path) => `/${path}`).sort(),
   "Offline runtime caching must include exactly the reviewed arcade files.");
-assert.match(workerSource, /const KIDDOSPROUT_CACHE_VERSION = ["']shell-v114["']/,
-  "The split game-library release needs the v114 shell cache so older clients receive it.");
+assert.match(workerSource, /const KIDDOSPROUT_CACHE_VERSION = ["']shell-v115["']/,
+  "The Homeschool Hub release needs the v115 shell cache so older clients receive it.");
 assert.deepEqual(runtimeGames.filter((path) => path.endsWith(".svg")), ["/games/multiplication-runner/map.svg"],
   "Only the reviewed Math Runner map SVG may enter the offline allow-list.");
 
@@ -297,7 +307,15 @@ const publishedGames = (await collectRelativeFiles(new URL("games/", `file://${O
   .sort();
 assert.deepEqual(publishedGames, [...PUBLIC_GAME_FILES].sort(),
   "The public colleague build must publish all and only the fifteen reviewed web games.");
+const publicChooser = await readFile(new URL("games/index.html", `file://${OUTPUT_DIRECTORY}/`), "utf8");
+assert.doesNotMatch(publicChooser, /href=["']chess-academy\//,
+  "The public demo must not link to the intentionally omitted private Chess Academy bundle.");
+assert.match(
+  publicChooser,
+  /<a\b[^>]*href=["']https:\/\/davidolufunmilayo1-blip\.github\.io\/advaced-chess-academy\/["'][^>]*target=["']_blank["'][^>]*rel=["']noopener noreferrer["'][^>]*>[\s\S]*?<h3>Advaced Chess Academy<\/h3>[\s\S]*?Opens the separate Chess website/,
+  "The public build must replace private Chess with the reviewed separate Academy URL."
+);
 assert.equal((await stat(new URL("Game%201.game", `file://${OUTPUT_DIRECTORY}/`))).isFile(), true,
   "The public build is missing the reviewed legacy Chess fixture.");
 
-console.log("Sprout Arcade checks passed: 15 gated web games, reviewed Chess Academy link, and reviewed public/offline files.");
+console.log("Sprout Arcade checks passed: 15 public gated games, private Rookavelle source, safe public Chess link, and reviewed offline files.");

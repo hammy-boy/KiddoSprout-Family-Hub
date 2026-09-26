@@ -13,6 +13,10 @@ paths = [
     "/",
     "/style.css?v=68",
     "/offline.html",
+    "/learning-path.html",
+    "/learning-path.css?v=1",
+    "/learning-curriculum.js?v=1",
+    "/learning-path.js?v=1",
     "/service-worker.js",
     "/recipe-catalog-v5342473ad68b.js",
     "/family-tech-hub-v01232923b55c.avif",
@@ -93,6 +97,12 @@ assert.equal(responses["/style.css?v=68"].content_type, "text/css; charset=utf-8
 assert.equal(responses["/offline.html"].status, 200,
   "The service worker's required offline fallback must be available in the legacy preview.");
 assert.match(responses["/offline.html"].content_type, /^text\/html/);
+assert.equal(responses["/learning-path.html"].status, 200,
+  "The Homeschool Hub must be available without starting Docker.");
+assert.match(responses["/learning-path.html"].content_type, /^text\/html/);
+assert.equal(responses["/learning-path.css?v=1"].content_type, "text/css; charset=utf-8");
+assert.equal(responses["/learning-curriculum.js?v=1"].content_type, "text/javascript; charset=utf-8");
+assert.equal(responses["/learning-path.js?v=1"].content_type, "text/javascript; charset=utf-8");
 assert.equal(responses["/service-worker.js"].status, 200,
   "The legacy preview must continue to serve the install worker from the root scope.");
 assert.equal(responses["/recipe-catalog-v5342473ad68b.js"].status, 200,

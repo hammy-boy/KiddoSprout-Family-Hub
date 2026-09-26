@@ -164,6 +164,17 @@
     const flyerAllowedLabel = document.querySelector("#flyerAllowedLabel");
     const parentHomeworkToggle = document.querySelector("#parentHomeworkToggle");
     const parentHomeworkLabel = document.querySelector("#parentHomeworkLabel");
+    const homeschoolStageInputs = document.querySelectorAll('input[name="homeschoolStage"]');
+    const homeschoolChildName = document.querySelector("#homeschoolChildName");
+    const homeschoolStageStatus = document.querySelector("#homeschoolStageStatus");
+    const homeschoolLessonSubject = document.querySelector("#homeschoolLessonSubject");
+    const homeschoolLessonTitle = document.querySelector("#homeschoolLessonTitle");
+    const homeschoolLessonSummary = document.querySelector("#homeschoolLessonSummary");
+    const homeschoolCompletionSummary = document.querySelector("#homeschoolCompletionSummary");
+    const homeschoolChildSummary = document.querySelector("#homeschoolChildSummary");
+    const homeschoolChildProgress = document.querySelector("#homeschoolChildProgress");
+    const assignNextHomeschoolLessonButton = document.querySelector("#assignNextHomeschoolLesson");
+    const openAssignedHomeschoolLessonButton = document.querySelector("#openAssignedHomeschoolLesson");
     const passcodeStatus = document.querySelector("#passcodeStatus");
     const unlockParentButton = document.querySelector("#unlockParent");
     const passcodeLockoutCountdown = document.querySelector("#passcodeLockoutCountdown");
@@ -304,6 +315,7 @@
       ["Sketch Pad", "S", "Creative app"]
     ];
     const APP_CATALOG = {
+      homeschool: { title: "Homeschool Hub", initial: "H", kind: "Guided learning", defaultRule: "allowed" },
       arcade: { title: "Learning & Arcade Games", initial: "G", kind: "Game libraries", defaultRule: "request" },
       studio: { title: "Creator Studio", initial: "C", kind: "Create", defaultRule: "request" },
       explore: { title: "Explorer Lab", initial: "E", kind: "Learning", defaultRule: "allowed" },
@@ -343,6 +355,25 @@
     };
     const APP_RULE_VALUES = new Set(["allowed", "request", "blocked"]);
     const HOMEWORK_PAUSED_APP_IDS = new Set(["arcade", "flyer", "gameSites", "roblox"]);
+    // The dashboard keeps only lesson metadata. Full teaching content lives in
+    // learning-curriculum.js and is loaded by the standalone Homeschool Hub.
+    const HOMESCHOOL_LESSON_CATALOG = Object.freeze([
+      { id: "maths-sprouts-counting-to-10", stage: "sprouts", subject: "Maths", title: "Counting to 10", summary: "Count objects reliably and explain how many there are." },
+      { id: "english-sprouts-hear-the-rhyme", stage: "sprouts", subject: "English", title: "Hear the Rhyme", summary: "Listen for words that share the same ending sound." },
+      { id: "science-sprouts-living-or-not", stage: "sprouts", subject: "Science", title: "Living or Not?", summary: "Notice what living things need and how they change." },
+      { id: "maths-sprouts-numbers-to-20", stage: "sprouts", subject: "Maths", title: "Numbers to 20", summary: "Read teen numbers and build them from tens and ones." },
+      { id: "maths-sprouts-one-more-one-less", stage: "sprouts", subject: "Maths", title: "One More, One Less", summary: "Find neighbouring numbers without starting the count again." },
+      { id: "maths-growers-equal-groups", stage: "growers", subject: "Maths", title: "Equal Groups", summary: "Use equal groups to make sense of multiplication." },
+      { id: "english-growers-build-a-sentence", stage: "growers", subject: "English", title: "Build a Clear Sentence", summary: "Shape a clear sentence with useful detail and punctuation." },
+      { id: "science-growers-plant-life-cycle", stage: "growers", subject: "Science", title: "A Plant's Life Cycle", summary: "Order the stages of a flowering plant's life." },
+      { id: "maths-growers-times-table-facts", stage: "growers", subject: "Maths", title: "Times Table Facts", summary: "Build quick recall of the 2, 5, and 10 times tables." },
+      { id: "maths-growers-sharing-remainders", stage: "growers", subject: "Maths", title: "Sharing and Remainders", summary: "Share equally and identify what is left over." },
+      { id: "maths-explorers-equivalent-fractions", stage: "explorers", subject: "Maths", title: "Equivalent Fractions", summary: "Recognise fractions that have the same value." },
+      { id: "english-explorers-find-the-evidence", stage: "explorers", subject: "English", title: "Find the Evidence", summary: "Support an answer with clues from a text." },
+      { id: "science-explorers-friction", stage: "explorers", subject: "Science", title: "Push, Pull, and Friction", summary: "Explore how surfaces change the force of friction." },
+      { id: "maths-explorers-adding-fractions", stage: "explorers", subject: "Maths", title: "Adding Fractions", summary: "Add fractions that share a denominator." },
+      { id: "maths-explorers-decimal-place-value", stage: "explorers", subject: "Maths", title: "Decimals and Place Value", summary: "Read tenths and hundredths using place value." }
+    ]);
     const TRUSTED_CONTACT_LIMIT = 20;
     const TRUSTED_CONTACT_NAME_LIMIT = 80;
     const CHILD_PROFILE_LIMIT = 20;
@@ -364,6 +395,15 @@
     const CHILD_DEVICES = new Set(["Tablet", "Phone", "Laptop", "Shared device"]);
     const CHILD_COSTUMES = new Set(["Explorer", "Space Pilot", "Story Wizard", "Dance Captain", "Ocean Guide", "Inventor"]);
     const CHILD_SCHOOL_YEARS = new Set(["", "Nursery", "Reception", "Year 1", "Year 2", "Year 3", "Year 4", "Year 5", "Year 6", "Year 7+"]);
+    const LEARNING_STAGE_IDS = new Set(["sprouts", "growers", "explorers"]);
+    const LEARNING_LESSON_ID_LIMIT = 160;
+    const LEARNING_COMPLETION_LIMIT = 100;
+    const LEARNING_PROGRESS_LIMIT = 100;
+    const LEARNING_PROGRESS_ATTEMPT_LIMIT = 10_000;
+    const LEARNING_PROGRESS_QUESTION_LIMIT = 1_000;
+    const LEARNING_CONTENT_VERSION_LIMIT = 1_000;
+    const LEARNING_LESSON_ID_PATTERN = /^[a-z0-9](?:[a-z0-9._:-]{0,159})$/i;
+    const LEARNING_UNSAFE_IDS = new Set(["__proto__", "constructor", "prototype"]);
     const todayTasks = [
       { id: "chore", title: "Chore Check", detail: "Finish one helpful task and mark it done.", report: "Stories", minutes: 5 },
       { id: "explore", title: "Nature Quest", detail: "Open Explorer Lab and finish one fact card.", report: "Explorer", minutes: 8 },
@@ -584,6 +624,7 @@
         ],
         flyerBest: 8,
         appRules: {
+          homeschool: "allowed",
           studio: "allowed",
           explore: "allowed",
           move: "allowed",
@@ -595,7 +636,24 @@
           gameSites: "blocked",
           roblox: "blocked"
         },
-        flyerAllowed: true
+        flyerAllowed: true,
+        learning: {
+          version: 1,
+          stageId: "growers",
+          assignedLessonId: "maths-growers-times-table-facts",
+          completedLessonIds: ["maths-growers-equal-groups"],
+          progress: {
+            "maths-growers-equal-groups": {
+              attempts: 1,
+              completed: true,
+              bestCorrect: 1,
+              total: 1,
+              lastCompletedAt: "2026-08-29T15:30:00.000Z",
+              contentVersion: 1
+            }
+          },
+          updatedAt: "2026-08-29T15:30:00.000Z"
+        }
       });
       Object.assign(demoState, {
         activeChild: "demo-child",
@@ -2606,6 +2664,101 @@
       return Math.min(maximum, Math.max(minimum, Math.round(number)));
     }
 
+    function normalizeLearningLessonId(value) {
+      if (typeof value !== "string") return "";
+      const id = value.trim();
+      return id.length <= LEARNING_LESSON_ID_LIMIT
+        && LEARNING_LESSON_ID_PATTERN.test(id)
+        && !LEARNING_UNSAFE_IDS.has(id.toLowerCase())
+        ? id
+        : "";
+    }
+
+    function normalizeLearningTimestamp(value) {
+      if (typeof value !== "string" || value.length > 80) return "";
+      const timestamp = Date.parse(value);
+      const earliest = Date.UTC(2000, 0, 1);
+      const latest = Date.now() + (366 * 24 * 60 * 60 * 1000);
+      return Number.isFinite(timestamp) && timestamp >= earliest && timestamp <= latest
+        ? new Date(timestamp).toISOString()
+        : "";
+    }
+
+    function defaultLearningStageForAge(value) {
+      const age = Number(value);
+      if (!Number.isFinite(age) || age < 0) return "sprouts";
+      if (age <= 7) return "sprouts";
+      if (age <= 9) return "growers";
+      return "explorers";
+    }
+
+    function normalizeLearningState(value, fallbackStage = "sprouts") {
+      const source = isPlainFamilyRecord(value) ? value : {};
+      const safeFallbackStage = LEARNING_STAGE_IDS.has(fallbackStage) ? fallbackStage : "sprouts";
+      const stageId = LEARNING_STAGE_IDS.has(source.stageId) ? source.stageId : safeFallbackStage;
+      const completedLessonIds = [];
+      const completedSet = new Set();
+      const addCompletedLesson = (candidate) => {
+        const id = normalizeLearningLessonId(candidate);
+        if (!id || completedSet.has(id) || completedLessonIds.length >= LEARNING_COMPLETION_LIMIT) return;
+        completedSet.add(id);
+        completedLessonIds.push(id);
+      };
+      if (Array.isArray(source.completedLessonIds)) {
+        for (const lessonId of source.completedLessonIds) {
+          addCompletedLesson(lessonId);
+          if (completedLessonIds.length >= LEARNING_COMPLETION_LIMIT) break;
+        }
+      }
+
+      const progress = {};
+      const progressSource = isPlainFamilyRecord(source.progress) ? source.progress : {};
+      let progressCount = 0;
+      for (const candidateId in progressSource) {
+        if (progressCount >= LEARNING_PROGRESS_LIMIT) break;
+        if (!Object.prototype.hasOwnProperty.call(progressSource, candidateId)) continue;
+        const candidateProgress = progressSource[candidateId];
+        const id = normalizeLearningLessonId(candidateId);
+        if (!id || !isPlainFamilyRecord(candidateProgress)) continue;
+        const total = boundedFamilyInteger(
+          candidateProgress.total,
+          0,
+          0,
+          LEARNING_PROGRESS_QUESTION_LIMIT
+        );
+        const completed = candidateProgress.completed === true || completedSet.has(id);
+        progress[id] = {
+          attempts: boundedFamilyInteger(
+            candidateProgress.attempts,
+            0,
+            0,
+            LEARNING_PROGRESS_ATTEMPT_LIMIT
+          ),
+          completed,
+          bestCorrect: boundedFamilyInteger(candidateProgress.bestCorrect, 0, 0, total),
+          total,
+          lastCompletedAt: normalizeLearningTimestamp(candidateProgress.lastCompletedAt),
+          contentVersion: boundedFamilyInteger(
+            candidateProgress.contentVersion,
+            1,
+            1,
+            LEARNING_CONTENT_VERSION_LIMIT
+          )
+        };
+        progressCount += 1;
+        if (completed) addCompletedLesson(id);
+      }
+
+      return {
+        version: 1,
+        stageId,
+        assignedLessonId: normalizeLearningLessonId(source.assignedLessonId),
+        completedLessonIds,
+        progress,
+        updatedAt: normalizeLearningTimestamp(source.updatedAt)
+      };
+    }
+
     function normalizeFamilyRows(value, fields, limit) {
       if (!Array.isArray(value)) return [];
       return value
@@ -2809,6 +2962,7 @@
         waterCount: boundedFamilyInteger(value.waterCount, 0, 0, 10_000),
         eyeBreaks: boundedFamilyInteger(value.eyeBreaks, 0, 0, 10_000),
         achievementChart,
+        learning: normalizeLearningState(value.learning, defaultLearningStageForAge(age)),
         flyerBest: boundedFamilyInteger(value.flyerBest, 0, 0, 1_000_000),
         flyerAllowed: appRules.flyer === "allowed",
         appRules
@@ -3312,6 +3466,7 @@
         const appMeta = document.querySelector("#appMeta");
         if (appName) appName.textContent = translate("parent.noRequest", {}, "No request yet");
         if (appMeta) appMeta.textContent = translate("parent.noRequestHelp", {}, "Requests appear here after a child profile exists.");
+        renderHomeschoolLearning(null);
         return;
       }
       if (childWelcome) childWelcome.textContent = translate("mode.childWelcome", { name: child.name }, child.name + "'s Child Mode");
@@ -3319,6 +3474,7 @@
       renderHubAccess(child);
       if (deviceState || deviceSub) renderBedtimeStatus(child);
       renderPendingRequest(child);
+      renderHomeschoolLearning(child);
     }
 
     function applyLanguageMode(choice = state?.languageMode || "en-GB", options = {}) {
@@ -5515,6 +5671,18 @@
         waterCount: 0,
         eyeBreaks: 0,
         achievementChart: [],
+        learning: {
+          version: 1,
+          stageId: Number.isFinite(Number(age)) && Number(age) > 9
+            ? "explorers"
+            : Number.isFinite(Number(age)) && Number(age) > 7
+              ? "growers"
+              : "sprouts",
+          assignedLessonId: "",
+          completedLessonIds: [],
+          progress: {},
+          updatedAt: ""
+        },
         flyerBest: 0,
         flyerAllowed: false
       };
@@ -6120,6 +6288,227 @@
       document.querySelector("#focusClock").textContent = formatClock(focusSeconds);
     }
 
+    function homeschoolStageLabel(stageId) {
+      const labels = {
+        sprouts: ["homeschool.stage.sprouts", "Sprouts"],
+        growers: ["homeschool.stage.growers", "Growers"],
+        explorers: ["homeschool.stage.explorers", "Explorers"]
+      };
+      const [key, fallback] = labels[stageId] || labels.sprouts;
+      return translate(key, {}, fallback);
+    }
+
+    function homeschoolLessonById(lessonId) {
+      return HOMESCHOOL_LESSON_CATALOG.find((lesson) => lesson.id === lessonId) || null;
+    }
+
+    function homeschoolLessonsForStage(stageId) {
+      return HOMESCHOOL_LESSON_CATALOG.filter((lesson) => lesson.stage === stageId);
+    }
+
+    function renderHomeschoolLearning(child) {
+      if (!child) {
+        homeschoolStageInputs.forEach((input) => {
+          input.checked = false;
+          input.disabled = true;
+        });
+        if (homeschoolChildName) {
+          homeschoolChildName.textContent = translate("parent.homeschool.noChild", {}, "No child selected");
+        }
+        if (homeschoolStageStatus) {
+          homeschoolStageStatus.textContent = translate(
+            "parent.homeschool.noChildHelp",
+            {},
+            "Add or select a child profile to plan lessons."
+          );
+        }
+        if (homeschoolLessonSubject) {
+          homeschoolLessonSubject.textContent = translate("parent.homeschool.notAssigned", {}, "Not assigned");
+        }
+        setTranslatedText(
+          homeschoolLessonTitle,
+          "parent.homeschool.assignmentEmpty",
+          "Choose “Assign Next Lesson” when you are ready."
+        );
+        setTranslatedText(
+          homeschoolLessonSummary,
+          "parent.homeschool.assignmentEmptyHelp",
+          "The child can still browse every lesson in their chosen stage."
+        );
+        if (homeschoolCompletionSummary) {
+          homeschoolCompletionSummary.innerHTML = `
+            <div><strong>0 / 0</strong><span>${escapeHtml(translate("parent.homeschool.stageComplete", {}, "stage lessons complete"))}</span></div>
+            <div><strong>0</strong><span>${escapeHtml(translate("parent.homeschool.totalComplete", {}, "total lessons complete"))}</span></div>
+            <div><strong>0</strong><span>${escapeHtml(translate("parent.homeschool.attempts", {}, "practice attempts"))}</span></div>
+          `;
+        }
+        if (assignNextHomeschoolLessonButton) assignNextHomeschoolLessonButton.disabled = true;
+        if (openAssignedHomeschoolLessonButton) openAssignedHomeschoolLessonButton.disabled = true;
+        if (homeschoolChildSummary) {
+          homeschoolChildSummary.textContent = translate(
+            "child.homeschool.noChild",
+            {},
+            "Ask a grown-up to add your child profile before opening lessons."
+          );
+        }
+        if (homeschoolChildProgress) {
+          homeschoolChildProgress.textContent = translate("child.homeschool.noProgress", {}, "No learning record yet");
+        }
+        return;
+      }
+
+      child.learning = normalizeLearningState(child.learning);
+      const learning = child.learning;
+      const stageLabel = homeschoolStageLabel(learning.stageId);
+      const stageLessons = homeschoolLessonsForStage(learning.stageId);
+      const assignment = homeschoolLessonById(learning.assignedLessonId);
+      const completed = new Set(learning.completedLessonIds);
+      const completedInStage = stageLessons.filter((lesson) => completed.has(lesson.id)).length;
+      const attempts = Object.values(learning.progress).reduce(
+        (total, progress) => total + boundedFamilyInteger(progress?.attempts, 0, 0, LEARNING_PROGRESS_ATTEMPT_LIMIT),
+        0
+      );
+
+      homeschoolStageInputs.forEach((input) => {
+        input.disabled = false;
+        input.checked = input.value === learning.stageId;
+      });
+      if (homeschoolChildName) homeschoolChildName.textContent = `${child.name} · ${stageLabel}`;
+      if (homeschoolStageStatus) homeschoolStageStatus.textContent = "";
+      if (assignNextHomeschoolLessonButton) assignNextHomeschoolLessonButton.disabled = false;
+      if (openAssignedHomeschoolLessonButton) openAssignedHomeschoolLessonButton.disabled = false;
+
+      if (assignment) {
+        if (homeschoolLessonSubject) homeschoolLessonSubject.textContent = `${assignment.subject} · ${stageLabel}`;
+        if (homeschoolLessonTitle) {
+          homeschoolLessonTitle.removeAttribute("data-i18n");
+          homeschoolLessonTitle.textContent = assignment.title;
+        }
+        if (homeschoolLessonSummary) {
+          homeschoolLessonSummary.removeAttribute("data-i18n");
+          homeschoolLessonSummary.textContent = assignment.summary;
+        }
+      } else {
+        if (homeschoolLessonSubject) {
+          homeschoolLessonSubject.textContent = translate("parent.homeschool.notAssigned", {}, "Not assigned");
+        }
+        setTranslatedText(
+          homeschoolLessonTitle,
+          "parent.homeschool.assignmentEmpty",
+          "Choose “Assign Next Lesson” when you are ready."
+        );
+        setTranslatedText(
+          homeschoolLessonSummary,
+          "parent.homeschool.assignmentEmptyHelp",
+          "The child can still browse every lesson in their chosen stage."
+        );
+      }
+
+      if (homeschoolCompletionSummary) {
+        homeschoolCompletionSummary.innerHTML = `
+          <div><strong>${completedInStage} / ${stageLessons.length}</strong><span>${escapeHtml(translate("parent.homeschool.stageComplete", {}, "stage lessons complete"))}</span></div>
+          <div><strong>${learning.completedLessonIds.length}</strong><span>${escapeHtml(translate("parent.homeschool.totalComplete", {}, "total lessons complete"))}</span></div>
+          <div><strong>${attempts}</strong><span>${escapeHtml(translate("parent.homeschool.attempts", {}, "practice attempts"))}</span></div>
+        `;
+      }
+      if (homeschoolChildSummary) {
+        homeschoolChildSummary.textContent = assignment
+          ? translate(
+            "child.homeschool.assigned",
+            { stage: stageLabel, lesson: assignment.title },
+            `${stageLabel}: ${assignment.title} is ready for you.`
+          )
+          : translate(
+            "child.homeschool.unassigned",
+            { stage: stageLabel },
+            `${stageLabel}: explore a subject or ask a grown-up to assign your next lesson.`
+          );
+      }
+      if (homeschoolChildProgress) {
+        homeschoolChildProgress.textContent = translate(
+          "child.homeschool.progress",
+          { completed: learning.completedLessonIds.length, attempts },
+          `${learning.completedLessonIds.length} completed · ${attempts} attempts`
+        );
+      }
+    }
+
+    function updateHomeschoolStage(event) {
+      const child = currentChild();
+      const stageId = event?.currentTarget?.value;
+      if (!child || !LEARNING_STAGE_IDS.has(stageId)) return;
+      ensureChildAppState(child);
+      if (child.learning.stageId === stageId) return;
+      child.learning.stageId = stageId;
+      const assignedLesson = homeschoolLessonById(child.learning.assignedLessonId);
+      if (child.learning.assignedLessonId && (!assignedLesson || assignedLesson.stage !== stageId)) {
+        child.learning.assignedLessonId = "";
+      }
+      child.learning.updatedAt = new Date().toISOString();
+      child.learning = normalizeLearningState(child.learning);
+      renderHomeschoolLearning(child);
+      const stageLabel = homeschoolStageLabel(stageId);
+      if (homeschoolStageStatus) {
+        homeschoolStageStatus.textContent = translate(
+          "parent.homeschool.stageSaved",
+          { stage: stageLabel },
+          `${stageLabel} is now the selected learning stage.`
+        );
+      }
+      queueSave();
+      showToast(translate(
+        "parent.homeschool.stageSaved",
+        { stage: stageLabel },
+        `${stageLabel} is now the selected learning stage.`
+      ), { announce: false });
+    }
+
+    function assignNextHomeschoolLesson() {
+      const child = currentChild();
+      if (!child) {
+        showToast(translate("parent.homeschool.noChildHelp", {}, "Add or select a child profile to plan lessons."));
+        return;
+      }
+      ensureChildAppState(child);
+      const learning = child.learning;
+      const stageLessons = homeschoolLessonsForStage(learning.stageId);
+      if (!stageLessons.length) {
+        showToast(translate("parent.homeschool.noLessons", {}, "No lessons are available for this stage yet."));
+        return;
+      }
+      const completed = new Set(learning.completedLessonIds);
+      const currentIndex = stageLessons.findIndex((lesson) => lesson.id === learning.assignedLessonId);
+      let assignment = null;
+      for (let offset = 1; offset <= stageLessons.length; offset += 1) {
+        const index = currentIndex < 0 ? offset - 1 : (currentIndex + offset) % stageLessons.length;
+        const candidate = stageLessons[index];
+        if (!completed.has(candidate.id)) {
+          assignment = candidate;
+          break;
+        }
+      }
+      const review = !assignment;
+      assignment ||= stageLessons[(currentIndex + 1 + stageLessons.length) % stageLessons.length];
+      learning.assignedLessonId = assignment.id;
+      learning.updatedAt = new Date().toISOString();
+      child.learning = normalizeLearningState(learning);
+      renderHomeschoolLearning(child);
+      const message = review
+        ? translate(
+          "parent.homeschool.reviewAssigned",
+          { lesson: assignment.title },
+          `Every ${homeschoolStageLabel(learning.stageId)} lesson is complete. ${assignment.title} is ready to review.`
+        )
+        : translate(
+          "parent.homeschool.lessonAssigned",
+          { lesson: assignment.title, child: child.name },
+          `${assignment.title} was assigned to ${child.name}.`
+        );
+      if (homeschoolStageStatus) homeschoolStageStatus.textContent = message;
+      queueSave();
+      showToast(message, { announce: false });
+    }
+
     function normalizeScheduleTime(value, fallback) {
       const text = String(value || "").trim();
       return /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(text) ? text : fallback;
@@ -6563,6 +6952,8 @@
         "#bedtimeToggle",
         "#parentHomeworkToggle",
         "#flyerAllowedToggle",
+        "#assignNextHomeschoolLesson",
+        "#openAssignedHomeschoolLesson",
         "#saveKidAvatar",
         "#startFocus",
         "#resetFocus",
@@ -6575,6 +6966,7 @@
           element.disabled = disabled;
         }
       });
+      homeschoolStageInputs.forEach((input) => { input.disabled = disabled; });
       document.querySelectorAll("[data-open-app], [data-open-app-link], [data-help-action], [data-mood]").forEach((element) => {
         element.classList.toggle("blocked-app", disabled);
         element.setAttribute("aria-disabled", disabled ? "true" : "false");
@@ -6643,6 +7035,7 @@
       renderFamilyRules();
       renderChores();
       renderFocus();
+      renderHomeschoolLearning(null);
       renderParentNote();
       renderFamilySchedule({ syncInputs: false });
       broadcastExtensionBlockRules();
@@ -6661,6 +7054,7 @@
       renderDailySpark(child);
       renderReadingLog(child);
       renderHealthyBreaks(child);
+      renderHomeschoolLearning(child);
       document.querySelector("#timeLeft").textContent = formatMinutes(child.dailyLimit);
       document.querySelector("#pendingCount").textContent = child.pending;
       document.querySelector("#blockedHits").textContent = child.blockedHits;
@@ -6766,6 +7160,7 @@
         ? "learning-games"
         : "arcade-games";
       const hubPages = {
+        homeschool: "learning-path.html",
         arcade: `games/index.html#${requestedGameSection}`,
         studio: "creator-studio.html",
         explore: "nature-explorer.html",
@@ -8581,6 +8976,10 @@
     document.querySelectorAll("[data-mood]").forEach((button) => {
       button.addEventListener("click", () => sendMoodCheckin(button.dataset.mood, button));
     });
+    homeschoolStageInputs.forEach((input) => {
+      input.addEventListener("change", updateHomeschoolStage);
+    });
+    assignNextHomeschoolLessonButton?.addEventListener("click", assignNextHomeschoolLesson);
 
     document.querySelector("#modeToggle").addEventListener("click", () => {
       const nextMode = viewMode === "child" ? "parent" : "child";

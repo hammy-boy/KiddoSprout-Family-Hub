@@ -171,6 +171,7 @@
           <details class="feature-folder child-only" open>
             <summary data-i18n="sidebar.learning">Learning & Care</summary>
             <button data-jump="homework" data-i18n="sidebar.homework">Homework</button>
+            <button data-jump="homeschoolHub" data-i18n="sidebar.homeschool">Homeschool Hub</button>
             <button data-jump="focusSession" data-i18n="sidebar.focus">Focus Session</button>
             <button data-jump="familyCallChild" data-i18n="sidebar.familyCall">Family Calls</button>
             <button data-jump="parentChat" data-i18n="sidebar.parentChat">Parent Chat</button>
@@ -194,6 +195,7 @@
           <details class="feature-folder parent-only" open>
             <summary data-i18n="sidebar.setup">Setup</summary>
             <button data-jump="manageChildren" data-i18n="sidebar.manageChildren">Manage Children</button>
+            <button data-jump="homeschoolPlanner" data-i18n="sidebar.homeschoolPlanner">Homeschool Planner</button>
             <button data-jump="advancedSettings" data-i18n="settings.advanced">Advanced Settings</button>
             <button data-jump="deviceProtection" data-i18n="sidebar.deviceProtection">Device Protection</button>
             <button data-jump="childContentSettings" data-i18n="sidebar.childContent">Child Content</button>
@@ -563,6 +565,76 @@
         </div>
       </details>
 
+      <details class="card parent-only setup-panel homeschool-planner" id="homeschoolPlanner" aria-labelledby="homeschoolPlannerTitle" style="margin-bottom: 18px;">
+        <summary>
+          <div>
+            <h2 id="homeschoolPlannerTitle" data-i18n="parent.homeschool.title">Homeschool Planner</h2>
+            <p class="small" data-i18n="parent.homeschool.help">Choose a learning stage, assign the next lesson, and review progress for the selected child.</p>
+          </div>
+          <span class="summary-action" data-i18n="settings.open">Open</span>
+        </summary>
+        <div class="homeschool-planner-grid">
+          <section class="homeschool-stage-panel" aria-labelledby="homeschoolStageTitle">
+            <div class="homeschool-section-heading">
+              <span class="small" data-i18n="parent.homeschool.selectedChild">Selected child</span>
+              <h3 id="homeschoolStageTitle"><span data-i18n="parent.homeschool.stageTitle">Learning stage</span> · <span id="homeschoolChildName">No child selected</span></h3>
+              <p class="small" id="homeschoolStageHelp" data-i18n="parent.homeschool.stageHelp">Pick the stage that fits now. Ages are a guide and the stage can be changed later.</p>
+            </div>
+            <div class="homeschool-stage-options" role="radiogroup" aria-labelledby="homeschoolStageTitle" aria-describedby="homeschoolStageHelp">
+              <label class="homeschool-stage-choice">
+                <input type="radio" name="homeschoolStage" value="sprouts" disabled>
+                <span>
+                  <strong data-i18n="homeschool.stage.sprouts">Sprouts</strong>
+                  <small data-i18n="homeschool.stage.sproutsHelp">Ages 5–7 · first steps</small>
+                </span>
+              </label>
+              <label class="homeschool-stage-choice">
+                <input type="radio" name="homeschoolStage" value="growers" disabled>
+                <span>
+                  <strong data-i18n="homeschool.stage.growers">Growers</strong>
+                  <small data-i18n="homeschool.stage.growersHelp">Ages 7–9 · building confidence</small>
+                </span>
+              </label>
+              <label class="homeschool-stage-choice">
+                <input type="radio" name="homeschoolStage" value="explorers" disabled>
+                <span>
+                  <strong data-i18n="homeschool.stage.explorers">Explorers</strong>
+                  <small data-i18n="homeschool.stage.explorersHelp">Ages 9–11 · deeper thinking</small>
+                </span>
+              </label>
+            </div>
+            <p class="passcode-status" id="homeschoolStageStatus" role="status" aria-live="polite" aria-atomic="true"></p>
+          </section>
+
+          <section class="homeschool-assignment-panel" aria-labelledby="homeschoolAssignmentTitle">
+            <div class="homeschool-section-heading">
+              <span class="small" data-i18n="parent.homeschool.assignmentLabel">Current assignment</span>
+              <h3 id="homeschoolAssignmentTitle" data-i18n="parent.homeschool.assignmentTitle">Next Lesson</h3>
+            </div>
+            <article class="homeschool-assignment">
+              <span class="homeschool-subject" id="homeschoolLessonSubject">Not assigned</span>
+              <strong id="homeschoolLessonTitle" data-i18n="parent.homeschool.assignmentEmpty">Choose “Assign Next Lesson” when you are ready.</strong>
+              <p class="small" id="homeschoolLessonSummary" data-i18n="parent.homeschool.assignmentEmptyHelp">The child can still browse every lesson in their chosen stage.</p>
+            </article>
+            <div class="choice-row homeschool-planner-actions">
+              <button class="approve" id="assignNextHomeschoolLesson" type="button" disabled data-i18n="parent.homeschool.assignNext">Assign Next Lesson</button>
+              <button class="tiny" id="openAssignedHomeschoolLesson" type="button" data-open-app="homeschool" disabled data-i18n="parent.homeschool.openHub">Open Homeschool Hub</button>
+            </div>
+          </section>
+        </div>
+        <section class="homeschool-completion" aria-labelledby="homeschoolCompletionTitle">
+          <div class="homeschool-section-heading">
+            <span class="small" data-i18n="parent.homeschool.progressLabel">Learning record</span>
+            <h3 id="homeschoolCompletionTitle" data-i18n="parent.homeschool.completionTitle">Completion Summary</h3>
+          </div>
+          <div class="homeschool-summary-grid" id="homeschoolCompletionSummary">
+            <div><strong>0 / 0</strong><span data-i18n="parent.homeschool.stageComplete">stage lessons complete</span></div>
+            <div><strong>0</strong><span data-i18n="parent.homeschool.totalComplete">total lessons complete</span></div>
+            <div><strong>0</strong><span data-i18n="parent.homeschool.attempts">practice attempts</span></div>
+          </div>
+        </section>
+      </details>
+
       <details class="card parent-only setup-panel" id="advancedSettings" aria-label="Security and display settings" data-i18n-aria-label="settings.advanced.aria" style="margin-bottom: 18px;">
         <summary>
           <div>
@@ -804,6 +876,13 @@
           <button data-filter="play" aria-pressed="false" data-i18n="child.play">Play</button>
         </div>
         <div class="hub-grid">
+          <article class="hub-card homeschool" id="homeschoolHub" data-kind="learn">
+            <span class="hub-label" data-app-status-label="homeschool">Approved app</span>
+            <strong data-i18n="child.homeschool.title">Homeschool Hub</strong>
+            <p id="homeschoolChildSummary" data-i18n="child.homeschool.description">Follow your stage, open the lesson picked for you, or choose another subject to explore.</p>
+            <span class="hub-progress" id="homeschoolChildProgress">No lesson assigned yet</span>
+            <button type="button" data-open-app="homeschool" data-i18n="child.homeschool.open">Start Learning</button>
+          </article>
           <article class="hub-card learning-games" data-kind="learn">
             <span class="hub-label" data-app-status-label="arcade">Needs parent approval</span>
             <strong>Learning Games</strong>
@@ -1481,11 +1560,11 @@
         <div class="family-call-controls" aria-label="Call controls" data-i18n-aria-label="call.controls">
           <button class="tiny" id="muteFamilyCall" type="button" aria-pressed="false" disabled>
             <span aria-hidden="true">🎙</span>
-            <span data-i18n="call.mute">Mute</span>
+            <span data-family-call-mute-label data-i18n="call.mute">Mute</span>
           </button>
           <button class="block" id="hangUpFamilyCall" type="button" disabled>
             <span aria-hidden="true">☎</span>
-            <span data-i18n="call.end">End Call</span>
+            <span data-family-call-action-label data-i18n="call.end">End Call</span>
           </button>
         </div>
         <p class="family-call-limit" data-family-call-preview-only data-i18n="call.modal.disabled">The call client is not connected, so this screen cannot request the microphone or contact another device.</p>

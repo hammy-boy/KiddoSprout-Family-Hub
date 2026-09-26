@@ -37,11 +37,12 @@ MIME_TYPES = {
 # build scripts, or blocker packages from the project directory.
 PUBLIC_FILES = frozenset({
     "404.html", "index.html", "offline.html", "recipe.html", "app_7.html", "blocker-setup.html",
-    "creator-studio.html", "move-breaks.html", "nature-explorer.html",
+    "creator-studio.html", "learning-path.html", "move-breaks.html", "nature-explorer.html",
     "report_problem.html", "story-theater.html", "story-voices.html",
-    "style.css", "kid-hubs.css", "blocker-setup.css", "story-voices.css",
+    "style.css", "kid-hubs.css", "learning-path.css", "blocker-setup.css", "story-voices.css",
     "js.js", "auth-session.js", "blocker-setup.js", "demo-mode.js",
     "human-check.js", "language-settings.js", "kid-hub-gate.js",
+    "learning-curriculum.js", "learning-path.js",
     "local-docker-redirect.js", "passcode-security.js", "recipe-cloud.js",
     "recipe-catalog-v5342473ad68b.js",
     "story-ethan-leo-data.js", "story-library-data.js",

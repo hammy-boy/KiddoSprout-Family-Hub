@@ -6,7 +6,7 @@ const KIDDOSPROUT_SCOPE_PATH = KIDDOSPROUT_SCOPE_URL.pathname.endsWith("/")
   : `${KIDDOSPROUT_SCOPE_URL.pathname}/`;
 const KIDDOSPROUT_CACHE_PREFIX = `kiddosprout-app-${encodeURIComponent(KIDDOSPROUT_SCOPE_PATH)}-`;
 // Change this version whenever a public runtime page or shared stylesheet changes.
-const KIDDOSPROUT_CACHE_VERSION = "shell-v114";
+const KIDDOSPROUT_CACHE_VERSION = "shell-v115";
 const KIDDOSPROUT_CACHE = `${KIDDOSPROUT_CACHE_PREFIX}${KIDDOSPROUT_CACHE_VERSION}`;
 // Runtime content deliberately survives shell upgrades. Keeping it separate
 // avoids downloading a second copy of every viewed story before an update can
@@ -58,6 +58,10 @@ const KIDDOSPROUT_RUNTIME_ASSETS = [
   "/blocker-setup.js",
   "/kid-hubs.css",
   "/kid-hub-gate.js",
+  "/learning-path.html",
+  "/learning-path.css",
+  "/learning-curriculum.js",
+  "/learning-path.js",
   "/creator-studio.html",
   "/nature-explorer.html",
   "/move-breaks.html",
@@ -80,6 +84,8 @@ const KIDDOSPROUT_RUNTIME_ASSETS = [
   "/games/language-garden/style.css",
   "/games/language-garden/catalogue.js",
   "/games/language-garden/courses.js",
+  "/games/language-garden/tutor-engine.js",
+  "/games/language-garden/tutor.js",
   "/games/language-garden/game.js",
   "/games/pattern-painter/index.html",
   "/games/pattern-painter/style.css",

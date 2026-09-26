@@ -3,9 +3,6 @@ name: Deploy safe KiddoSprout demo
 on:
   push:
     branches: [main]
-    paths:
-      - "public-site/**"
-      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions: {}
@@ -26,16 +23,38 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Check out the reviewed public bundle
+      - name: Check out KiddoSprout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install the static-build tools
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Generate the browser bundles
+        run: npm run build:family-calls
+
+      - name: Check the Homeschool Hub and offline publication
+        run: |
+          npm run test:homeschool
+          npm run test:pwa
+          npm run test:public-demo-build
+          npm run test:links
+
+      - name: Build the reviewed public demo
+        run: node scripts/build-public-demo.mjs
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
 
-      - name: Upload the reviewed demo only
+      - name: Upload the generated public demo only
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
         with:
-          path: ./public-site
+          path: ./.cloudflare/public-demo
           retention-days: 1
 
       - name: Deploy KiddoSprout

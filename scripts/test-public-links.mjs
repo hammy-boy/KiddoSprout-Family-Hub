@@ -27,6 +27,7 @@ const PUBLIC_HTML = [
   "games/platformer-game/index.html",
   "games/racing-game/index.html",
   "games/snake-game/index.html",
+  "learning-path.html",
   "move-breaks.html",
   "nature-explorer.html",
   "report_problem.html",
@@ -36,6 +37,7 @@ const PUBLIC_HTML = [
 const PUBLIC_CSS = [
   "style.css",
   "kid-hubs.css",
+  "learning-path.css",
   "blocker-setup.css",
   "games/arcade-shell.css",
   "games/language-garden/style.css",
@@ -57,6 +59,9 @@ const PUBLIC_CSS = [
 ];
 const STORY_DATA = ["story-library-data.js", "story-ethan-leo-data.js"];
 const VIRTUAL_INDEX_ROUTES = new Set(["login", "signup", "parent", "child"]);
+const DYNAMIC_IDS = new Map([
+  ["learning-path.html", new Set(["lesson-title"])]
+]);
 const LOCAL_ORIGIN = "https://public-link-check.invalid";
 const virtualStoryRoutes = new Set();
 
@@ -237,6 +242,7 @@ for (const [file, source] of htmlSources) {
   for (const match of source.matchAll(/\b(aria-controls|aria-describedby|aria-labelledby|for)\s*=\s*(["'])([^"']+)\2/gi)) {
     if (isDynamic(match[3])) continue;
     for (const id of match[3].trim().split(/\s+/).filter(Boolean)) {
+      if (DYNAMIC_IDS.get(file)?.has(id)) continue;
       assert.equal(
         idsByFile.get(file)?.has(id),
         true,
@@ -273,6 +279,7 @@ const sharedHubCss = await readFile(join(OUTPUT_DIRECTORY, "kid-hubs.css"), "utf
 const blockerCss = await readFile(join(OUTPUT_DIRECTORY, "blocker-setup.css"), "utf8");
 const arcadeShellCss = await readFile(join(OUTPUT_DIRECTORY, "games/arcade-shell.css"), "utf8");
 const voiceCss = await readFile(join(OUTPUT_DIRECTORY, "story-voices.css"), "utf8");
+const learningCss = await readFile(join(OUTPUT_DIRECTORY, "learning-path.css"), "utf8");
 const mainCss = await readFile(join(OUTPUT_DIRECTORY, "style.css"), "utf8");
 for (const [file, source] of htmlSources) {
   const linkedCss = file === "index.html"
@@ -281,6 +288,8 @@ for (const [file, source] of htmlSources) {
       ? blockerCss
       : file.startsWith("games/")
         ? arcadeShellCss
+      : file === "learning-path.html"
+        ? `${sharedHubCss}\n${learningCss}`
       : ["creator-studio.html", "nature-explorer.html", "move-breaks.html", "story-theater.html", "story-voices.html"].includes(file)
         ? `${sharedHubCss}\n${file === "story-voices.html" ? voiceCss : ""}`
         : "";

@@ -165,6 +165,10 @@ for (const required of [
   "demo-mode.js",
   "language-packs.js",
   "language-settings.js",
+  "learning-path.html",
+  "learning-path.css",
+  "learning-curriculum.js",
+  "learning-path.js",
   "blocker-setup.html",
   "blocker-setup.css",
   "blocker-setup.js",
@@ -322,6 +326,14 @@ for (const name of names.filter((file) => extname(file).toLowerCase() === ".html
 }
 
 const publicBlockerSetup = await readFile(join(OUTPUT_DIRECTORY, "blocker-setup.html"), "utf8");
+const publicGamesChooser = await readFile(join(OUTPUT_DIRECTORY, "games/index.html"), "utf8");
+assert.doesNotMatch(publicGamesChooser, /href=["']chess-academy\//i,
+  "The public game chooser must not link to the intentionally private Chess Academy bundle.");
+assert.match(
+  publicGamesChooser,
+  /href=["']https:\/\/davidolufunmilayo1-blip\.github\.io\/advaced-chess-academy\/["'][^>]*target=["']_blank["'][^>]*rel=["']noopener noreferrer["']/i,
+  "The public game chooser must retain the reviewed separate Chess Academy destination."
+);
 const publicChecksumControls = [...publicBlockerSetup.matchAll(/<a\b[^>]*\bdata-live-blocker-resource\b[^>]*>/gi)];
 assert.equal(publicChecksumControls.length, 2, "The public blocker guide must contain both checksum placeholders.");
 for (const [control] of publicChecksumControls) {
@@ -378,7 +390,7 @@ const projectScope = inspectWorkerScope({
 }, URL, Set);
 assert.equal(projectScope.scopePath, "/KiddoSprout-Family-Hub/");
 assert.equal(projectScope.cachePrefix, "kiddosprout-app-%2FKiddoSprout-Family-Hub%2F-");
-assert.equal(projectScope.shellCache.endsWith("-shell-v114"), true);
+assert.equal(projectScope.shellCache.endsWith("-shell-v115"), true);
 assert.equal(projectScope.runtimeCache.endsWith("-runtime-v1"), true);
 assert.equal(
   [...projectScope.shellAssets, ...projectScope.runtimeAssets]
@@ -414,9 +426,18 @@ for (const asset of runtimeAssets) {
   const normalized = asset === "/" ? "index.html" : String(asset).replace(/^\//, "");
   assert.ok(names.includes(normalized), `Service worker references missing runtime asset: ${asset}`);
 }
-// Leave a small, explicit margin for accessibility and safety copy while
-// keeping first-install transfer comfortably close to one MiB.
-const INITIAL_OFFLINE_BUDGET_BYTES = 1.125 * 1024 * 1024;
+for (const homeschoolAsset of [
+  "/learning-path.html",
+  "/learning-path.css",
+  "/learning-curriculum.js",
+  "/learning-path.js"
+]) {
+  assert.ok(runtimeAssets.includes(homeschoolAsset),
+    `The Homeschool Hub runtime cache is missing ${homeschoolAsset}.`);
+}
+// Leave a small, explicit margin for accessibility, dashboard, and safety copy
+// while keeping first-install transfer comfortably close to one MiB.
+const INITIAL_OFFLINE_BUDGET_BYTES = 1.2 * 1024 * 1024;
 assert.ok(precacheBytes <= INITIAL_OFFLINE_BUDGET_BYTES,
   `The initial offline install downloads ${(precacheBytes / 1024 / 1024).toFixed(1)} MiB before becoming ready.`);
 for (const requiredShellAsset of [

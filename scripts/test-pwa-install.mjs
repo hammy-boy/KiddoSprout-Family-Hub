@@ -360,7 +360,7 @@ assert.match(source, /waitingWorker\.postMessage\(\{ type: "SKIP_WAITING" \}\)/,
   "The update action must explicitly release the waiting worker.");
 assert.match(source, /kiddoServiceWorkerReloadRequested[\s\S]*?window\.location\.reload\(\)/,
   "A user-approved update must reload once the new worker controls the page.");
-assert.match(worker, /const KIDDOSPROUT_CACHE_VERSION = "shell-v114";/,
+assert.match(worker, /const KIDDOSPROUT_CACHE_VERSION = "shell-v115";/,
   "The latest offline-navigation updates must ship in a fresh offline cache.");
 assert.match(worker, /const KIDDOSPROUT_RUNTIME_CACHE_VERSION = "runtime-v1";/,
   "Viewed runtime content must survive shell cache upgrades.");
@@ -453,6 +453,15 @@ assert.match(worker, /const fallbackPath = url\.pathname === KIDDOSPROUT_SCOPE_P
   "An uncached multi-page route must not masquerade as the dashboard while offline.");
 assert.match(worker, /KIDDOSPROUT_RUNTIME_ASSETS[\s\S]*?"\/recipe\.html"/,
   "FlavorNest must remain eligible for the refreshed runtime cache.");
+for (const homeschoolAsset of [
+  "/learning-path.html",
+  "/learning-path.css",
+  "/learning-curriculum.js",
+  "/learning-path.js"
+]) {
+  assert.ok(runtimeAssets.includes(homeschoolAsset),
+    `The Homeschool Hub runtime cache is missing ${homeschoolAsset}.`);
+}
 assert.match(worker, /const KIDDOSPROUT_RECIPE_CATALOG = \/\^\\\/recipe-catalog-v\[0-9a-f\]\{12\}\\\.js\$\/i/,
   "A waiting update's active worker must recognise the next content-addressed recipe catalogue.");
 assert.match(worker, /async function responseMatchesContentHash\([\s\S]*?subtle\.digest\("SHA-256"[\s\S]*?actual === expected/,

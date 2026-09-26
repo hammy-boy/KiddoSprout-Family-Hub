@@ -180,6 +180,16 @@ The Quick Tunnel connector and the Node/nginx build bases are deliberately pinne
 
 ## Permanent public KiddoSprout demo
 
+The repository also publishes the reviewed, fictional-data-only colleague demo to GitHub Pages on every push to `main`. GitHub builds the safe allow-listed bundle itself, so the shared site does not depend on Docker, this Mac, or a terminal staying open:
+
+<https://hammy-boy.github.io/KiddoSprout-Family-Hub/>
+
+The one-time repository setting must be **Settings → Pages → Build and deployment → Source: GitHub Actions**. After that, `.github/workflows/pages.yml` installs the pinned build dependencies, runs the Homeschool Hub, offline, public-build, and link checks, and deploys only `.cloudflare/public-demo`. It does not upload `.env`, Supabase configuration, server code, migrations, blocker installers, or private API credentials. Check the repository's **Actions** tab after a push; a green **Deploy safe KiddoSprout demo** run means the permanent link received that commit.
+
+GitHub Pages is the always-on static demo, not the live account backend. It intentionally uses fictional data and keeps real sign-up, bank connections, recovery, calls, and private downloads unavailable. Those features need a separately secured hosted backend; turning off Docker cannot turn a local backend into an internet service.
+
+### Cloudflare Workers alternative
+
 The same fictional-data-only bundle can be published to the free `workers.dev` route without exposing the local account stack, private `.env`, APIs, or blocker installers. The checked-in Worker is named `kiddosprout`; no personal name or email address is part of the Worker name. In the Cloudflare dashboard, choose a KiddoSprout-branded **Workers & Pages → Your subdomain** before the first permanent deploy if the account still has a personal subdomain. The resulting fixed address has the form `https://kiddosprout.<your-workers-subdomain>.workers.dev/` and remains the same across later deployments.
 
 Authenticate the KiddoSprout owner account once in the browser, verify the deployment locally, and publish it:

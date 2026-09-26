@@ -254,6 +254,24 @@ function setStatus(element, text, state = "") {
   else delete element.dataset.state;
 }
 
+function translatedText(key, fallback) {
+  const translated = global.KiddoSproutLanguage?.text?.(key);
+  return typeof translated === "string" && translated.trim() ? translated : fallback;
+}
+
+function updateMuteControl(muted, enabled = true) {
+  const button = byId("muteFamilyCall");
+  if (!button) return;
+  const isMuted = Boolean(muted);
+  button.setAttribute("aria-pressed", String(Boolean(enabled) && isMuted));
+  const label = button.querySelector("[data-family-call-mute-label]")
+    || button.querySelector("span:last-child");
+  if (!label) return;
+  const translationKey = isMuted ? "call.unmute" : "call.mute";
+  label.dataset.i18n = translationKey;
+  label.textContent = translatedText(translationKey, isMuted ? "Unmute" : "Mute");
+}
+
 function setIncomingVisible(visible, childName = "Your child") {
   const incoming = byId("incomingFamilyCall");
   if (!incoming) return;
@@ -335,8 +353,7 @@ function updateCallUi(state, role) {
   setDisabled(byId("muteFamilyCall"), !active);
   setDisabled(byId("hangUpFamilyCall"), !inProgress);
   setDisabled(byId("cancelFamilyCall"), !["preparing", "ringing"].includes(state.phase));
-  const mute = byId("muteFamilyCall");
-  mute?.setAttribute("aria-pressed", String(Boolean(state.muted)));
+  updateMuteControl(state.muted, active);
   if (inProgress) showCallModal(state);
   if (["ended", "error", "demo", "permission-required"].includes(state.phase)) hideCallModal();
   if (role === "parent" && state.phase !== "incoming") setIncomingVisible(false);
@@ -924,9 +941,7 @@ function initializeDemoSimulator() {
       setDisabled(byId("cancelFamilyCall"), !ringing);
       setDisabled(muteButton, !active);
       setDisabled(byId("hangUpFamilyCall"), !active);
-      muteButton?.setAttribute("aria-pressed", String(active && state.muted));
-      const muteLabel = muteButton?.querySelector?.("span:last-child");
-      if (muteLabel) muteLabel.textContent = state.muted ? "Unmute" : "Mute";
+      updateMuteControl(state.muted, active);
       setDemoResponseVisible(ringing);
 
       if (inProgress) {
