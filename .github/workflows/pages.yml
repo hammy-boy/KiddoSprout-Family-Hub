@@ -44,9 +44,12 @@ jobs:
           npm run test:pwa
           npm run test:public-demo-build
           npm run test:links
+          node --test scripts/test-include-chess-academy.mjs
 
       - name: Build the reviewed public demo
-        run: node scripts/build-public-demo.mjs
+        run: |
+          node scripts/build-public-demo.mjs
+          node scripts/include-chess-academy.mjs
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0

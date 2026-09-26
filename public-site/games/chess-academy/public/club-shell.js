@@ -19,7 +19,7 @@
     const drawingPanel=document.createElement('section');drawingPanel.id='drawing-tools-panel';drawingPanel.className='drawing-tools-panel';drawingPanel.setAttribute('aria-label','Drawing tools');drawingPanel.hidden=true;
     drawingPanel.append(document.querySelector('.arrow-controls'));navigation.after(drawingPanel);
     drawingLink.onclick=()=>{switchView('play');drawingPanel.hidden=false;drawingLink.setAttribute('aria-expanded','true');const mode=document.querySelector('#arrow-mode');if(mode.getAttribute('aria-pressed')!=='true')mode.click();mode.focus({preventScroll:true});document.querySelector('#board').scrollIntoView({block:'center'})};
-    const closeDrawing=document.createElement('button');closeDrawing.className='secondary';closeDrawing.textContent='Close drawing tools';closeDrawing.onclick=()=>{const mode=document.querySelector('#arrow-mode');if(mode.getAttribute('aria-pressed')==='true')mode.click();drawingPanel.hidden=true;drawingLink.setAttribute('aria-expanded','false');drawingLink.focus()};drawingPanel.append(closeDrawing);
+    const closeDrawing=document.createElement('button');closeDrawing.className='secondary';closeDrawing.id='close-drawing-tools';closeDrawing.textContent='Close drawing tools';closeDrawing.onclick=()=>{const mode=document.querySelector('#arrow-mode');if(mode.getAttribute('aria-pressed')==='true')mode.click();drawingPanel.hidden=true;drawingLink.setAttribute('aria-expanded','false');drawingLink.focus()};drawingPanel.append(closeDrawing);
     new MutationObserver(()=>{if(document.querySelector('#arrow-mode').getAttribute('aria-pressed')==='true'&&activeView==='play'){drawingPanel.hidden=false;drawingLink.setAttribute('aria-expanded','true')}}).observe(document.querySelector('#arrow-mode'),{attributes:true,attributeFilter:['aria-pressed']});
     for(const link of navigation.children){let key=link.dataset.view;if(!key){const href=link.getAttribute('href')||'';key=href.includes('community')?'community':href.includes('watch')?'watch':'study'}link.dataset.area=key;link.dataset.label=labels[key];link.setAttribute('aria-label',labels[key]);link.innerHTML=`<span class="nav-icon" aria-hidden="true">${icons[key]}</span><span>${labels[key]}</span>`}
   }else{
@@ -136,4 +136,22 @@
   navigation.addEventListener('click',e=>{const link=e.target.closest('.nav-button');if(!link)return;rememberActivity(link.dataset.area);searchInput.value='';filterMenu();menu(false)});
   document.addEventListener('keydown',e=>{const editing=e.target.closest('input,textarea,select,[contenteditable]');if(((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k')||(!editing&&e.key==='/'&&!e.ctrlKey&&!e.metaKey&&!e.altKey)){if(document.querySelector('dialog[open]'))return;e.preventDefault();menu(true);searchInput.focus()}else if(e.key==='Escape'&&(document.activeElement===searchInput||header.classList.contains('academy-menu-open'))){searchInput.value='';filterMenu();menu(false);menuButton.focus()}});
   const skip=document.createElement('a');skip.className='academy-skip-link';skip.textContent='Skip to main content';const main=document.querySelector('main');if(!main.id)main.id='academy-main';main.tabIndex=-1;skip.href='#'+main.id;document.body.prepend(skip);filterMenu();
+  // Keep the address in sync so refreshing preserves the visible activity.
+  if(rootPage){
+    let applyingHash=false;
+    function activityAddress(key){if(applyingHash)return;try{history.replaceState(null,'',location.pathname+location.search+'#'+key)}catch{}}
+    const previousSwitch=switchView;
+    switchView=function(view){const result=previousSwitch(view);if(activityKeys.has(view)&&!['study','watch','community','drawing'].includes(view))activityAddress(view);return result};
+    navigation.addEventListener('click',event=>{if(event.target.closest('[data-area="drawing"].nav-button'))activityAddress('drawing')});
+    document.querySelector('#close-drawing-tools').addEventListener('click',()=>activityAddress('play'));
+    window.addEventListener('hashchange',()=>{
+      const route=location.hash.slice(1);applyingHash=true;
+      try{
+        if(route==='drawing')document.querySelector('#drawing-tools-nav').click();
+        else if(activityKeys.has(route)&&document.querySelector('#view-'+(route==='variants'?'workshop':route)))switchView(route);
+        else if(/^room=[a-f0-9]{12}$/i.test(route)){document.querySelector('#room-code').value=route.slice(5);switchView('online')}
+        else if(/^tournament=[a-f0-9]{12}$/i.test(route)){document.querySelector('#tournament-join [name="code"]').value=route.slice(11);switchView('tournaments')}
+      }finally{applyingHash=false}
+    });
+  }
 })();
