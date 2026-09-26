@@ -82,6 +82,25 @@
   const searchStatus=document.createElement('p');searchStatus.id='academy-nav-status';searchStatus.className='academy-nav-status';searchStatus.setAttribute('role','status');panel.append(searchLabel,searchStatus,navigation);
   const groups=[['Play',['play','variants','online','tournaments','watch']],['Learn and practise',['plan','lab','puzzles','rush','learn','train','openings','endgames','mates']],['Review and study',['workshop','review','clinic','history','study','drawing','tools']],['Your academy',['coaches','glossary','community','profile']]];
   const links=[...navigation.querySelectorAll('.nav-button')];
+  // Personal shortcuts use activity IDs only, never game data or room credentials.
+  const shortcutKey='chess-academy-shortcuts',activityKeys=new Set(links.map(link=>link.dataset.area));
+  const cleanIds=(value,limit)=>Array.isArray(value)?[...new Set(value.filter(id=>typeof id==='string'&&activityKeys.has(id)))].slice(0,limit):[];
+  let favourites=[],recent=[];
+  function loadShortcuts(){try{const saved=JSON.parse(localStorage.getItem(shortcutKey));favourites=cleanIds(saved?.favourites,activityKeys.size);recent=cleanIds(saved?.recent,6)}catch{favourites=[];recent=[]}}
+  loadShortcuts();
+  const quick=document.createElement('details');quick.className='academy-quick-access';quick.id='academy-quick-access';quick.innerHTML='<summary><span aria-hidden="true">★</span> Quick access <span class="quick-count"></span></summary><div class="academy-quick-content"><h3>Favourites</h3><p class="quick-help">Use the star beside any activity to save it here.</p><div id="academy-favourites"></div><div class="quick-recent-heading"><h3>Recently opened</h3><button type="button" id="academy-clear-recent">Clear</button></div><div id="academy-recent"></div><p class="quick-help">Saved on this browser. Clearing recent activities keeps your games and scores.</p><p id="academy-shortcut-status" role="status"></p></div>';
+  navigation.before(quick);
+  const stars=new Map();
+  function saveShortcuts(){try{localStorage.setItem(shortcutKey,JSON.stringify({favourites,recent}));quick.querySelector('#academy-shortcut-status').textContent=''}catch{quick.querySelector('#academy-shortcut-status').textContent='Browser storage is unavailable. Shortcuts will last for this visit.'}}
+  function shortcutList(target,ids,empty){target.replaceChildren();if(!ids.length){const p=document.createElement('p');p.className='quick-help';p.textContent=empty;target.append(p);return}for(const id of ids){const b=document.createElement('button');b.type='button';b.className='academy-shortcut';b.dataset.shortcut=id;b.textContent=labels[id];b.onclick=()=>{const link=links.find(link=>link.dataset.area===id);link?.click()};target.append(b)}}
+  function drawShortcuts(){
+    shortcutList(quick.querySelector('#academy-favourites'),favourites,'No favourites yet.');shortcutList(quick.querySelector('#academy-recent'),recent,'Activities you open will appear here.');
+    quick.querySelector('.quick-count').textContent=favourites.length?favourites.length+' saved':'';quick.querySelector('#academy-clear-recent').disabled=!recent.length;
+    for(const [id,star] of stars){const saved=favourites.includes(id);star.textContent=saved?'★':'☆';star.setAttribute('aria-pressed',String(saved));star.setAttribute('aria-label',(saved?'Remove ':'Save ')+labels[id]+(saved?' from favourites':' to favourites'));star.title=star.getAttribute('aria-label')}
+  }
+  function rememberActivity(id){if(!activityKeys.has(id)||recent[0]===id)return;recent=[id,...recent.filter(item=>item!==id)].slice(0,6);saveShortcuts();drawShortcuts()}
+  quick.querySelector('#academy-clear-recent').onclick=()=>{recent=[];saveShortcuts();drawShortcuts()};
+  window.addEventListener('storage',event=>{if(event.key===shortcutKey||event.key===null){loadShortcuts();drawShortcuts()}});
   const folderHeading=document.createElement('h2');folderHeading.className='academy-folder-title';folderHeading.textContent='Feature folders';
   const folderActions=document.createElement('div');folderActions.className='academy-folder-actions';
   const expandFolders=document.createElement('button'),collapseFolders=document.createElement('button');
@@ -94,26 +113,27 @@
     const group=document.createElement('details');group.className='academy-nav-group';group.setAttribute('aria-label',name);
     const heading=document.createElement('summary');heading.innerHTML='<span class="academy-folder-icon" aria-hidden="true"></span><span></span><span class="academy-folder-count"></span>';
     heading.children[1].textContent=name;const content=document.createElement('div');content.className='academy-folder-links';
-    for(const key of keys){const link=links.find(l=>l.dataset.area===key);if(link)content.append(link)}
+    for(const key of keys){const link=links.find(l=>l.dataset.area===key);if(link){const row=document.createElement('div');row.className='academy-activity-row';const star=document.createElement('button');star.type='button';star.className='academy-favourite-toggle';star.dataset.favourite=key;stars.set(key,star);star.onclick=()=>{favourites=favourites.includes(key)?favourites.filter(id=>id!==key):[...favourites,key];saveShortcuts();drawShortcuts()};row.append(link,star);content.append(row)}}
     heading.lastElementChild.textContent=content.children.length;heading.lastElementChild.setAttribute('aria-label',content.children.length+' activities');
     group.append(heading,content);group.open=typeof folderState[name]==='boolean'?folderState[name]:!!content.querySelector('.active');
     folderState[name]=group.open;group.addEventListener('toggle',()=>{if(!searchInput.value.trim()){folderState[name]=group.open;saveFolders()}});
     folders.push(group);navigation.append(group);
   }
+  drawShortcuts();rememberActivity(navigation.querySelector('.nav-button.active')?.dataset.area||area);
   let searching=false;
-  function filterMenu(){const query=searchInput.value.trim().toLowerCase();let count=0;
+  function filterMenu(){const query=searchInput.value.trim().toLowerCase();let count=0;quick.hidden=!!query;
     if(query&&!searching){for(const group of folders)folderState[group.getAttribute('aria-label')]=group.open;searching=true}
-    for(const group of folders){let visible=0;for(const link of group.querySelectorAll('.nav-button')){const text=(link.dataset.label+' '+group.getAttribute('aria-label')+(link.dataset.area==='drawing'?' arrows circles':'')).toLowerCase();link.hidden=!!query&&!text.includes(query);if(!link.hidden){visible++;count++}}group.hidden=!visible;if(query)group.open=!!visible;else if(searching)group.open=folderState[group.getAttribute('aria-label')];}
+    for(const group of folders){let visible=0;for(const link of group.querySelectorAll('.nav-button')){const text=(link.dataset.label+' '+group.getAttribute('aria-label')+(link.dataset.area==='drawing'?' arrows circles':'')).toLowerCase();link.hidden=!!query&&!text.includes(query);link.closest('.academy-activity-row').hidden=link.hidden;if(!link.hidden){visible++;count++}}group.hidden=!visible;if(query)group.open=!!visible;else if(searching)group.open=folderState[group.getAttribute('aria-label')];}
     if(!query)searching=false;searchStatus.textContent=query?(count?`${count} activities found`:'No matches. Try puzzles, lessons, or review.'):'';
   }
   function setFolders(open){searchInput.value='';filterMenu();for(const group of folders){group.open=open;folderState[group.getAttribute('aria-label')]=open}saveFolders()}
   expandFolders.onclick=()=>setFolders(true);collapseFolders.onclick=()=>setFolders(false);
   let folderActive=navigation.querySelector('.nav-button.active');
-  new MutationObserver(()=>{const active=navigation.querySelector('.nav-button.active');if(active&&active!==folderActive){folderActive=active;const folder=active.closest('details');if(folder&&!searchInput.value.trim())folder.open=true}}).observe(navigation,{subtree:true,attributes:true,attributeFilter:['class']});
+  new MutationObserver(()=>{const active=navigation.querySelector('.nav-button.active');if(active&&active!==folderActive){folderActive=active;rememberActivity(active.dataset.area);const folder=active.closest('details');if(folder&&!searchInput.value.trim())folder.open=true}}).observe(navigation,{subtree:true,attributes:true,attributeFilter:['class']});
   const menuButton=document.createElement('button');menuButton.id='academy-menu-toggle';menuButton.className='secondary';menuButton.textContent='☰ Menu';menuButton.setAttribute('aria-controls',panel.id);menuButton.setAttribute('aria-expanded','false');brand.after(menuButton);
   function menu(open){header.classList.toggle('academy-menu-open',open);menuButton.setAttribute('aria-expanded',String(open));menuButton.textContent=open?'✕ Close menu':'☰ Menu'}
   menuButton.onclick=()=>menu(!header.classList.contains('academy-menu-open'));searchInput.oninput=filterMenu;
-  navigation.addEventListener('click',e=>{if(!e.target.closest('.nav-button'))return;searchInput.value='';filterMenu();menu(false)});
+  navigation.addEventListener('click',e=>{const link=e.target.closest('.nav-button');if(!link)return;rememberActivity(link.dataset.area);searchInput.value='';filterMenu();menu(false)});
   document.addEventListener('keydown',e=>{const editing=e.target.closest('input,textarea,select,[contenteditable]');if(((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k')||(!editing&&e.key==='/'&&!e.ctrlKey&&!e.metaKey&&!e.altKey)){if(document.querySelector('dialog[open]'))return;e.preventDefault();menu(true);searchInput.focus()}else if(e.key==='Escape'&&(document.activeElement===searchInput||header.classList.contains('academy-menu-open'))){searchInput.value='';filterMenu();menu(false);menuButton.focus()}});
   const skip=document.createElement('a');skip.className='academy-skip-link';skip.textContent='Skip to main content';const main=document.querySelector('main');if(!main.id)main.id='academy-main';main.tabIndex=-1;skip.href='#'+main.id;document.body.prepend(skip);filterMenu();
 })();
