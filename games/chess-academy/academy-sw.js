@@ -1,6 +1,6 @@
 /* Opt-in offline copy. Only public, bundled assets are cached; never API data. */
 const PREFIX='academy-offline-'+new URL(self.registration.scope).pathname+'-';
-const CACHE=PREFIX+'navigation-fixes-v1';
+const CACHE=PREFIX+'rainbow-pieces-v1';
 const FILES=['public/endgame-sparring.js','public/repertoire.js','public/style-studio.js','public/auth.js','public/auth.css','public/auth-config.js','./','david.html','academy.webmanifest','lib/chess-core.js','lib/workshop-core.js','lib/practice-clock.js','public/app.css','public/club-theme.css','public/queen.svg','public/training.js','public/app.js','public/club-features.js','public/club-tools.js','public/club-shell.js','public/academy-lab.js','public/workshop.js','public/comfort.js','chess-extras/index.html','chess-extras/study.css','chess-extras/study.js','chess-extras/study-core.js','chess-extras/openings.js','chess-extras/watch.html','chess-extras/watch.css','chess-extras/watch.js','chess-extras/live-board.js','chess-extras/community.html','chess-extras/community.css','chess-extras/community.js'];
 const urls=FILES.map(path=>new URL(path,self.registration.scope).href);
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(urls))));
