@@ -22,10 +22,10 @@ for(const touch of [false,true])for(const level of ['medium','hard','expert']){
  await ev(`{const d=document.querySelector('#puzzle-difficulty');d.value='${level}';d.dispatchEvent(new Event('change'))}`);
  await until('!!trainingSession && !trainingSession.busy');
  {
- // Any legal attempt must visibly move before it is judged and returned.
+ // Any legal attempt must visibly move and stay visible until Retry is pressed.
  const wrong=await ev(`(()=>{const t=trainingSession;const m=core.allMoves(t.state).find(m=>{const uci=core.square(m.from)+core.square(m.to)+(m.promotion||'');const n=core.apply(t.state,m);return !(core.check(n,n.turn)&&!core.allMoves(n).length)&&!(t.item.expert?t.item.plans[uci]:t.item.line[0]===uci)});return core.square(m.from)+core.square(m.to)})()`);
- for(let attempt=0;attempt<(level==='medium'?1:4);attempt++){
- const before=await ev('JSON.stringify(trainingSession.state)');
+ for(let attempt=0;attempt<1;attempt++){
+ const before=await ev('JSON.stringify(trainingSession.state)');const score=await ev('JSON.stringify(expertSolved)');
  await ev(`document.querySelector('#puzzle-board [aria-label^="${wrong.slice(0,2)} "]').click()`);
  assert.ok(await ev(`document.querySelectorAll('#puzzle-board .legal').length`)>0,level+' shows legal destinations');
  await ev(`document.querySelector('#puzzle-board [aria-label^="${wrong.slice(2,4)} "]').click()`);
@@ -33,13 +33,19 @@ for(const touch of [false,true])for(const level of ['medium','hard','expert']){
  assert.equal(await ev(`trainingSession.state.board[core.indexOfSquare('${wrong.slice(0,2)}')]`),null);
  assert.equal(await ev('trainingSession.previewingMistake'),true);
  assert.match(await ev(`document.querySelector('#puzzle-board-feedback').textContent`),/^Incorrect/);
- await until('!trainingSession.busy');
- assert.equal(await ev('JSON.stringify(trainingSession.state)'),before,'Return to the exact position for the next attempt');
+ await new Promise(r=>setTimeout(r,1400));
+ assert.notEqual(await ev('JSON.stringify(trainingSession.state)'),before,'Wrong move must not automatically return');
+ assert.equal(await ev('JSON.stringify(expertSolved)'),score,'Wrong moves never earn completion credit');
+ assert.equal(await ev('document.querySelector("#puzzle-retry-move").hidden'),false);
+ await ev('document.querySelector("#puzzle-retry-move").click()');
+ assert.equal(await ev('trainingSession.busy'),false);
+ assert.equal(await ev('document.querySelector("#puzzle-retry-move").hidden'),true);
+ assert.equal(await ev('JSON.stringify(trainingSession.state)'),before,'Retry must restore the original puzzle');
  assert.equal(await ev('trainingSession.done'),false,level+' must remain playable after a mistake');
  assert.equal(await ev('trainingSession.step'),0,'Incorrect moves do not advance the puzzle');
- assert.match(await ev(`document.querySelector('#puzzle-board-feedback').textContent`),/Try a different move/);
+ assert.equal(await ev('!!trainingSession.previewingMistake'),false);
  }
- if(level!=='medium')assert.equal(await ev('trainingSession.assisted'),true);
+ if(level!=='medium')assert.equal(await ev('!!trainingSession.assisted'),false);
  }
  let turn=0;
  while(!(await ev('trainingSession.done'))){
@@ -48,7 +54,7 @@ for(const touch of [false,true])for(const level of ['medium','hard','expert']){
  assert.ok(await ev('trainingSession.step')>old,`${level} ${touch?'touch':'mouse'} turn ${turn} must move`);
  await until('!trainingSession.busy');assert.ok(++turn<10);
  }
- assert.equal(await ev('trainingSession.revealed'),false);if(level!=='medium')assert.equal(await ev('expertSolved.includes(trainingSession.item.id)'),false,'Practice attempts must not earn clean completion');
+ assert.equal(await ev('trainingSession.revealed'),false);if(level!=='medium')assert.equal(await ev('expertSolved.includes(trainingSession.item.id)'),true,'A clean retry can earn completion');
  console.log('PASS',level,touch?'touch drag + taps':'mouse drag + clicks','completed');
 }
 // A genuine mate is correct even when absent from the stored solution map.

@@ -97,7 +97,8 @@ function drawStudyBoard(target, position, selectedSquare, onSquare, reverse=fals
     board.addEventListener('click',event=>{if(event.detail&&board.dataset.ignoreDragClick==='yes'){delete board.dataset.ignoreDragClick;event.preventDefault();event.stopImmediatePropagation()}},true);
   }
 }
-$('#puzzle-board').closest('.board-frame').insertAdjacentHTML('afterend','<p id="puzzle-board-feedback" class="feedback" role="status"></p>');
+$('#puzzle-board').closest('.board-frame').insertAdjacentHTML('afterend','<p id="puzzle-board-feedback" class="feedback" role="status"></p><button id="puzzle-retry-move" class="primary" hidden>Retry puzzle</button>');
+$('#puzzle-retry-move').onclick=()=>$('#puzzle-retry').click();
 let puzzleIndex=0, puzzleFilter='All', lessonIndex=0;
 let puzzleGeneration=0,generatedNumber=0,recentGenerated=[],endlessSolved=0,endlessSolvedIds=[];
 try{const saved=JSON.parse(localStorage.getItem('chess-club-endless'));if(Number.isSafeInteger(saved?.solved)&&saved.solved>=0)endlessSolved=saved.solved;if(Array.isArray(saved?.recent))endlessSolvedIds=saved.recent.filter(x=>typeof x==='string').slice(-200)}catch{}
@@ -108,16 +109,10 @@ $('#puzzle-options').insertAdjacentHTML('afterend','<p id="expert-score" role="s
 function startExpertPuzzle(index=TRAINING.expert.findIndex(p=>p.deep)){++puzzleGeneration;expertIndex=index;$('#puzzle-source').value='expert';$('#puzzle-difficulty').value=TRAINING.expert[index].deep?'expert':'hard';puzzleOptions();showPuzzle({...TRAINING.expert[index],level:TRAINING.expert[index].deep?'Hardest (+600)':'Harder (+300)'},`Challenge ${TRAINING.expert.filter((p,i)=>i<=index&&!!p.deep===!!TRAINING.expert[index].deep).length} / ${TRAINING.expert.filter(p=>!!p.deep===!!TRAINING.expert[index].deep).length}`);trainingSession.mistakes=0;trainingFeedback('Drag a piece, or tap it then tap its destination. Highlighted destinations are legal moves. Find the full mate in '+(TRAINING.expert[index].mateMoves||2)+'.')}
 function solutionDepth(tree){return tree===true?0:1+Math.max(...Object.values(tree).map(branches=>branches===true?0:Math.max(...Object.values(branches).map(solutionDepth))))}
 function showIncorrectPuzzleMove(t,move,next,message){
- const before=t.state;
- t.state=next;t.selected=null;t.busy=true;t.previewingMistake=true;
- trainingFeedback('Incorrect. '+message+' The piece will return so you can try again.','incorrect');
- rememberProgress();renderTraining([move.from,move.to]);
  clearTimeout(trainingTimer);
- trainingTimer=setTimeout(()=>{
-  if(trainingSession!==t||t.done)return;
-  t.state=before;t.busy=false;t.previewingMistake=false;
-  trainingFeedback('Incorrect attempt. Try a different move.','incorrect');renderTraining();
- },1100);
+ t.state=next;t.selected=null;t.busy=true;t.previewingMistake=true;
+ trainingFeedback('Incorrect. '+message+' Press Retry to try the puzzle again.','incorrect');
+ rememberProgress();renderTraining([move.from,move.to]);
 }
 function chooseExpert(i){
  const t=trainingSession;if(!t||t.done||t.busy)return;let m=t.selected===null?null:core.legal(t.state,t.selected).find(m=>m.to===i);
@@ -140,7 +135,7 @@ function showPuzzle(item,label){
   if(item.difficulty==='easiest'){trainingSession.selected=core.indexOfSquare(item.line[0].slice(0,2));trainingFeedback('Start with the highlighted piece. '+item.hint)}else trainingFeedback('Your move. Drag a piece, or tap it then tap its destination.');renderTraining();
 }
 async function nextGeneratedPuzzle(){
-  const request=++puzzleGeneration;clearTimeout(trainingTimer);trainingSession=null;$('#puzzle-board-feedback').textContent='Preparing a fresh position…';$('#puzzle-board').replaceChildren();$('#puzzle-title').textContent='Creating your puzzle…';$('#puzzle-objective').textContent='Checking that the position has a legal checkmate.';$('#puzzle-turn').textContent='';$('#puzzle-position').textContent='';$('#puzzle-level').textContent=$('#puzzle-difficulty').selectedOptions[0].textContent;$('#puzzle-feedback').textContent='Preparing a fresh position…';
+  const request=++puzzleGeneration;clearTimeout(trainingTimer);trainingSession=null;$('#puzzle-retry-move').hidden=true;$('#puzzle-board-feedback').textContent='Preparing a fresh position…';$('#puzzle-board').replaceChildren();$('#puzzle-title').textContent='Creating your puzzle…';$('#puzzle-objective').textContent='Checking that the position has a legal checkmate.';$('#puzzle-turn').textContent='';$('#puzzle-position').textContent='';$('#puzzle-level').textContent=$('#puzzle-difficulty').selectedOptions[0].textContent;$('#puzzle-feedback').textContent='Preparing a fresh position…';
   for(const id of ['puzzle-hint','puzzle-retry','puzzle-reveal'])$('#'+id).disabled=true;
   try{const item=await EndlessPuzzles.generate(core,$('#puzzle-difficulty').value,recentGenerated,()=>request!==puzzleGeneration);if(!item||request!==puzzleGeneration)return;recentGenerated.push(item.fen);recentGenerated=recentGenerated.slice(-200);showPuzzle(item,`Endless puzzle ${++generatedNumber}`)}catch(error){if(request===puzzleGeneration){$('#puzzle-title').textContent='Try another puzzle';$('#puzzle-feedback').textContent=error.message}}
 }
@@ -158,7 +153,8 @@ function renderTraining(highlight=[]) {
   const t=trainingSession;if(!t)return;const prefix=t.kind==='puzzle'?'puzzle':'lesson';
   const reverse=t.item.fen.split(' ')[1]==='b';
   drawStudyBoard('#'+prefix+'-board',t.state,t.selected,trainingChoose,reverse,highlight);
-  if(t.kind==='puzzle')$('#puzzle-turn').textContent=t.done?'Position complete':t.previewingMistake?'Incorrect move · returning piece…':(t.state.turn==='w'?'White':'Black')+' to move';
+  if(t.kind==='puzzle')$('#puzzle-retry-move').hidden=!t.previewingMistake||t.done;
+  if(t.kind==='puzzle')$('#puzzle-turn').textContent=t.done?'Position complete':t.previewingMistake?'Incorrect move · press Retry':(t.state.turn==='w'?'White':'Black')+' to move';
 }
 function finishTraining() {
   const t=trainingSession; t.done=true;
