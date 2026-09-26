@@ -1,0 +1,37 @@
+(function(root){
+'use strict';
+const C=typeof module!=='undefined'&&module.exports?require('./chess-core.js'):root.ChessCore,S=typeof module!=='undefined'&&module.exports?require('../chess-extras/study-core.js'):root.StudyCore;
+const centres=[27,28,35,36];
+const games=[
+ {id:'opera',title:'Morphy’s Opera Game · 1858',source:'https://en.wikipedia.org/wiki/Opera_Game',pgn:'1. e4 e5 2. Nf3 d6 3. d4 Bg4 4. dxe5 Bxf3 5. Qxf3 dxe5 6. Bc4 Nf6 7. Qb3 Qe7 8. Nc3 c6 9. Bg5 b5 10. Nxb5 cxb5 11. Bxb5+ Nbd7 12. O-O-O Rd8 13. Rxd7 Rxd7 14. Rd1 Qe6 15. Bxd7+ Nxd7 16. Qb8+ Nxb8 17. Rd8# 1-0',moments:[{ply:18,tip:'Open the centre while Black’s king is still there.'},{ply:24,tip:'Remove a defender on the open file.'},{ply:30,tip:'Find a forcing check that clears the d-file.'},{ply:32,tip:'Finish on the open file.'}]},
+ {id:'immortal',title:'Anderssen’s Immortal Game · 1851',source:'https://en.wikipedia.org/wiki/Immortal_Game',pgn:'1. e4 e5 2. f4 exf4 3. Bc4 Qh4+ 4. Kf1 b5 5. Bxb5 Nf6 6. Nf3 Qh6 7. d3 Nh5 8. Nh4 Qg5 9. Nf5 c6 10. g4 Nf6 11. Rg1 cxb5 12. h4 Qg6 13. h5 Qg5 14. Qf3 Ng8 15. Bxf4 Qf6 16. Nc3 Bc5 17. Nd5 Qxb2 18. Bd6 Bxg1 19. e5 Qxa1+ 20. Ke2 Na6 21. Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0',moments:[{ply:32,tip:'Activate the knight with tempo.'},{ply:40,tip:'A knight check forces the king back.'},{ply:42,tip:'Deflect the knight that guards the mating square.'},{ply:44,tip:'The bishop can complete the mating net.'}]}
+];
+function setup960(number){if(!Number.isInteger(number)||number<0||number>959)throw Error('Choose a Chess960 number from 0 to 959.');let n=number,row=Array(8).fill(null);row[(n%4)*2+1]='B';n=Math.floor(n/4);row[(n%4)*2]='B';n=Math.floor(n/4);let empty=()=>row.map((p,i)=>p?null:i).filter(i=>i!==null);row[empty()[n%6]]='Q';n=Math.floor(n/6);const pairs=[];for(let i=0;i<5;i++)for(let j=i+1;j<5;j++)pairs.push([i,j]);const free=empty(),pair=pairs[n];row[free[pair[0]]]=row[free[pair[1]]]='N';const last=empty();row[last[0]]='R';row[last[1]]='K';row[last[2]]='R';const state=C.initial();state.board.splice(0,8,...row.map(p=>p.toLowerCase()));state.board.splice(56,8,...row);state.rights='';return {state,number,castles:{w:{king:56+last[1],short:56+last[2],long:56+last[0]},b:{king:last[1],short:last[2],long:last[0]}}}}
+function create(mode='standard',position=C.initial(),number=518){if(!['standard','hill','three','960'].includes(mode))throw Error('Unknown chess rules.');const setup=mode==='960'?setup960(number):null;return {mode,state:setup?setup.state:structuredClone(position),checks:{w:0,b:0},castles:setup?.castles||null,number:setup?.number??null}}
+function castleMove(game,wing){if(game.mode!=='960')return null;const side=game.state.turn,rights=game.castles[side],from=rights.king,rookFrom=rights[wing],rank=side==='w'?56:0,to=rank+(wing==='short'?6:2),rookTo=rank+(wing==='short'?5:3),state=game.state,king=side==='w'?'K':'k',rook=side==='w'?'R':'r';if(from===null||rookFrom===null||state.board[from]!==king||state.board[rookFrom]!==rook||C.check(state,side))return null;
+ const path=(a,b)=>Array.from({length:Math.abs(a-b)+1},(_,i)=>a+i*Math.sign(b-a));
+ if([...path(from,to),...path(rookFrom,rookTo),...path(from,rookFrom)].some(i=>i!==from&&i!==rookFrom&&state.board[i]))return null;
+ for(const i of path(from,to)){const board=[...state.board];board[from]=null;if(i===rookFrom)board[rookFrom]=null;board[i]=king;if(C.attacked({...state,board},i,C.other(side)))return null}
+ const board=[...state.board];board[from]=board[rookFrom]=null;board[to]=king;board[rookTo]=rook;if(C.attacked({...state,board},to,C.other(side)))return null;return {from,to,castle960:{rookFrom,rookTo,wing}};
+}
+function moves(game){return [...S.moves(game.state),...(game.mode==='960'?['short','long'].map(w=>castleMove(game,w)).filter(Boolean):[])]}
+function advance(game,move){const legal=moves(game).find(m=>m.from===move.from&&m.to===move.to&&(m.promotion||'')===(move.promotion||'')&&JSON.stringify(m.castle960||null)===JSON.stringify(move.castle960||null));if(!legal)throw Error('That move is not legal.');const next=structuredClone(game),side=game.state.turn;
+ if(legal.castle960){const board=[...game.state.board],king=board[legal.from],rook=board[legal.castle960.rookFrom];board[legal.from]=board[legal.castle960.rookFrom]=null;board[legal.to]=king;board[legal.castle960.rookTo]=rook;next.state={...game.state,board,turn:C.other(side),ep:null,half:game.state.half+1}}
+ else next.state=C.apply(game.state,legal);
+ if(next.castles){for(const colour of ['w','b']){const r=next.castles[colour];if(colour===side&&legal.from===r.king)r.king=r.short=r.long=null;for(const wing of ['short','long'])if(legal.from===r[wing]||legal.to===r[wing])r[wing]=null}}
+ if(C.check(next.state,next.state.turn))next.checks[side]++;return next;
+}
+function result(game,past=[]){for(const side of ['w','b']){if(game.mode==='three'&&game.checks[side]>=3)return {winner:side,title:(side==='w'?'White':'Black')+' wins by three checks'};if(game.mode==='hill'&&centres.includes(game.state.board.indexOf(side==='w'?'K':'k'))&&!C.check(game.state,side))return {winner:side,title:(side==='w'?'White':'Black')+' wins · king reached the hill'}}
+ const legal=moves(game);if(!legal.length)return C.check(game.state,game.state.turn)?{winner:C.other(game.state.turn),title:(game.state.turn==='w'?'Black':'White')+' wins by checkmate'}:{winner:null,title:'Draw by stalemate'};
+ const outcome=C.getOutcome(game.state,past.map(g=>g.state));if(!outcome)return null;
+ if(game.mode==='hill'&&outcome.title.includes('insufficient'))return null;
+ if(game.mode==='three'&&outcome.title.includes('insufficient')&&game.state.board.some(p=>p&&p.toLowerCase()!=='k'))return null;
+ if(game.mode==='960'&&outcome.title.includes('repetition')){const key=g=>C.positionKey(g.state)+JSON.stringify(g.castles);if(past.filter(g=>key(g)===key(game)).length<2)return null}
+ if(game.mode==='three'&&outcome.title.includes('repetition')){const key=g=>C.positionKey(g.state)+JSON.stringify(g.checks);if(past.filter(g=>key(g)===key(game)).length<2)return null}
+ return {winner:null,title:outcome.title};
+}
+function evaluate(game,side){const end=result(game);if(end)return end.winner===side?100000:end.winner===null?0:-100000;const values={p:100,n:320,b:335,r:500,q:900,k:0};let score=game.state.board.reduce((n,p)=>n+(p?(C.color(p)===side?1:-1)*values[p.toLowerCase()]:0),0);if(game.mode==='three')score+=220*(game.checks[side]-game.checks[C.other(side)]);if(game.mode==='hill'){for(const colour of ['w','b']){const k=game.state.board.indexOf(colour==='w'?'K':'k'),dist=Math.min(...centres.map(i=>Math.max(Math.abs(i%8-k%8),Math.abs(Math.floor(i/8)-Math.floor(k/8)))));score+=(colour===side?-1:1)*dist*90}}return score}
+function computer(game){const side=game.state.turn,list=moves(game);let best=null,score=-Infinity;for(const move of list){const next=advance(game,move);let value=evaluate(next,side);if(Math.abs(value)<100000){const replies=moves(next);if(replies.length)value=Math.min(...replies.map(reply=>evaluate(advance(next,reply),side)))}if(value>score){score=value;best=move}}return best}
+function label(game,move,next){return move.castle960?(move.castle960.wing==='short'?'O-O':'O-O-O'):C.completeNotation(game.state,move,next.state)}
+const api={games,setup960,create,castleMove,moves,advance,result,computer,label};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.WorkshopCore=api;
+})(typeof globalThis!=='undefined'?globalThis:this);
