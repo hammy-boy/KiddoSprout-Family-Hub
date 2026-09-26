@@ -42,6 +42,7 @@ jobs:
         run: |
           npm run test:homeschool
           npm run test:sprout-tutor
+          npm run test:main-ui
           npm run test:pwa
           npm run test:public-demo-build
           npm run test:links

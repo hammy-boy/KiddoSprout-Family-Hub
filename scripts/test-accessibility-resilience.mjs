@@ -103,7 +103,7 @@ assert.match(
 );
 
 const mainPage = await read("index.html");
-assert.match(mainPage, /style\.css\?v=32/);
+assert.match(mainPage, /style\.css\?v=33/);
 assert.match(mainPage, /id="accountPasswordRecoveryPanel" hidden inert aria-hidden="true"/,
   "inactive password-recovery controls must be hidden from keyboard and assistive-technology navigation");
 assert.match(mainPage, /id="emailConfirmationCard" hidden inert aria-hidden="true"/,

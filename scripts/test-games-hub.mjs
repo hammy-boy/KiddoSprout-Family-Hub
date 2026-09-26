@@ -281,8 +281,8 @@ assert.ok(workerRuntimeMatch, "The service worker runtime allow-list is missing.
 const runtimeGames = JSON.parse(workerRuntimeMatch[1]).filter((path) => path.startsWith("/games/")).sort();
 assert.deepEqual(runtimeGames, PUBLIC_GAME_FILES.map((path) => `/${path}`).sort(),
   "Offline runtime caching must include exactly the reviewed arcade files.");
-assert.match(workerSource, /const KIDDOSPROUT_CACHE_VERSION = ["']shell-v117["']/,
-  "The Sprout Tutor AI release needs the v117 shell cache so older clients receive it.");
+assert.match(workerSource, /const KIDDOSPROUT_CACHE_VERSION = ["']shell-v118["']/,
+  "The mobile layout release needs the v118 shell cache so older clients receive it.");
 assert.deepEqual(runtimeGames.filter((path) => path.endsWith(".svg")), ["/games/multiplication-runner/map.svg"],
   "Only the reviewed Math Runner map SVG may enter the offline allow-list.");
 

@@ -864,10 +864,10 @@ assert.equal(await recoveredScript.text(), "cached asset",
 fetchImplementation = async () => {
   throw new Error("Network unavailable");
 };
-const offlineStyle = await dispatchFetch(request("https://demo.example/style.css?v=32"));
+const offlineStyle = await dispatchFetch(request("https://demo.example/style.css?v=33"));
 assert.equal(await offlineStyle.text(), "cached stylesheet",
   "The current release's versioned static request should use its reviewed canonical precache entry.");
-const futureStyle = await dispatchFetch(request("https://demo.example/style.css?v=33"));
+const futureStyle = await dispatchFetch(request("https://demo.example/style.css?v=34"));
 assert.equal(futureStyle.type, "error",
   "A newer page was allowed to run an older query-free stylesheet from the active worker.");
 assert.equal(globalCacheMatchCalls, 0,

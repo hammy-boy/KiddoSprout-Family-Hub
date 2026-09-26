@@ -17,6 +17,14 @@ assert.match(index, /<picture>[\s\S]*?<source srcset="family-tech-hub-v[0-9a-f]{
   "The home hero should negotiate modern formats, reserve its space, and be prioritised for first paint.");
 assert.doesNotMatch(index, /family-tech-hub\.png/,
   "The home page must not request the oversized PNG hero.");
+assert.match(index, /<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">/,
+  "The installed dashboard must opt into the iOS safe-area viewport instead of leaving a landscape gutter.");
+assert.match(style, /\.topbar\s*\{[\s\S]*?padding-left:\s*max\([^;]*env\(safe-area-inset-left\)[^;]*\);[\s\S]*?padding-right:\s*max\([^;]*env\(safe-area-inset-right\)[^;]*\);/,
+  "The top bar must keep controls outside iPhone landscape cut-outs.");
+assert.match(style, /\.hero-content\s*\{[\s\S]*?padding:[^;]*env\(safe-area-inset-right\)[^;]*env\(safe-area-inset-left\)[^;]*;/,
+  "Hero copy must respect both horizontal safe-area edges.");
+assert.match(style, /main\s*\{[\s\S]*?padding-left:\s*max\([^;]*env\(safe-area-inset-left\)[^;]*\);[\s\S]*?padding-right:\s*max\([^;]*env\(safe-area-inset-right\)[^;]*\);/,
+  "Dashboard cards must respect both horizontal safe-area edges.");
 assert.match(style, /\.hero > picture\s*\{[\s\S]*?position:\s*absolute;[\s\S]*?inset:\s*0;[\s\S]*?z-index:\s*-2;/,
   "The responsive hero picture must not become an extra grid row or shift the hero content.");
 assert.match(style, /\.hero-photo\s*\{[\s\S]*?width:\s*100%;[\s\S]*?height:\s*100%;[\s\S]*?object-fit:\s*cover;/,
@@ -748,12 +756,20 @@ assert.match(style, /\.switch input\s*\{[\s\S]*?inset:\s*0;[\s\S]*?width:\s*100%
 assert.match(style, /\.switch:has\(input:focus-visible\)/);
 assert.match(style, /\.avatar-choice-grid\s*\{[\s\S]*?repeat\(auto-fit, minmax\(44px, 1fr\)\)/);
 assert.match(style, /@media \(max-width: 900px\)[\s\S]*?\.topbar > \*\s*\{[\s\S]*?min-width:\s*0;[\s\S]*?max-width:\s*100%;/);
+assert.match(style, /@media \(max-width: 900px\)[\s\S]*?\.feature-sidebar\s*\{[\s\S]*?align-items:\s*start;[\s\S]*?\.feature-sidebar > \.sidebar-title\s*\{[\s\S]*?grid-column:\s*1 \/ -1;/,
+  "An opened mobile feature folder must not stretch every closed folder to the same height.");
 assert.match(style, /@media \(max-width: 760px\)[\s\S]*?\.demo-banner-copy\s*\{[\s\S]*?width:\s*100%;[\s\S]*?min-width:\s*0;/);
+assert.match(style, /@media \(max-width: 760px\)[\s\S]*?\.demo-banner-actions\s*\{[\s\S]*?width:\s*auto;[\s\S]*?\.demo-banner-actions button\s*\{[\s\S]*?flex:\s*0 1 auto;/,
+  "A sole Reset demo action must stay compact rather than expanding across a phone screen.");
 assert.match(style, /@media \(max-width: 760px\)[\s\S]*?\.view-password\s*\{[\s\S]*?min-height:\s*24px;/,
   "Phone-sized password checkbox labels must provide a 24px minimum touch target.");
 assert.match(style, /@media \(max-width: 760px\)[\s\S]*?input:not\(\[type="checkbox"\]\)[\s\S]*?select,[\s\S]*?textarea\s*\{[\s\S]*?font-size:\s*16px;/,
   "Phone-sized text fields must stay at 16px so iOS does not zoom and disrupt the layout.");
 assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.hero h1\s*\{[\s\S]*?font-size:\s*clamp\(36px, 10vw, 42px\);/);
+assert.match(style, /@media \(max-width: 420px\)[\s\S]*?\.hero-actions\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\);/,
+  "Hero actions must use a deliberate single-column phone layout instead of wrapping unpredictably.");
+assert.match(style, /@media \(max-width: 1024px\) and \(max-height: 600px\) and \(orientation: landscape\)[\s\S]*?\.demo-banner\s*\{[\s\S]*?position:\s*relative;[\s\S]*?\.pwa-update-notice\s*\{[\s\S]*?position:\s*relative;[\s\S]*?\.hero\s*\{[\s\S]*?min-height:\s*360px;/,
+  "Short landscape screens must scroll notices normally and avoid a hero taller than the viewport.");
 assert.match(style, /\.lock-gate\s*\{[\s\S]*?overflow-y:\s*auto;[\s\S]*?overscroll-behavior:\s*contain;/,
   "The parent PIN overlay must remain scrollable in short mobile and landscape viewports.");
 assert.match(style, /\.lock-box\s*\{[\s\S]*?max-height:\s*calc\(100dvh - 36px\);[\s\S]*?overflow-y:\s*auto;/,

@@ -5,6 +5,7 @@ const root = new URL("../", import.meta.url);
 const source = await readFile(new URL("js.js", root), "utf8");
 const worker = await readFile(new URL("service-worker.js", root), "utf8");
 const markup = await readFile(new URL("index.html", root), "utf8");
+const styles = await readFile(new URL("style.css", root), "utf8");
 
 function workerArray(name) {
   const match = worker.match(new RegExp(`const ${name} = (\\[[\\s\\S]*?\\]);`));
@@ -356,12 +357,18 @@ assert.match(source, /applyDemoAvailability\(\);\s*if \(kiddoAppInstalled\) mark
   "Standalone install controls must remain installed after initial translation and later language changes.");
 assert.match(markup, /id="pwaUpdateNotice"[\s\S]*?id="pwaUpdateMessage"[\s\S]*?aria-live="polite"[\s\S]*?id="pwaUpdateNow"/,
   "A waiting update needs a persistent, accessible action rather than a temporary toast.");
+assert.match(styles, /\.pwa-update-notice\s*\{[^}]*?left:\s*max\(18px, calc\(env\(safe-area-inset-left\) \+ 12px\)\);[^}]*?right:\s*max\(18px, calc\(env\(safe-area-inset-right\) \+ 12px\)\);[^}]*?bottom:\s*max\(18px, env\(safe-area-inset-bottom\)\);[^}]*?width:\s*auto;[^}]*?max-width:\s*620px;[^}]*?max-height:\s*calc\(100dvh[^;]+;[^}]*?margin-inline:\s*auto;[^}]*?overflow-y:\s*auto;/,
+  "The persistent update notice must remain centred between both safe-area edges instead of overflowing a phone viewport.");
+assert.match(styles, /\.pwa-update-notice > div\s*\{[^}]*?min-width:\s*0;[\s\S]*?\.pwa-update-notice strong,[\s\S]*?\.pwa-update-notice p\s*\{[^}]*?overflow-wrap:\s*anywhere;/,
+  "Long translated update text must wrap instead of widening the notice beyond a phone viewport.");
+assert.match(styles, /@media \(max-width: 760px\)\s*\{[\s\S]{0,2200}?\.pwa-update-notice\s*\{[^}]*?flex-direction:\s*column;[^}]*?}[\s\S]{0,300}?\.pwa-update-notice \.primary\s*\{[^}]*?width:\s*100%;/,
+  "Phone and narrow-tablet update notices must stack the action below the message.");
 assert.match(source, /waitingWorker\.postMessage\(\{ type: "SKIP_WAITING" \}\)/,
   "The update action must explicitly release the waiting worker.");
 assert.match(source, /kiddoServiceWorkerReloadRequested[\s\S]*?window\.location\.reload\(\)/,
   "A user-approved update must reload once the new worker controls the page.");
-assert.match(worker, /const KIDDOSPROUT_CACHE_VERSION = "shell-v117";/,
-  "The Sprout Tutor AI runtime changes must ship in a fresh offline cache.");
+assert.match(worker, /const KIDDOSPROUT_CACHE_VERSION = "shell-v118";/,
+  "The mobile layout correction must ship in a fresh offline cache.");
 assert.match(worker, /const KIDDOSPROUT_RUNTIME_CACHE_VERSION = "runtime-v1";/,
   "Viewed runtime content must survive shell cache upgrades.");
 assert.match(worker, /const KIDDOSPROUT_CACHE_PREFIX = `kiddosprout-app-\$\{encodeURIComponent\(KIDDOSPROUT_SCOPE_PATH\)\}-`;/,
