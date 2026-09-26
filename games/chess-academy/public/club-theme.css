@@ -99,3 +99,15 @@ body.club-shell{margin:0;padding-left:222px;background:var(--bg);color:var(--ink
 #review-board .review-square-badge svg{width:76%;height:76%;display:block}
 
 .review-try-tools{margin:14px 0;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--panel)}.review-try-tools>button{margin:0 8px 10px 0}.review-try-tools label{display:flex!important;align-items:center;gap:8px;flex-wrap:wrap}.review-try-tools select{max-width:150px!important}#review-try-line{display:flex;gap:6px;flex-wrap:wrap}#review-try-line button[aria-pressed=true]{outline:2px solid var(--accent);outline-offset:1px}
+
+/* Expandable feature folders keep every activity within reach. */
+.academy-folder-title{font-size:18px;letter-spacing:-.3px;margin:18px 0 10px;color:var(--ink)}
+.academy-folder-actions{display:flex;gap:8px;margin-bottom:12px}.academy-folder-actions button{font:inherit;font-size:11px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:var(--panel);color:var(--ink);cursor:pointer}
+.club-navigation .academy-nav-group{display:block;margin:0 0 12px;border:1px solid var(--border);border-radius:14px;background:var(--panel);overflow:hidden}
+.academy-nav-group summary{display:flex;align-items:center;gap:9px;padding:15px 11px;color:var(--ink);font-size:13px;font-weight:800;cursor:pointer;list-style:none;min-height:50px;box-sizing:border-box}
+.academy-nav-group summary::-webkit-details-marker{display:none}.academy-nav-group summary::after{content:'+';font-size:18px;font-weight:500;margin-left:auto}.academy-nav-group[open] summary::after{content:'−'}
+.academy-folder-icon{position:relative;width:19px;height:14px;flex:none;border-radius:3px;background:linear-gradient(135deg,#efa53b,#e77750)}.academy-folder-icon::before{content:'';position:absolute;left:0;top:-4px;width:10px;height:6px;border-radius:3px 3px 0 0;background:#f4bf76}
+.academy-folder-count{font-size:10px;color:var(--muted);font-weight:500}.academy-folder-links{padding:0 6px 8px}.academy-folder-links .nav-button{font-size:12px!important;padding:10px 8px!important;width:100%;box-sizing:border-box;white-space:normal}
+.academy-nav-group:not([open])>.academy-folder-links{display:none}.academy-nav-group summary:focus-visible,.academy-folder-actions button:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+@media(max-width:960px){.academy-nav-group summary{font-size:16px;padding:18px}.academy-folder-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}.academy-folder-title{font-size:21px}.academy-folder-actions button{min-height:40px}}
+@media(max-width:420px){.academy-folder-links{grid-template-columns:1fr}}
