@@ -20,7 +20,7 @@ async function move(uci,drag,touch=false){
 for(const touch of [false,true])for(const level of ['medium','hard','expert']){
  if(touch)await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true},sessionId);
  await ev(`{const d=document.querySelector('#puzzle-difficulty');d.value='${level}';d.dispatchEvent(new Event('change'))}`);
- await until('!!trainingSession && !trainingSession.busy');
+ await until('!!trainingSession && !trainingSession.busy');assert.equal(await ev('document.querySelectorAll("#puzzle-attempt-list li").length'),0,'A new puzzle starts with empty history');
  {
  // Any legal attempt must visibly move and stay visible until Retry is pressed.
  const wrong=await ev(`(()=>{const t=trainingSession;const m=core.allMoves(t.state).find(m=>{const uci=core.square(m.from)+core.square(m.to)+(m.promotion||'');const n=core.apply(t.state,m);return !(core.check(n,n.turn)&&!core.allMoves(n).length)&&!(t.item.expert?t.item.plans[uci]:t.item.line[0]===uci)});return core.square(m.from)+core.square(m.to)})()`);
@@ -31,7 +31,7 @@ for(const touch of [false,true])for(const level of ['medium','hard','expert']){
  await ev(`document.querySelector('#puzzle-board [aria-label^="${wrong.slice(2,4)} "]').click()`);
  assert.notEqual(await ev('JSON.stringify(trainingSession.state)'),before,'Wrong legal move must visibly play');
  assert.equal(await ev(`trainingSession.state.board[core.indexOfSquare('${wrong.slice(0,2)}')]`),null);
- assert.equal(await ev('trainingSession.previewingMistake'),true);
+ assert.equal(await ev('trainingSession.previewingMistake'),true);assert.match(await ev(`document.querySelector('#puzzle-attempt-list').textContent`),/Incorrect/);
  assert.match(await ev(`document.querySelector('#puzzle-board-feedback').textContent`),/^Incorrect/);
  await new Promise(r=>setTimeout(r,1400));
  assert.notEqual(await ev('JSON.stringify(trainingSession.state)'),before,'Wrong move must not automatically return');
@@ -39,7 +39,7 @@ for(const touch of [false,true])for(const level of ['medium','hard','expert']){
  assert.equal(await ev('document.querySelector("#puzzle-retry-move").hidden'),false);
  await ev('document.querySelector("#puzzle-retry-move").click()');
  assert.equal(await ev('trainingSession.busy'),false);
- assert.equal(await ev('document.querySelector("#puzzle-retry-move").hidden'),true);
+ assert.equal(await ev('document.querySelector("#puzzle-retry-move").hidden'),true);assert.equal(await ev('document.querySelectorAll("#puzzle-attempt-list li").length'),1,'Retry retains the previous attempt');assert.match(await ev('document.querySelector("#puzzle-attempts-summary").textContent'),/Attempt 2/);
  assert.equal(await ev('JSON.stringify(trainingSession.state)'),before,'Retry must restore the original puzzle');
  assert.equal(await ev('trainingSession.done'),false,level+' must remain playable after a mistake');
  assert.equal(await ev('trainingSession.step'),0,'Incorrect moves do not advance the puzzle');
@@ -55,8 +55,9 @@ for(const touch of [false,true])for(const level of ['medium','hard','expert']){
  await until('!trainingSession.busy');assert.ok(++turn<10);
  }
  assert.equal(await ev('trainingSession.revealed'),false);if(level!=='medium')assert.equal(await ev('expertSolved.includes(trainingSession.item.id)'),true,'A clean retry can earn completion');
- console.log('PASS',level,touch?'touch drag + taps':'mouse drag + clicks','completed');
+ assert.match(await ev(`document.querySelector('#puzzle-attempt-list li').textContent`),/Attempt 2.*Correct/);console.log('PASS',level,touch?'touch drag + taps':'mouse drag + clicks','completed');
 }
+await ev(`document.querySelector('#puzzle-attempts').scrollIntoView({block:'center'})`);const shot=await send('Page.captureScreenshot',{format:'png'},sessionId);fs.writeFileSync('/private/tmp/puzzle-attempt-history.png',Buffer.from(shot.data,'base64'));
 // A genuine mate is correct even when absent from the stored solution map.
 await ev(`showPuzzle({id:'alternative-mate-test',expert:true,deep:true,theme:'Checkmate',title:'Mate',level:'Hardest',fen:'7k/8/5KQ1/8/8/8/8/8 w - - 0 1',plans:{},line:['g6g7'],explain:'Checkmate.'},'Test');trainingSession.mistakes=0;document.querySelector('#puzzle-board [aria-label^="g6 "]').click();document.querySelector('#puzzle-board [aria-label^="g7 "]').click()`);
 assert.equal(await ev('trainingSession.done'),true);assert.match(await ev(`document.querySelector('#puzzle-board-feedback').textContent`),/^Correct!/);

@@ -99,6 +99,23 @@ function drawStudyBoard(target, position, selectedSquare, onSquare, reverse=fals
 }
 $('#puzzle-board').closest('.board-frame').insertAdjacentHTML('afterend','<p id="puzzle-board-feedback" class="feedback" role="status"></p><button id="puzzle-retry-move" class="primary" hidden>Retry puzzle</button>');
 $('#puzzle-retry-move').onclick=()=>$('#puzzle-retry').click();
+$('#puzzle-retry-move').insertAdjacentHTML('afterend','<section id="puzzle-attempts" aria-labelledby="puzzle-attempts-title"><h3 id="puzzle-attempts-title">Your attempts</h3><p id="puzzle-attempts-summary">Your moves and results will appear here.</p><ol id="puzzle-attempt-list" aria-label="Recent puzzle moves, newest first"></ol></section>');
+let puzzleAttempts={key:'',number:0,moves:[]};
+function renderPuzzleAttempts(){
+ const list=$('#puzzle-attempt-list');list.replaceChildren();
+ $('#puzzle-attempts-summary').textContent=puzzleAttempts.moves.length?'Attempt '+puzzleAttempts.number+' · Latest '+puzzleAttempts.moves.length+' moves · newest first':'Attempt '+puzzleAttempts.number+' · Make a move to see its result here.';
+ for(const entry of [...puzzleAttempts.moves].reverse()){
+  const row=document.createElement('li'),move=document.createElement('span'),result=document.createElement('strong');
+  move.textContent='Attempt '+entry.attempt+' · '+entry.side+' · '+entry.notation+' ('+entry.from+' → '+entry.to+')';
+  result.textContent=entry.correct?'✓ Correct':'✕ Incorrect';result.className=entry.correct?'attempt-correct':'attempt-incorrect';
+  row.append(move,result);list.append(row);
+ }
+}
+function recordPuzzleAttempt(t,move,next,correct){
+ puzzleAttempts.moves.push({attempt:puzzleAttempts.number,side:t.state.turn==='w'?'White':'Black',notation:core.completeNotation(t.state,move,next),from:core.square(move.from),to:core.square(move.to),correct});
+ puzzleAttempts.moves=puzzleAttempts.moves.slice(-12);renderPuzzleAttempts();
+}
+
 let puzzleIndex=0, puzzleFilter='All', lessonIndex=0;
 let puzzleGeneration=0,generatedNumber=0,recentGenerated=[],endlessSolved=0,endlessSolvedIds=[];
 try{const saved=JSON.parse(localStorage.getItem('chess-club-endless'));if(Number.isSafeInteger(saved?.solved)&&saved.solved>=0)endlessSolved=saved.solved;if(Array.isArray(saved?.recent))endlessSolvedIds=saved.recent.filter(x=>typeof x==='string').slice(-200)}catch{}
@@ -109,6 +126,7 @@ $('#puzzle-options').insertAdjacentHTML('afterend','<p id="expert-score" role="s
 function startExpertPuzzle(index=TRAINING.expert.findIndex(p=>p.deep)){++puzzleGeneration;expertIndex=index;$('#puzzle-source').value='expert';$('#puzzle-difficulty').value=TRAINING.expert[index].deep?'expert':'hard';puzzleOptions();showPuzzle({...TRAINING.expert[index],level:TRAINING.expert[index].deep?'Hardest (+600)':'Harder (+300)'},`Challenge ${TRAINING.expert.filter((p,i)=>i<=index&&!!p.deep===!!TRAINING.expert[index].deep).length} / ${TRAINING.expert.filter(p=>!!p.deep===!!TRAINING.expert[index].deep).length}`);trainingSession.mistakes=0;trainingFeedback('Drag a piece, or tap it then tap its destination. Highlighted destinations are legal moves. Find the full mate in '+(TRAINING.expert[index].mateMoves||2)+'.')}
 function solutionDepth(tree){return tree===true?0:1+Math.max(...Object.values(tree).map(branches=>branches===true?0:Math.max(...Object.values(branches).map(solutionDepth))))}
 function showIncorrectPuzzleMove(t,move,next,message){
+ recordPuzzleAttempt(t,move,next,false);
  clearTimeout(trainingTimer);
  t.state=next;t.selected=null;t.busy=true;t.previewingMistake=true;
  trainingFeedback('Incorrect. '+message+' Press Retry to try the puzzle again.','incorrect');
@@ -121,6 +139,7 @@ function chooseExpert(i){
  const uci=core.square(m.from)+core.square(m.to)+(m.promotion||''),next=core.apply(t.state,m);progress.attempts++;t.selected=null;
  const plans=t.solutionPlans||t.item.plans;const mate=core.check(next,next.turn)&&!core.allMoves(next).length;const correct=mate||(t.item.deep?!!plans[uci]:t.step===0?!!t.item.plans[uci]:false);
  if(!correct){t.mistakes++;t.assisted=true;return showIncorrectPuzzleMove(t,m,next,'That does not solve this mate challenge.')}
+ recordPuzzleAttempt(t,m,next,true);
  t.state=next;t.step++;if(mate)return finishTraining();
  t.busy=true;trainingFeedback('Correct move. Your opponent is defending…','correct');renderTraining();
  const branches=plans[uci],replies=Object.keys(branches);const reply=t.item.deep?replies.sort((a,b)=>solutionDepth(branches[b])-solutionDepth(branches[a]))[0]:replies[Math.floor(Math.random()*replies.length)];
@@ -128,6 +147,7 @@ function chooseExpert(i){
 }
 function puzzleOptions(){const endless=$('#puzzle-source').value==='endless';$('#puzzle-filters').hidden=$('#puzzle-source').value!=='library';$('#expert-score').hidden=$('#puzzle-source').value!=='expert';$('#expert-score').textContent=`Expert challenges completed: ${expertSolved.length} / ${TRAINING.expert.length}`;$('#puzzle-difficulty').disabled=false;$('#puzzle-difficulty').closest('label').hidden=false;$('#endless-description').hidden=!endless;$('#endless-score').hidden=!endless;$('#endless-score').textContent=`Endless puzzles solved: ${endlessSolved}`}
 function showPuzzle(item,label){
+  const attemptKey=item.id+'|'+item.fen;if(puzzleAttempts.key!==attemptKey)puzzleAttempts={key:attemptKey,number:0,moves:[]};puzzleAttempts.number++;renderPuzzleAttempts();
   clearTimeout(trainingTimer);trainingSession={kind:'puzzle',item,state:core.fromFEN(item.fen),selected:null,step:0,done:false,revealed:false,busy:false};
   $('#puzzle-title').textContent=item.title;$('#puzzle-level').textContent=item.level+' · '+item.theme;$('#puzzle-position').textContent=label;
   $('#puzzle-objective').textContent=item.objective||(item.theme==='Checkmate'||item.id==='promotion'?'Find checkmate in one move.':item.theme==='Fork'?'Find the fork, then collect the queen.':'Find the move that wins material.');
@@ -185,6 +205,7 @@ function trainingChoose(i) {
   const next=core.apply(t.state,move);
   const alternativeMate=t.kind==='puzzle'&&t.item.theme==='Checkmate'&&core.check(next,next.turn)&&!core.allMoves(next).length;
   if(uci!==expected&&!alternativeMate){if(t.kind==='puzzle')return showIncorrectPuzzleMove(t,move,next,'There is a stronger move.');t.selected=null;trainingFeedback('That move is legal. Try the move described in the lesson.','incorrect');rememberProgress();return renderTraining()}
+  if(t.kind==='puzzle')recordPuzzleAttempt(t,move,next,true);
   t.state=next;t.selected=null;t.step++;
   if(t.step>=(t.item.line||t.item.moves).length||alternativeMate)return finishTraining();
   trainingFeedback('Good start. Your opponent responds…');t.busy=true;renderTraining([move.from,move.to]);
