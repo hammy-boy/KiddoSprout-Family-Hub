@@ -61,6 +61,39 @@ function drawStudyBoard(target, position, selectedSquare, onSquare, reverse=fals
     board.append(el);
   }
   if(focusedIndex>=0)board.children[focusedIndex]?.focus({preventScroll:true});
+  // Keep capture on the board: selecting a piece replaces its square button.
+  let drag=null;
+  const squareAt=event=>{const rect=board.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>=rect.right||event.clientY<rect.top||event.clientY>=rect.bottom)return null;const pos=Math.floor((event.clientY-rect.top)/rect.height*8)*8+Math.floor((event.clientX-rect.left)/rect.width*8);return reverse?63-pos:pos};
+  board.style.touchAction=onSquare?'none':'';
+  board.onpointerdown=event=>{
+    if(!onSquare||!event.isPrimary||event.button!==0||drag)return;
+    const from=squareAt(event);
+    if(from===null||core.color(position.board[from])!==position.turn)return;
+    drag={id:event.pointerId,from,x:event.clientX,y:event.clientY,moved:false};
+    board.setPointerCapture(event.pointerId);
+  };
+  board.onpointermove=event=>{if(drag&&event.pointerId===drag.id&&Math.hypot(event.clientX-drag.x,event.clientY-drag.y)>6)drag.moved=true};
+  board.onpointerup=event=>{
+    if(!drag||event.pointerId!==drag.id)return;
+    const current=drag,to=squareAt(event);drag=null;
+    if(board.hasPointerCapture(event.pointerId))board.releasePointerCapture(event.pointerId);
+    event.preventDefault();
+    if(!current.moved){onSquare(current.from);board.dataset.ignoreDragClick='yes';return}
+    board.dataset.ignoreDragClick='yes';
+    if(to===null||to===current.from)return;
+    // Use the normal move handlers so legality, feedback and scoring stay identical.
+    if(selectedSquare!==current.from)onSquare(current.from);
+    onSquare(to);
+    // Rendering installs fresh handlers, so suppress the following pointer click there too.
+    board.dataset.ignoreDragClick='yes';
+  };
+  board.onpointercancel=board.onlostpointercapture=()=>{drag=null};
+  board.ondragstart=()=>false;
+  if(!board.dataset.dragClickGuard){
+    board.dataset.dragClickGuard='yes';
+    board.addEventListener('pointerdown',()=>{delete board.dataset.ignoreDragClick},true);
+    board.addEventListener('click',event=>{if(event.detail&&board.dataset.ignoreDragClick==='yes'){delete board.dataset.ignoreDragClick;event.preventDefault();event.stopImmediatePropagation()}},true);
+  }
 }
 let puzzleIndex=0, puzzleFilter='All', lessonIndex=0;
 let puzzleGeneration=0,generatedNumber=0,recentGenerated=[],endlessSolved=0,endlessSolvedIds=[];
@@ -69,7 +102,7 @@ $('#puzzle-filters').insertAdjacentHTML('beforebegin','<div class="feature-toolb
 let expertIndex=0,expertSolved=[],lastGeneratedDifficulty='easy';
 try{const ids=JSON.parse(localStorage.getItem('chess-club-expert'));if(Array.isArray(ids))expertSolved=[...new Set(ids.filter(id=>TRAINING.expert.some(p=>p.id===id)))]}catch{}
 $('#puzzle-options').insertAdjacentHTML('afterend','<p id="expert-score" role="status" hidden></p>');
-function startExpertPuzzle(index=TRAINING.expert.findIndex(p=>p.deep)){++puzzleGeneration;expertIndex=index;$('#puzzle-source').value='expert';$('#puzzle-difficulty').value=TRAINING.expert[index].deep?'expert':'hard';puzzleOptions();showPuzzle({...TRAINING.expert[index],level:TRAINING.expert[index].deep?'Hardest (+600)':'Harder (+300)'},`Challenge ${TRAINING.expert.filter((p,i)=>i<=index&&!!p.deep===!!TRAINING.expert[index].deep).length} / ${TRAINING.expert.filter(p=>!!p.deep===!!TRAINING.expert[index].deep).length}`);trainingSession.mistakes=0;trainingFeedback('No move markers. Calculate the full mate in '+(TRAINING.expert[index].mateMoves||2)+'.')}
+function startExpertPuzzle(index=TRAINING.expert.findIndex(p=>p.deep)){++puzzleGeneration;expertIndex=index;$('#puzzle-source').value='expert';$('#puzzle-difficulty').value=TRAINING.expert[index].deep?'expert':'hard';puzzleOptions();showPuzzle({...TRAINING.expert[index],level:TRAINING.expert[index].deep?'Hardest (+600)':'Harder (+300)'},`Challenge ${TRAINING.expert.filter((p,i)=>i<=index&&!!p.deep===!!TRAINING.expert[index].deep).length} / ${TRAINING.expert.filter(p=>!!p.deep===!!TRAINING.expert[index].deep).length}`);trainingSession.mistakes=0;trainingFeedback('Drag a piece, or tap it then tap its destination. No move markers. Calculate the full mate in '+(TRAINING.expert[index].mateMoves||2)+'.')}
 function solutionDepth(tree){return tree===true?0:1+Math.max(...Object.values(tree).map(branches=>branches===true?0:Math.max(...Object.values(branches).map(solutionDepth))))}
 function chooseExpert(i){
  const t=trainingSession;if(!t||t.done||t.busy)return;let m=t.selected===null?null:core.legal(t.state,t.selected).find(m=>m.to===i);
@@ -90,7 +123,7 @@ function showPuzzle(item,label){
   $('#puzzle-title').textContent=item.title;$('#puzzle-level').textContent=item.level+' · '+item.theme;$('#puzzle-position').textContent=label;
   $('#puzzle-objective').textContent=item.objective||(item.theme==='Checkmate'||item.id==='promotion'?'Find checkmate in one move.':item.theme==='Fork'?'Find the fork, then collect the queen.':'Find the move that wins material.');
   for(const id of ['puzzle-hint','puzzle-retry','puzzle-reveal'])$('#'+id).disabled=false;
-  if(item.difficulty==='easiest'){trainingSession.selected=core.indexOfSquare(item.line[0].slice(0,2));trainingFeedback('Start with the highlighted piece. '+item.hint)}else trainingFeedback('Your move. Select a piece and find the best continuation.');renderTraining();
+  if(item.difficulty==='easiest'){trainingSession.selected=core.indexOfSquare(item.line[0].slice(0,2));trainingFeedback('Start with the highlighted piece. '+item.hint)}else trainingFeedback('Your move. Drag a piece, or tap it then tap its destination.');renderTraining();
 }
 async function nextGeneratedPuzzle(){
   const request=++puzzleGeneration;clearTimeout(trainingTimer);trainingSession=null;$('#puzzle-board').replaceChildren();$('#puzzle-title').textContent='Creating your puzzle…';$('#puzzle-objective').textContent='Checking that the position has a legal checkmate.';$('#puzzle-turn').textContent='';$('#puzzle-position').textContent='';$('#puzzle-level').textContent=$('#puzzle-difficulty').selectedOptions[0].textContent;$('#puzzle-feedback').textContent='Preparing a fresh position…';
