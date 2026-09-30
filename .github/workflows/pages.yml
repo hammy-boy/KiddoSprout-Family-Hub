@@ -45,6 +45,7 @@ jobs:
           npm run test:main-ui
           npm run test:pwa
           npm run test:public-demo-build
+          npm run test:site-portal
           npm run test:links
           node --test scripts/test-include-chess-academy.mjs
           npm run test:public-artifact-audit

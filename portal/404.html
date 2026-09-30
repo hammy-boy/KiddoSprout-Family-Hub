@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Page Not Found | S&amp;O Devs</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      display: grid;
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      grid-template-rows: 1fr auto;
+      place-items: center;
+      padding: 1rem;
+      color: #17322d;
+      background: linear-gradient(145deg, #fffaf0, #e9f7f2 55%, #edf4ff);
+      font-family: ui-rounded, "Avenir Next", Avenir, system-ui, sans-serif;
+    }
+    .skip-link {
+      position: fixed;
+      z-index: 10;
+      top: 0.75rem;
+      left: 0.75rem;
+      min-height: 44px;
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      color: white;
+      background: #17322d;
+      font-weight: 800;
+      transform: translateY(-200%);
+    }
+    .skip-link:focus { transform: translateY(0); }
+    main {
+      width: min(36rem, 100%);
+      padding: clamp(2rem, 8vw, 4rem);
+      border: 1px solid rgba(23, 50, 45, 0.15);
+      border-radius: 2rem;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 22px 60px rgba(27, 71, 61, 0.14);
+      text-align: center;
+    }
+    .code { margin: 0; color: #13745c; font-weight: 900; letter-spacing: 0.16em; }
+    h1 { margin: 0.65rem 0; font-size: clamp(2.2rem, 9vw, 4.3rem); line-height: 1; letter-spacing: -0.05em; }
+    .message { margin: 1rem auto 2rem; color: #526a64; font-size: 1.08rem; line-height: 1.6; }
+    nav { display: flex; justify-content: center; }
+    a {
+      display: inline-flex;
+      min-height: 3rem;
+      align-items: center;
+      padding: 0.75rem 1.2rem;
+      border-radius: 999px;
+      color: white;
+      background: #13745c;
+      font-weight: 800;
+      text-decoration: none;
+    }
+    a:hover { background: #0d5d49; }
+    a:focus-visible { outline: 0.28rem solid #7b4ab2; outline-offset: 0.3rem; }
+    footer { color: #526a64; font-size: 0.85rem; }
+    @media (max-width: 420px) { main { border-radius: 1.5rem; } }
+    @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to message</a>
+  <main id="main-content" tabindex="-1">
+    <p class="code">404</p>
+    <h1>Page not found</h1>
+    <p class="message">That page is not here, but you can return to S&amp;O Devs and pick a project.</p>
+    <nav aria-label="Error page navigation">
+      <a href="/">Back to S&amp;O Devs home</a>
+    </nav>
+  </main>
+  <footer>S&amp;O Devs</footer>
+</body>
+</html>

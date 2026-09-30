@@ -3,9 +3,14 @@ import process from "node:process";
 const REQUEST_TIMEOUT_MS = 15_000;
 const SECRET_SHAPE = /(?:service[_-]?role|smtp[_-]?pass|resend[_-]?api|aws[_-]?(?:access|secret)|-----BEGIN [A-Z ]*PRIVATE KEY-----)/i;
 const LOOPBACK = /\b(?:localhost|127\.0\.0\.1|0\.0\.0\.0)(?::\d+)?\b/i;
+const KIDDO_SPROUT_URL = "https://hammy-boy.github.io/KiddoSprout-Family-Hub/";
+const ROOKAVELLE_URL = `${KIDDO_SPROUT_URL}games/chess-academy/`;
 
 function requestedUrl() {
-  const value = process.argv[2] || process.env.KIDDOSPROUT_AWS_URL || "";
+  const value = process.argv[2]
+    || process.env.SANDO_AWS_URL
+    || process.env.KIDDOSPROUT_AWS_URL
+    || "";
   if (!value) {
     throw new Error(
       "Provide the Amplify address: npm run check:aws-hosting -- https://main.example.amplifyapp.com"
@@ -58,8 +63,18 @@ function requireHeader(headers, name, expected) {
 async function main() {
   const base = requestedUrl();
   const home = await load(base, "", "text/html");
-  if (!/\bpublic-demo-only\b/.test(home.body) || LOOPBACK.test(home.body)) {
-    throw new Error("The AWS site is not the reviewed fictional-data public demo.");
+  if (!/<h1\b[^>]*>\s*S&amp;O Devs\s*<\/h1>/i.test(home.body) || LOOPBACK.test(home.body)) {
+    throw new Error("The AWS site is not the reviewed S&O Devs project portal.");
+  }
+  for (const destination of [KIDDO_SPROUT_URL, ROOKAVELLE_URL]) {
+    const escapedDestination = destination.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const matches = home.body.match(new RegExp(`href=["']${escapedDestination}["']`, "gi")) || [];
+    if (matches.length !== 1) {
+      throw new Error(`The portal must link exactly once to ${destination}`);
+    }
+  }
+  if (/<\/?(?:script|form|iframe)\b/i.test(home.body)) {
+    throw new Error("The hosted chooser contains an unexpected active element.");
   }
 
   requireHeader(home.response.headers, "strict-transport-security", /max-age=31536000/i);
@@ -67,20 +82,14 @@ async function main() {
   requireHeader(home.response.headers, "x-frame-options", /^DENY$/i);
   requireHeader(home.response.headers, "x-robots-tag", /noindex/i);
   requireHeader(home.response.headers, "content-security-policy", /default-src 'self'/i);
-  requireHeader(home.response.headers, "content-security-policy", /connect-src 'self'/i);
+  requireHeader(home.response.headers, "content-security-policy", /connect-src 'none'/i);
 
-  const config = await load(base, "supabase-config.js", "javascript");
-  if (!/publicDemoOnly\s*:\s*true/.test(config.body) || /supabase\.co/i.test(config.body)) {
-    throw new Error("The hosted browser configuration is not locked to account-free demo mode.");
+  const notFound = await load(base, "404.html", "text/html");
+  if (!/<h1\b[^>]*>\s*Page not found\s*<\/h1>/i.test(notFound.body) || !/href=["']\/["']/i.test(notFound.body)) {
+    throw new Error("The hosted portal's friendly not-found page is incomplete.");
   }
 
-  const games = await load(base, "games/index.html", "text/html");
-  if (!/Learning Games/.test(games.body) || !/Arcade Games/.test(games.body)) {
-    throw new Error("The hosted games library is incomplete.");
-  }
-
-  await load(base, "service-worker.js", "javascript");
-  console.log(`AWS Amplify check passed for ${base.origin}: safe public demo, HTTPS headers, games, and offline worker are available.`);
+  console.log(`AWS Amplify check passed for ${base.origin}: the neutral two-site portal and its security headers are available.`);
 }
 
 main().catch((error) => {

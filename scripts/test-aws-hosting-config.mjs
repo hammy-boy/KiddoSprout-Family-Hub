@@ -87,7 +87,7 @@ function requiredHeader(headers, name) {
   return value;
 }
 
-test("Amplify builds and publishes only the reviewed static public demo", async () => {
+test("Amplify validates and publishes only the reviewed static project portal", async () => {
   const source = await readConfig(amplifyConfigUrl, "amplify.yml");
 
   assertContains(source, /^version\s*:\s*["']?1["']?\s*$/m, "amplify.yml must use Amplify build specification version 1.");
@@ -96,8 +96,8 @@ test("Amplify builds and publishes only the reviewed static public demo", async 
   assertContains(source, /^\s*artifacts\s*:\s*$/m, "amplify.yml must define the static artifacts to publish.");
   assertContains(
     source,
-    /^\s*baseDirectory\s*:\s*["']?\.cloudflare\/public-demo\/?["']?\s*$/m,
-    "Amplify must publish .cloudflare/public-demo and no broader directory."
+    /^\s*baseDirectory\s*:\s*["']?portal\/?["']?\s*$/m,
+    "Amplify must publish portal and no broader directory."
   );
   assertContains(
     source,
@@ -115,16 +115,12 @@ test("Amplify builds and publishes only the reviewed static public demo", async 
       pattern: /^\s*-\s*(?:["']\s*)?npm\s+ci\b[^\r\n]*--ignore-scripts\b[^\r\n]*$/m
     },
     {
-      name: "npm run build:public-demo",
-      pattern: /^\s*-\s*(?:["']\s*)?npm\s+run\s+build:public-demo(?:\s|["']|$)/m
+      name: "npm run test:site-portal",
+      pattern: /^\s*-\s*(?:["']\s*)?npm\s+run\s+test:site-portal(?:\s|["']|$)/m
     },
     {
-      name: "node scripts/include-chess-academy.mjs",
-      pattern: /^\s*-\s*(?:["']\s*)?node\s+(?:\.\/)?scripts\/include-chess-academy\.mjs(?:\s|["']|$)/m
-    },
-    {
-      name: "npm run audit:public-artifact",
-      pattern: /^\s*-\s*(?:["']\s*)?npm\s+run\s+audit:public-artifact(?:\s|["']|$)/m
+      name: "npm run test:aws-hosting-config",
+      pattern: /^\s*-\s*(?:["']\s*)?npm\s+run\s+test:aws-hosting-config(?:\s|["']|$)/m
     }
   ];
   const offsets = commands.map(({ name, pattern }) => commandOffset(source, pattern, name));
@@ -167,16 +163,26 @@ test("AWS hosting configuration contains no local stack, credentials, or backend
   assert.doesNotMatch(
     amplifySource,
     /^\s*(?:env|environment|secrets?)\s*:/mi,
-    "amplify.yml must not declare environment variables or secrets for the static public demo."
+    "amplify.yml must not declare environment variables or secrets for the static project portal."
   );
 });
 
-test("package scripts expose the offline AWS hosting check", async () => {
+test("package scripts expose the portal and offline AWS hosting checks", async () => {
   const packageJson = JSON.parse(await readConfig(packageJsonUrl, "package.json"));
+  assert.equal(
+    packageJson.scripts?.["test:site-portal"],
+    "node scripts/test-site-portal.mjs",
+    "package.json must expose the portal validator as test:site-portal."
+  );
   assert.equal(
     packageJson.scripts?.["test:aws-hosting-config"],
     "node scripts/test-aws-hosting-config.mjs",
     "package.json must expose the AWS hosting validator as test:aws-hosting-config."
+  );
+  assert.match(
+    packageJson.scripts?.test ?? "",
+    /(?:^|&&)\s*npm\s+run\s+test:site-portal(?:\s*(?:&&|$))/,
+    "The main test command must run test:site-portal."
   );
   assert.match(
     packageJson.scripts?.test ?? "",
@@ -185,7 +191,7 @@ test("package scripts expose the offline AWS hosting check", async () => {
   );
 });
 
-test("Amplify custom headers protect every public-demo response and prevent indexing", async () => {
+test("Amplify custom headers protect every portal response and prevent indexing", async () => {
   const source = await readConfig(customHeadersUrl, "customHttp.yml");
   assertContains(source, /^customHeaders\s*:\s*$/m, "customHttp.yml must define customHeaders.");
   assertContains(

@@ -105,6 +105,8 @@ const PUBLIC_GAME_FILES = Object.freeze([
 export const PUBLIC_FILES = Object.freeze([
   "404.html",
   "index.html",
+  "portal/index.html",
+  "portal/404.html",
   "family-call.html",
   "offline.html",
   "recipe.html",

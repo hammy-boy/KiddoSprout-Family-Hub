@@ -7,10 +7,9 @@ frontend:
         - npm ci --ignore-scripts --no-audit --no-fund
     build:
       commands:
-        - npm run build:public-demo
-        - node scripts/include-chess-academy.mjs
-        - npm run audit:public-artifact
+        - npm run test:site-portal
+        - npm run test:aws-hosting-config
   artifacts:
-    baseDirectory: .cloudflare/public-demo
+    baseDirectory: portal
     files:
       - '**/*'

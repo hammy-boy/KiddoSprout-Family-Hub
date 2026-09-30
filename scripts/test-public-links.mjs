@@ -6,6 +6,8 @@ import { buildPublicDemo, OUTPUT_DIRECTORY } from "./build-public-demo.mjs";
 const PUBLIC_HTML = [
   "404.html",
   "index.html",
+  "portal/index.html",
+  "portal/404.html",
   "family-call.html",
   "offline.html",
   "recipe.html",
