@@ -188,6 +188,16 @@ The one-time repository setting must be **Settings → Pages → Build and deplo
 
 GitHub Pages is the always-on static demo, not the live account backend. It intentionally uses fictional data and keeps real sign-up, bank connections, recovery, calls, and private downloads unavailable. Those features need a separately secured hosted backend; turning off Docker cannot turn a local backend into an internet service.
 
+### Optional AWS Amplify copy
+
+The same reviewed fictional-data demo is ready for AWS Amplify Hosting. The
+checked-in build publishes only the audited `.cloudflare/public-demo` folder,
+needs no Docker or AWS key in GitHub, and deliberately leaves accounts and
+email disabled. An adult AWS account owner must connect the repository once in
+the AWS console because AWS usage can incur charges. Follow
+[`AWS-HOSTING.md`](AWS-HOSTING.md); after deployment, validate the public URL
+with `npm run check:aws-hosting -- https://YOUR-AMPLIFY-ADDRESS/`.
+
 ### Real Sprout Tutor on Cloudflare Workers
 
 GitHub Pages remains the fictional, account-free colleague demo, so it honestly reports that live AI is unavailable and links people to the separately deployed account site. Real Sprout Tutor runs from the checked-in Cloudflare Worker. It hosts the reviewed browser assets, verifies the signed-in parent and active child's approval with Supabase, and calls Workers AI through a server-side binding. It does not need Docker or a separate AI-provider key once deployed.
