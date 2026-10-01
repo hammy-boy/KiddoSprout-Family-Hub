@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Chats — Wisp</title>
+  <link rel="stylesheet" href="../styles/tokens.css" />
+  <link rel="stylesheet" href="../styles/base.css" />
+  <link rel="stylesheet" href="../styles/screens.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="app-shell">
+    <div class="top-bar">
+      <h1>Chats</h1>
+      <button class="icon-btn" id="theme-toggle" aria-label="Toggle theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/><circle cx="12" cy="12" r="4"/></svg>
+      </button>
+    </div>
+
+    <div id="load-banner" class="form-banner error" style="margin: var(--sp-3) var(--sp-4) 0;"></div>
+
+    <div class="search-wrap">
+      <label for="search-input" class="visually-hidden">Search conversations</label>
+      <div class="search-input">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="search" id="search-input" placeholder="Search chats" maxlength="64" />
+      </div>
+    </div>
+
+    <main id="main" class="screen">
+      <div class="list" id="chat-list"></div>
+    </main>
+
+    <a href="./contacts.html?pick=1" class="fab" aria-label="Start a new conversation">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+    </a>
+
+    <div id="tab-bar-slot"></div>
+  </div>
+
+  <script src="/supabase-config.js"></script>
+  <script type="module" src="../scripts/home.js"></script>
+</body>
+</html>

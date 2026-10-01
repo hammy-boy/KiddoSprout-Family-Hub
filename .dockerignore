@@ -15,3 +15,12 @@ windows-blocker/kiddosprout-blocker.exe
 windows-blocker/.kiddosprout-windows-build.*
 supabase/.temp
 supabase/.branches
+
+# Only the reviewed _______/wisp/frontend/ tree is copied by the Dockerfile.
+# Exclude the original loose import/archive from the build context.
+_______/wisp.zip
+_______/chat.html
+_______/chatData.js
+_______/schema.sql
+_______/signup.html
+_______/webrtc.js

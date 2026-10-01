@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Choose a Wisp username</title>
+  <link rel="stylesheet" href="../styles/tokens.css" />
+  <link rel="stylesheet" href="../styles/base.css" />
+  <link rel="stylesheet" href="../styles/auth.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="app-shell">
+    <main id="main" class="auth-main">
+      <div class="auth-header">
+        <h1>Choose your Wisp username</h1>
+        <p>This public name helps your contacts find you. Do not use an email address, school, or other private detail.</p>
+      </div>
+      <div id="form-banner" class="form-banner" role="alert"></div>
+      <form id="profile-form" novalidate>
+        <div class="field">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" autocomplete="username" minlength="3" maxlength="32" pattern="[A-Za-z0-9][A-Za-z0-9_.-]{2,31}" required aria-describedby="username-error" />
+          <p class="error-msg" id="username-error" role="alert"></p>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="submit-btn">Continue to Wisp</button>
+      </form>
+      <p class="auth-switch"><a href="./login.html" id="cancel-link">Return to log in</a></p>
+    </main>
+  </div>
+
+  <script src="/supabase-config.js"></script>
+  <script type="module" src="../scripts/completeProfile.js"></script>
+</body>
+</html>

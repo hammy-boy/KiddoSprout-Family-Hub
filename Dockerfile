@@ -13,6 +13,10 @@ COPY *.webmanifest /usr/share/nginx/html/
 COPY *.game /usr/share/nginx/html/
 COPY assets/ /usr/share/nginx/html/assets/
 COPY games/ /usr/share/nginx/html/games/
+# Wisp is kept as a separate source project under the imported underscore
+# folder. Publish only its browser frontend here; database migrations, notes,
+# and the original archive must never be served by nginx.
+COPY _______/wisp/frontend/ /usr/share/nginx/html/wisp/
 EXPOSE 80
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \

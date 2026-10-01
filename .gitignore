@@ -17,3 +17,12 @@ supabase/.temp/
 supabase/.branches/
 .cloudflare/
 .wrangler/
+
+# Keep the original Wisp import artifacts local. The reviewed application is
+# tracked from _______/wisp/ instead.
+_______/wisp.zip
+_______/chat.html
+_______/chatData.js
+_______/schema.sql
+_______/signup.html
+_______/webrtc.js

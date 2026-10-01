@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Wisp — Talk fast, stay private</title>
+  <link rel="stylesheet" href="../styles/tokens.css" />
+  <link rel="stylesheet" href="../styles/base.css" />
+  <link rel="stylesheet" href="../styles/onboarding.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="app-shell">
+    <main id="main" class="onboarding">
+      <div class="onboarding-top">
+        <button class="icon-btn" id="theme-toggle" aria-label="Toggle theme">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/><circle cx="12" cy="12" r="4"/></svg>
+        </button>
+      </div>
+
+      <div class="onboarding-hero">
+        <div class="brand-mark" aria-hidden="true">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/></svg>
+        </div>
+        <h1>Wisp</h1>
+        <p>Private one-to-one messages and calls — fast, reliable, and built around your privacy.</p>
+        <div class="onboarding-pills">
+          <span class="pill">Real-time chat</span>
+          <span class="pill">Voice &amp; video</span>
+          <span class="pill">Private direct chats</span>
+          <span class="pill">Email-only accounts</span>
+        </div>
+      </div>
+
+      <div class="onboarding-actions">
+        <a href="./signup.html" class="btn btn-primary btn-block">Create an account</a>
+        <a href="./login.html" class="btn btn-secondary btn-block">I already have an account</a>
+        <p class="onboarding-legal">This early MVP needs KiddoSprout's configured account service. Group chats and disappearing messages are not included yet.</p>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { initTheme, wireThemeToggle } from "../scripts/theme.js";
+    initTheme();
+    wireThemeToggle(document.getElementById("theme-toggle"));
+  </script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+:root {
+  /* Color — dark theme (default, chat-first) */
+  --color-bg: #0F1015;
+  --color-surface: #17181F;
+  --color-surface-raised: #1F212B;
+  --color-ink: #F3F3F6;
+  --color-ink-soft: #A9ACBB;
+  --color-muted: #6F7280;
+  --color-line: #2A2C37;
+
+  --color-primary: #5B5FEF;
+  --color-primary-soft: #23244A;
+  --color-coral: #FF6B5B;
+  --color-coral-soft: #3A2320;
+  --color-mint: #35C98F;
+  --color-mint-soft: #163527;
+
+  --color-bubble-mine: #5B5FEF;
+  --color-bubble-mine-ink: #FFFFFF;
+  --color-bubble-theirs: #1F212B;
+  --color-bubble-theirs-ink: #F3F3F6;
+
+  /* Type */
+  --font-display: "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.8125rem;
+  --fs-base: 0.9375rem;
+  --fs-lg: 1.0625rem;
+  --fs-xl: 1.375rem;
+  --fs-2xl: 1.75rem;
+  --fs-3xl: 2.25rem;
+
+  /* Space */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 28px;
+  --sp-7: 40px;
+
+  /* Shape */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-bubble: 20px;
+  --radius-pill: 999px;
+
+  /* Shadow */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 10px 30px rgba(0,0,0,0.35);
+  --shadow-glow: 0 0 0 4px rgba(91,95,239,0.18);
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 140ms;
+  --dur-base: 260ms;
+}
+
+[data-theme="light"] {
+  --color-bg: #F7F7F9;
+  --color-surface: #FFFFFF;
+  --color-surface-raised: #FFFFFF;
+  --color-ink: #16171D;
+  --color-ink-soft: #5B5E6C;
+  --color-muted: #8B8E9C;
+  --color-line: #E7E7EE;
+
+  --color-primary-soft: #E8E9FD;
+  --color-coral-soft: #FFE7E2;
+  --color-mint-soft: #DFF6EC;
+
+  --color-bubble-theirs: #EFEFF4;
+  --color-bubble-theirs-ink: #16171D;
+
+  --shadow-sm: 0 1px 2px rgba(20,20,30,0.06);
+  --shadow-md: 0 10px 30px rgba(20,20,30,0.10);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
