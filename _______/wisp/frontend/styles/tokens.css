@@ -5,10 +5,11 @@
   --color-surface-raised: #1F212B;
   --color-ink: #F3F3F6;
   --color-ink-soft: #A9ACBB;
-  --color-muted: #6F7280;
+  --color-muted: #9093A1;
   --color-line: #2A2C37;
 
   --color-primary: #5B5FEF;
+  --color-primary-text: #8B8FFF;
   --color-primary-soft: #23244A;
   --color-coral: #FF6B5B;
   --color-coral-soft: #3A2320;
@@ -64,11 +65,14 @@
   --color-surface-raised: #FFFFFF;
   --color-ink: #16171D;
   --color-ink-soft: #5B5E6C;
-  --color-muted: #8B8E9C;
+  --color-muted: #686B78;
   --color-line: #E7E7EE;
 
+  --color-primary-text: #4347C5;
   --color-primary-soft: #E8E9FD;
+  --color-coral: #B9382B;
   --color-coral-soft: #FFE7E2;
+  --color-mint: #177A56;
   --color-mint-soft: #DFF6EC;
 
   --color-bubble-theirs: #EFEFF4;
@@ -81,6 +85,20 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --color-line: #696C7A;
+    --shadow-glow: 0 0 0 4px rgba(139, 143, 255, 0.45);
+  }
+
+  [data-theme="light"] {
+    --color-line: #737684;
+    --shadow-glow: 0 0 0 4px rgba(52, 57, 190, 0.3);
   }
 }

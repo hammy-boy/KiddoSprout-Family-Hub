@@ -14,10 +14,10 @@
     <main id="main" class="auth-main">
       <div class="auth-top">
         <a href="./index.html" class="icon-btn" aria-label="Back">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+          <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
         </a>
-        <button class="icon-btn" id="theme-toggle" aria-label="Toggle theme">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/><circle cx="12" cy="12" r="4"/></svg>
+        <button type="button" class="icon-btn" id="theme-toggle" aria-label="Switch colour theme">
+          <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/><circle cx="12" cy="12" r="4"/></svg>
         </button>
       </div>
 
@@ -26,18 +26,18 @@
         <p>Sign up with your email address.</p>
       </div>
 
-      <div id="form-banner" class="form-banner" role="alert"></div>
+      <div id="form-banner" class="form-banner" role="alert" aria-live="assertive" aria-atomic="true"></div>
 
       <form id="signup-form" novalidate>
         <div class="field">
           <label for="username">Username</label>
-          <input type="text" id="username" name="username" autocomplete="username" minlength="3" maxlength="32" pattern="[A-Za-z0-9][A-Za-z0-9_.-]{2,31}" required aria-describedby="username-error" />
+          <input type="text" id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" minlength="3" maxlength="32" pattern="[A-Za-z0-9][A-Za-z0-9_.-]{2,31}" required aria-describedby="username-error" />
           <p class="error-msg" id="username-error" role="alert"></p>
         </div>
 
         <div class="field">
           <label for="identifier" id="identifier-label">Email</label>
-          <input type="email" id="identifier" name="identifier" placeholder="you@example.com" autocomplete="email" maxlength="254" required aria-describedby="identifier-error" />
+          <input type="email" id="identifier" name="identifier" placeholder="you@example.com" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" maxlength="254" required aria-describedby="identifier-error" />
           <p class="error-msg" id="identifier-error" role="alert"></p>
         </div>
 
@@ -45,13 +45,13 @@
           <label for="password">Password</label>
           <div class="input-wrap">
             <input type="password" id="password" name="password" autocomplete="new-password" minlength="8" maxlength="128" required aria-describedby="password-error" />
-            <button type="button" class="toggle-visibility" id="toggle-password">Show</button>
+            <button type="button" class="toggle-visibility" id="toggle-password" aria-controls="password">Show</button>
           </div>
           <p class="error-msg" id="password-error" role="alert"></p>
         </div>
 
-        <div class="human-check-field">
-          <p class="human-check-label">Safety check</p>
+        <div class="human-check-field" role="group" aria-labelledby="safety-check-label">
+          <p class="human-check-label" id="safety-check-label">Safety check</p>
           <div id="human-check"></div>
           <p id="human-check-status" class="human-check-status" role="status" aria-live="polite" hidden></p>
         </div>

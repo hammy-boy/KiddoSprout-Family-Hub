@@ -13,6 +13,14 @@ export const WISP_TABLES = Object.freeze({
 export const WISP_RPCS = Object.freeze({
   enrollProfile: "wisp_enroll_profile",
   getOrCreateDirectChat: "wisp_get_or_create_direct_chat",
+  deleteMessage: "wisp_delete_message",
+  markChatRead: "wisp_mark_chat_read",
+  listUnreadCounts: "wisp_list_unread_counts",
+  listChatSummaries: "wisp_list_chat_summaries",
+  getOwnProfile: "wisp_get_own_profile",
+  updateOwnProfile: "wisp_update_own_profile",
+  getVisibleProfiles: "wisp_get_visible_profiles",
+  setPresence: "wisp_set_presence",
   startCall: "wisp_start_call",
   joinCall: "wisp_join_call",
   endCall: "wisp_end_call",
@@ -26,6 +34,8 @@ export const WISP_LIMITS = Object.freeze({
   profileSearch: 64,
   chats: 100,
   messages: 200,
+  messagePage: 50,
+  messageRefresh: 500,
   calls: 100,
 });
 

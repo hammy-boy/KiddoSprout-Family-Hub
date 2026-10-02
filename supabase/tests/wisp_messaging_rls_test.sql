@@ -271,10 +271,11 @@ select ok(
       and policyname = 'wisp_call_send'
       and with_check like '%offer%'
       and with_check like '%answer%'
+      and with_check like '%answer-selected%'
       and with_check like '%ice-candidate%'
       and with_check like '%end%'
   ),
-  'call publishing accepts only the required signaling event set'
+  'call publishing accepts the complete required signaling event set'
 );
 
 insert into auth.users (id, email, is_anonymous)

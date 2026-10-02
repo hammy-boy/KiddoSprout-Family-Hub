@@ -6,13 +6,17 @@ credential in this folder.
 
 ## Current deployment status
 
-The correct Supabase project is not accessible through the Supabase MCP account
-connected to this Codex session. The projects that MCP can currently see are
-unrelated projects. For that reason, the Wisp migration must not be applied from
-this session until the correct KiddoSprout Supabase account/project is connected.
+The configured browser URL reaches the KiddoSprout Supabase Auth service, but a
+read-only REST check currently returns `PGRST205` for `public.wisp_profiles`.
+That means the Wisp schema has **not** been installed in the hosted project yet.
+The Supabase CLI in this workspace is also not logged in or linked, so no remote
+migration has been applied from this repository.
 
-The local wiring and migration can still be reviewed and tested without changing
-any remote database. Do not apply it to a similarly named or unrelated project.
+Sign in to the Supabase account that owns project ref `tjovhfwcsoesuceqzzvz`
+from the local terminal before linking. Stop if the dashboard or CLI shows any
+other ref. The local wiring and migration can still be reviewed and tested
+without changing a remote database; never apply it to a similarly named or
+unrelated project.
 
 ## How the browser configuration works
 
@@ -54,12 +58,15 @@ CDN.
    verified project reference. Do not paste an access token or database password
    into source control or chat.
 
-3. **Review and apply the migration.** Review
-   `supabase/migrations/20261001135110_create_secure_wisp_messaging.sql`, confirm
-   the linked project again, and only then run the supported `db push` flow shown
-   by the current CLI help. The migration creates only `wisp_...` tables/RPCs,
-   applies RLS, explicitly grants the minimum authenticated access, denies
-   anonymous users, and protects private call-signaling topics. It does not add
+3. **Review and apply the migrations.** Review the ordered Wisp files beginning
+   with `supabase/migrations/20261001135110_create_secure_wisp_messaging.sql` and
+   `supabase/migrations/20261001202059_wisp_message_deletion_read_receipts.sql`,
+   followed by `supabase/migrations/20261001210000_wisp_secure_profile_presence.sql`,
+   then `supabase/migrations/20261002021955_wisp_allow_answer_selection_signal.sql`,
+   confirm the linked project again, and only then run the supported `db push`
+   flow shown by the current CLI help. The migrations create only `wisp_...`
+   tables/RPCs, apply RLS, explicitly grant the minimum authenticated access, deny
+   anonymous users, and protect private call-signaling topics. They do not add
    a trigger to every `auth.users` record.
 
 4. **Configure email-only Auth.** In the correct Supabase project, keep Email
@@ -67,8 +74,8 @@ CDN.
    allow-list:
 
    ```text
-   /wisp/pages/complete-profile.html
-   /wisp/pages/reset-password.html
+   https://YOUR-EXACT-HOST.example/wisp/pages/complete-profile.html
+   https://YOUR-EXACT-HOST.example/wisp/pages/reset-password.html
    ```
 
    The first finishes a confirmed sign-up and creates the Wisp username; the
@@ -100,18 +107,29 @@ CDN.
    Commit the deterministic vendor bundle and its source-map-free browser output
    only after the build/test diff has been reviewed.
 
-7. **Run the read-only integration check.** This test only reads repository
-   files; it does not contact Supabase or mutate a local/remote database:
+7. **Build and run the integration check.** This command first rebuilds the
+   checked-in pinned browser bundle, then reads repository files. It does not
+   contact Supabase or mutate a local/remote database:
 
    ```sh
-   node scripts/test-wisp-integration.mjs
+   npm run test:wisp
+   ```
+
+   When the local Supabase stack is running, also execute the authorization
+   tests against the disposable local database (never an unrelated remote):
+
+   ```sh
+   npm run test:wisp:db
    ```
 
 8. **Run remote smoke tests with disposable accounts.** After the migration is
    applied to the verified project, create two new email test accounts. Confirm
    email verification, login, password recovery, username enrollment, contact
-   lookup, direct-chat creation, RLS isolation, live messages, blocking, and a
-   private call-signaling attempt. Confirm that a signed-out client and a
+   lookup, saved contacts, direct-chat creation, RLS isolation, live messages,
+   unread totals, receipt opt-out, sender-only deletion, blocking, and a private
+   call-signaling attempt. Create enough disposable chats to exercise the inbox
+   Load more control, and confirm a short network interruption does not leave
+   camera/microphone tracks running after Hang up. Confirm that a signed-out client and a
    Supabase anonymous user cannot read or write Wisp data.
 
 9. **Run Supabase advisors.** Review the Security and Performance advisors in the
@@ -121,6 +139,11 @@ CDN.
 ## Security and product boundaries
 
 - Wisp stores message content in Supabase; it is not end-to-end encrypted yet.
+- Private message tables are intentionally excluded from Postgres Changes.
+  Membership-gated, server-emitted Broadcast hints carry no message body and
+  tell the browser only to perform a fresh RLS-protected read. Browsers cannot
+  publish chat refresh hints. A bounded 15-second chat poll and 30-second inbox
+  poll cover temporary Realtime loss.
 - Private Realtime authorization protects WebRTC signaling. Audio/video media is
   peer-to-peer, and reliable calling across strict networks still needs a TURN
   service configured server-side.
@@ -129,3 +152,9 @@ CDN.
 - A browser publishable key is not a secret; RLS and narrowly scoped RPCs are the
   authorization boundary. A service-role/secret key is server-only and must
   never be exposed to a browser.
+- Wisp session data stays in `sessionStorage`. Each document uses a distinct
+  Supabase Auth BroadcastChannel key, so signing into another account in a
+  different tab cannot replace this tab's Realtime token.
+- When several devices answer the same call, the caller selects one browser
+  instance. Losing devices discard their local media/candidates and never end
+  the winner's shared call row.

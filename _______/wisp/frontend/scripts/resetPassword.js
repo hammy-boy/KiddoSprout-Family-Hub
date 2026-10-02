@@ -31,6 +31,12 @@ const submitBtn = document.getElementById("submit-btn");
 wireVisibilityToggle(document.getElementById("toggle-password"), password);
 wireVisibilityToggle(document.getElementById("toggle-password-confirm"), confirmation);
 
+document.getElementById("return-to-login").addEventListener("click", async (event) => {
+  event.preventDefault();
+  if (supabase) await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+  window.location.replace("./login.html");
+});
+
 const validatePassword = bindField(
   password,
   document.getElementById("password-error"),
@@ -126,6 +132,10 @@ if (!supabase) {
     form.hidden = false;
     password.focus();
   } else {
+    // Supabase may already have persisted a recovery session while validating
+    // the link. A rejected or timed-out flow must not leave that session able
+    // to open a protected Wisp page in this tab.
+    await supabase.auth.signOut({ scope: "local" }).catch(() => {});
     showBanner(banner, "This reset link is invalid or expired. Return to log in and request a new one.", "error");
   }
 }

@@ -11,29 +11,36 @@
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
   <div class="app-shell">
-    <div class="top-bar">
-      <h1>Chats</h1>
-      <button class="icon-btn" id="theme-toggle" aria-label="Toggle theme">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/><circle cx="12" cy="12" r="4"/></svg>
+    <header class="top-bar">
+      <h1 id="page-title">Chats</h1>
+      <button type="button" class="icon-btn" id="theme-toggle" aria-label="Switch colour theme">
+        <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/><circle cx="12" cy="12" r="4"/></svg>
       </button>
-    </div>
+    </header>
 
-    <div id="load-banner" class="form-banner error" style="margin: var(--sp-3) var(--sp-4) 0;"></div>
+    <div id="load-banner" class="form-banner error" role="alert" aria-live="assertive" aria-atomic="true" style="margin: var(--sp-3) var(--sp-4) 0;"></div>
 
     <div class="search-wrap">
       <label for="search-input" class="visually-hidden">Search conversations</label>
       <div class="search-input">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-        <input type="search" id="search-input" placeholder="Search chats" maxlength="64" />
+        <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="search" id="search-input" placeholder="Search chats" maxlength="64" autocomplete="off" enterkeyhint="search" autocapitalize="none" spellcheck="false" />
       </div>
+      <p id="chat-search-status" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
     </div>
 
-    <main id="main" class="screen">
-      <div class="list" id="chat-list"></div>
+    <main id="main" class="screen" aria-labelledby="page-title">
+      <div class="list" id="chat-list" aria-label="Conversations"></div>
+      <div class="inbox-pagination">
+        <button type="button" id="load-more-chats" class="btn btn-secondary btn-block" hidden>
+          Load more conversations
+        </button>
+        <p id="inbox-pagination-status" class="inbox-pagination-status" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></p>
+      </div>
     </main>
 
     <a href="./contacts.html?pick=1" class="fab" aria-label="Start a new conversation">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+      <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
     </a>
 
     <div id="tab-bar-slot"></div>

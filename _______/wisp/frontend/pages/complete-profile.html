@@ -16,11 +16,11 @@
         <h1>Choose your Wisp username</h1>
         <p>This public name helps your contacts find you. Do not use an email address, school, or other private detail.</p>
       </div>
-      <div id="form-banner" class="form-banner" role="alert"></div>
+      <div id="form-banner" class="form-banner" role="alert" aria-live="assertive" aria-atomic="true"></div>
       <form id="profile-form" novalidate>
         <div class="field">
           <label for="username">Username</label>
-          <input type="text" id="username" name="username" autocomplete="username" minlength="3" maxlength="32" pattern="[A-Za-z0-9][A-Za-z0-9_.-]{2,31}" required aria-describedby="username-error" />
+          <input type="text" id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" minlength="3" maxlength="32" pattern="[A-Za-z0-9][A-Za-z0-9_.-]{2,31}" required aria-describedby="username-error" />
           <p class="error-msg" id="username-error" role="alert"></p>
         </div>
         <button type="submit" class="btn btn-primary btn-block" id="submit-btn">Continue to Wisp</button>

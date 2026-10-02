@@ -501,12 +501,23 @@ test("The integration guide keeps deployment steps safe and credential-free", ()
   assertPresent(importReadme, "the imported Wisp package README");
   assertPresent(wispReadme, "the canonical Wisp README");
   assertPresent(integrationGuide, "Wisp INTEGRATION.md");
-  assert.match(integrationGuide, /correct Supabase project[^\n]*not (?:available|accessible)[^\n]*MCP/i);
+  assert.match(integrationGuide, /PGRST205/,
+    "The guide must record the verified hosted-schema failure instead of implying that it is deployed.");
+  assert.match(integrationGuide, /schema has \*\*not\*\* been installed/i,
+    "The guide must clearly distinguish a reachable Supabase project from an installed Wisp schema.");
+  assert.match(integrationGuide, /CLI[^\n]*not logged in or linked/i,
+    "The guide must explain why migrations cannot be pushed from this checkout yet.");
+  assert.match(integrationGuide, /tjovhfwcsoesuceqzzvz/,
+    "The guide must name the verified project ref so migrations cannot be sent to the wrong project.");
   assert.match(integrationGuide, /SUPABASE_PUBLISHABLE_KEY/);
   assert.match(integrationGuide, /Turnstile|CAPTCHA/i);
   assert.match(integrationGuide, /redirect/i);
   assert.match(integrationGuide, /db push|migration/i);
-  assert.match(integrationGuide, /test-wisp-integration\.mjs/);
+  assert.match(integrationGuide, /npm run test:wisp|test-wisp-integration\.mjs/);
+  assert.match(integrationGuide, /20261001202059_wisp_message_deletion_read_receipts\.sql/,
+    "The deployment guide must include Wisp's ordered message-lifecycle migration.");
+  assert.match(integrationGuide, /20261002021955_wisp_allow_answer_selection_signal\.sql/,
+    "The deployment guide must include Wisp's multi-device call-selection migration.");
   assert.match(integrationGuide, /\/wisp\/pages\/reset-password\.html/,
     "The Auth allow-list must use the hosted reset route, not the source-tree path.");
   assert.match(integrationGuide, /\/wisp\/pages\/complete-profile\.html/,

@@ -1,16 +1,30 @@
 import { createClient } from "../vendor/supabase-js-2.116.0.js";
 
-const STORAGE_KEY = "kiddosprout-wisp-auth-v1";
+const AUTH_STORAGE_KEY = "kiddosprout-wisp-auth-v1";
+// Supabase also uses storageKey as its cross-document BroadcastChannel name.
+// Wisp deliberately stores sessions in sessionStorage, so every document gets
+// a private channel key while the adapter maps the actual data back to the
+// stable tab-scoped key. A sign-in or sign-out in another tab can therefore
+// never replace this tab's Realtime token with a different account's token.
+const CLIENT_STORAGE_KEY = `${AUTH_STORAGE_KEY}:${globalThis.crypto?.randomUUID?.()
+  || `${Date.now()}-${Math.random().toString(16).slice(2)}`}`;
+
+function tabStorageKey(key) {
+  const value = String(key || "");
+  return value.startsWith(CLIENT_STORAGE_KEY)
+    ? `${AUTH_STORAGE_KEY}${value.slice(CLIENT_STORAGE_KEY.length)}`
+    : value;
+}
 
 const sessionStore = {
   getItem(key) {
-    try { return window.sessionStorage.getItem(key); } catch { return null; }
+    try { return window.sessionStorage.getItem(tabStorageKey(key)); } catch { return null; }
   },
   setItem(key, value) {
-    try { window.sessionStorage.setItem(key, value); } catch { /* A private browser may block storage. */ }
+    try { window.sessionStorage.setItem(tabStorageKey(key), value); } catch { /* A private browser may block storage. */ }
   },
   removeItem(key) {
-    try { window.sessionStorage.removeItem(key); } catch { /* Nothing else to clear. */ }
+    try { window.sessionStorage.removeItem(tabStorageKey(key)); } catch { /* Nothing else to clear. */ }
   },
 };
 
@@ -77,7 +91,7 @@ export const supabase = runtimeResult.config
         flowType: "implicit",
         persistSession: true,
         storage: sessionStore,
-        storageKey: STORAGE_KEY,
+        storageKey: CLIENT_STORAGE_KEY,
       },
       realtime: { params: { eventsPerSecond: 12 } },
     })

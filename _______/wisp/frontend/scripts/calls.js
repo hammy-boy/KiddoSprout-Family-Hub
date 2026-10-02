@@ -10,6 +10,9 @@ renderTabBar("calls");
 
 const list = document.getElementById("call-list");
 const banner = document.getElementById("load-banner");
+const searchInput = document.getElementById("search-input");
+const searchStatus = document.getElementById("call-search-status");
+let callHistory = [];
 
 function svgIcon(paths) {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -31,25 +34,29 @@ function timeLabel(value) {
   return date.toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 }
 
-function renderEmpty() {
+function renderEmpty(message) {
   const wrapper = document.createElement("div");
   wrapper.className = "empty-state";
   wrapper.append(svgIcon(["M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7"]));
   const text = document.createElement("p");
-  text.textContent = "No calls yet. Open a conversation to start a private voice or video call.";
+  text.textContent = message;
   wrapper.append(text);
   list.append(wrapper);
 }
 
-function render(calls) {
+function render(calls, searching = false) {
   list.replaceChildren();
   if (!calls.length) {
-    renderEmpty();
+    renderEmpty(searching
+      ? "No calls match your search."
+      : "No calls yet. Open a conversation to start a private voice or video call.");
     return;
   }
   for (const call of calls) {
     const name = call.contact?.username || "Wisp contact";
     const missed = call.direction === "incoming" && call.status === "missed";
+    const directionLabel = call.direction === "incoming" ? "Incoming" : "Outgoing";
+    const typeLabel = call.call_type === "video" ? "video" : "voice";
     const row = document.createElement("div");
     row.className = "list-row";
 
@@ -69,7 +76,7 @@ function render(calls) {
     direction.className = `call-direction${missed ? " is-missed" : ""}`;
     direction.append(svgIcon([call.direction === "incoming" ? "M17 7 7 17M7 7v10h10" : "M7 17 17 7M17 17V7H7"]));
     const detail = document.createElement("span");
-    detail.textContent = `${missed ? "Missed · " : ""}${timeLabel(call.started_at)}`;
+    detail.textContent = `${missed ? "Missed incoming" : directionLabel} ${typeLabel} call · ${timeLabel(call.started_at)}`;
     direction.append(detail);
     main.append(top, direction);
 
@@ -88,12 +95,36 @@ function render(calls) {
   }
 }
 
+function renderSearchResults() {
+  const query = searchInput.value.trim().toLocaleLowerCase();
+  const matchingCalls = query
+    ? callHistory.filter((call) => {
+      const name = call.contact?.username || "Wisp contact";
+      const searchableText = [
+        name,
+        call.direction,
+        call.call_type,
+        call.status === "missed" ? "missed" : "",
+      ].join(" ").toLocaleLowerCase();
+      return searchableText.includes(query);
+    })
+    : callHistory;
+  render(matchingCalls, Boolean(query));
+  const nextStatus = query
+    ? `${matchingCalls.length} matching ${matchingCalls.length === 1 ? "call" : "calls"}.`
+    : "";
+  if (searchStatus.textContent !== nextStatus) searchStatus.textContent = nextStatus;
+}
+
+searchInput.addEventListener("input", renderSearchResults);
+
 await requireAuth();
 try {
-  render(await listCallHistory());
+  callHistory = await listCallHistory();
+  renderSearchResults();
 } catch (error) {
   banner.textContent = "Couldn't load call history — check your connection and try again.";
   banner.classList.add("is-visible");
-  render([]);
+  render([], false);
   console.error("Wisp call history failed.", error);
 }

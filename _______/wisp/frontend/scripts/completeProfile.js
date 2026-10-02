@@ -47,6 +47,8 @@ form.addEventListener("submit", async (event) => {
   }
 });
 
-document.getElementById("cancel-link").addEventListener("click", async () => {
+document.getElementById("cancel-link").addEventListener("click", async (event) => {
+  event.preventDefault();
   await requireSupabase().auth.signOut({ scope: "local" }).catch(() => {});
+  window.location.assign("./login.html");
 });

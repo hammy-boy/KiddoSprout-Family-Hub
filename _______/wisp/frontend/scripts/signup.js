@@ -86,10 +86,12 @@ form.addEventListener("submit", async (event) => {
   }
 
   setLoading(submitBtn, true, "Creating your account…", "Create account");
+  let sessionEstablished = false;
   try {
     const username = usernameInput.value.trim();
     const { data: sessionData } = await supabase.auth.getSession();
     if (sessionData?.session?.user && !sessionData.session.user.is_anonymous) {
+      sessionEstablished = true;
       await ensureWispProfile(sessionData.session.user, username);
       window.location.replace("./home.html");
       return;
@@ -106,6 +108,7 @@ form.addEventListener("submit", async (event) => {
     });
     if (error) throw error;
     if (data.session && data.user) {
+      sessionEstablished = true;
       await ensureWispProfile(data.user, username);
       window.location.replace("./home.html");
       return;
@@ -115,6 +118,13 @@ form.addEventListener("submit", async (event) => {
     form.reset();
   } catch (error) {
     console.error("Wisp signup failed.", error);
+    if (sessionEstablished && /username|duplicate|unique/i.test(String(error?.message || ""))) {
+      window.location.replace("./complete-profile.html");
+      return;
+    }
+    if (sessionEstablished) {
+      await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+    }
     showBanner(banner, friendlySignupError(error), "error");
   } finally {
     setLoading(submitBtn, false, "Creating your account…", "Create account");
@@ -133,4 +143,6 @@ if (!supabase || !authEmailDeliveryReady) {
   humanCheck = await mountHumanCheck(checkContainer, checkStatus);
 }
 
-window.addEventListener("pagehide", () => removeHumanCheck(humanCheck), { once: true });
+window.addEventListener("pagehide", (event) => {
+  if (!event.persisted) removeHumanCheck(humanCheck);
+});

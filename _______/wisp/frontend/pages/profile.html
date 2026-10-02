@@ -11,124 +11,104 @@
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
   <div class="app-shell">
-    <div class="top-bar">
-      <h1>Profile</h1>
-      <button class="icon-btn" id="theme-toggle" aria-label="Toggle theme">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/><circle cx="12" cy="12" r="4"/></svg>
+    <header class="top-bar">
+      <h1 id="page-title">Profile</h1>
+      <button type="button" class="icon-btn" id="theme-toggle" aria-label="Switch colour theme">
+        <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/><circle cx="12" cy="12" r="4"/></svg>
       </button>
-    </div>
+    </header>
 
-    <main id="main" class="screen">
+    <main id="main" class="screen" aria-labelledby="page-title">
       <div class="profile-header">
-        <div class="avatar avatar-lg" id="profile-avatar">—</div>
+        <div class="avatar avatar-lg" id="profile-avatar" aria-hidden="true">—</div>
         <div>
           <h2 id="profile-name">Your name</h2>
           <p id="profile-bio">Add a short bio</p>
         </div>
-        <span class="profile-status-pill">
-          <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="currentColor"/></svg>
-          Online
+        <span class="profile-status-pill" id="profile-status">
+          <svg aria-hidden="true" focusable="false" width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="currentColor"/></svg>
+          <span id="profile-status-text">Online</span>
         </span>
-        <button class="btn btn-secondary" id="edit-profile-btn" style="margin-top: var(--sp-2);">Edit profile</button>
+        <button type="button" class="btn btn-secondary" id="edit-profile-btn">Edit profile</button>
       </div>
 
+      <div id="profile-page-banner" class="form-banner" role="status" aria-live="polite" aria-atomic="true" style="margin-inline: var(--sp-4);"></div>
+
       <div class="settings-group">
-        <div class="settings-group-label">Privacy</div>
+        <h2 class="settings-group-label">Privacy</h2>
         <div class="card">
           <div class="settings-row">
             <span class="settings-row-label">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-              Who can see my online status
-            </span>
-            <span class="settings-row-value">Everyone</span>
-          </div>
-          <div class="settings-row">
-            <span class="settings-row-label">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
-              Read receipts
+              <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              Show when I’m online
             </span>
             <label class="switch">
-              <input type="checkbox" checked />
-              <span class="switch-track"></span>
+              <input type="checkbox" id="online-status-toggle" aria-label="Show when I’m online" />
+              <span class="switch-track" aria-hidden="true"></span>
             </label>
           </div>
           <div class="settings-row">
             <span class="settings-row-label">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-              Disappearing messages
-            </span>
-            <span class="settings-row-value">Off</span>
-          </div>
-          <div class="settings-row">
-            <span class="settings-row-label">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>
-              Blocked contacts
-            </span>
-            <svg class="settings-row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
-          </div>
-        </div>
-      </div>
-
-      <div class="settings-group">
-        <div class="settings-group-label">Notifications</div>
-        <div class="card">
-          <div class="settings-row">
-            <span class="settings-row-label">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
-              Message notifications
+              <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+              Send read receipts
             </span>
             <label class="switch">
-              <input type="checkbox" checked />
-              <span class="switch-track"></span>
-            </label>
-          </div>
-          <div class="settings-row">
-            <span class="settings-row-label">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.4 2.1L8 9.9a16 16 0 0 0 6 6l1.4-1.4a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.8 2.2Z"/></svg>
-              Call notifications
-            </span>
-            <label class="switch">
-              <input type="checkbox" checked />
-              <span class="switch-track"></span>
-            </label>
-          </div>
-          <div class="settings-row">
-            <span class="settings-row-label">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-              Group activity
-            </span>
-            <label class="switch">
-              <input type="checkbox" />
-              <span class="switch-track"></span>
+              <input type="checkbox" id="read-receipts-toggle" aria-label="Send read receipts" />
+              <span class="switch-track" aria-hidden="true"></span>
             </label>
           </div>
         </div>
       </div>
 
+      <div class="profile-settings-help" role="note">
+        <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></svg>
+        <p>Profile and privacy changes are saved to your Wisp account and follow you across signed-in devices.</p>
+      </div>
+
       <div class="settings-group">
-        <div class="settings-group-label">Account</div>
+        <h2 class="settings-group-label">Account</h2>
         <div class="card">
-          <div class="settings-row">
-            <span class="settings-row-label">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.65 1.65 0 0 0-1.8-.3 1.65 1.65 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.65 1.65 0 0 0-1-1.5 1.65 1.65 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.65 1.65 0 0 0 .3-1.8 1.65 1.65 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.65 1.65 0 0 0 1.5-1 1.65 1.65 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.65 1.65 0 0 0 1.8.3H9a1.65 1.65 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.65 1.65 0 0 0 1 1.5 1.65 1.65 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.65 1.65 0 0 0-.3 1.8V9a1.65 1.65 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.65 1.65 0 0 0-1.5 1Z"/></svg>
-              Change password
-            </span>
-            <svg class="settings-row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
-          </div>
           <button type="button" class="settings-row settings-row-button" id="logout-btn">
             <span class="settings-row-label logout-btn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+              <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
               Log out
             </span>
           </button>
         </div>
       </div>
-
-      <div class="demo-banner" style="margin-inline: var(--sp-4);">
-        <span class="demo-badge">Preview</span>
-        <span>Privacy and notification controls are not editable in this version yet.</span>
-      </div>
     </main>
+
+    <dialog id="edit-profile-dialog" class="profile-dialog" aria-labelledby="edit-profile-title" aria-describedby="edit-profile-help">
+      <form id="edit-profile-form" class="profile-dialog-form" method="dialog" novalidate>
+        <div class="profile-dialog-header">
+          <div>
+            <h2 id="edit-profile-title">Edit profile</h2>
+            <p id="edit-profile-help">Choose what people see when they find you on Wisp.</p>
+          </div>
+        </div>
+
+        <div class="profile-dialog-body">
+          <div id="profile-banner" class="form-banner" role="status" aria-live="polite" aria-atomic="true"></div>
+
+          <div class="field">
+            <label for="profile-username-input">Username</label>
+            <input type="text" id="profile-username-input" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" minlength="3" maxlength="32" pattern="[A-Za-z0-9][A-Za-z0-9_.-]{2,31}" required aria-describedby="profile-username-help" />
+            <p class="profile-field-help" id="profile-username-help">Use 3–32 letters, numbers, dots, dashes, or underscores. Do not use private information.</p>
+          </div>
+
+          <div class="field">
+            <label for="profile-bio-input">Bio <span class="optional-label">Optional</span></label>
+            <textarea id="profile-bio-input" name="bio" rows="5" autocomplete="off" aria-describedby="profile-bio-help"></textarea>
+            <p class="profile-field-help" id="profile-bio-help">Up to 280 characters. Keep addresses, schools, phone numbers, and other private details out.</p>
+          </div>
+        </div>
+
+        <div class="profile-dialog-actions">
+          <button type="button" class="btn btn-secondary" id="edit-profile-cancel" value="cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="edit-profile-save" value="save">Save changes</button>
+        </div>
+      </form>
+    </dialog>
 
     <div id="tab-bar-slot"></div>
   </div>

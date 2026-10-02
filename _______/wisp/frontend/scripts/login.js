@@ -62,6 +62,7 @@ form.addEventListener("submit", async (event) => {
   }
 
   setLoading(submitBtn, true, "Logging in…", "Log in");
+  let sessionEstablished = false;
   try {
     const { data, error } = await supabase.auth.signInWithPassword({
       email: emailInput.value.trim(),
@@ -69,6 +70,7 @@ form.addEventListener("submit", async (event) => {
       options: { captchaToken: token },
     });
     if (error || !data?.user || data.user.is_anonymous) throw error || new Error("Permanent account required.");
+    sessionEstablished = true;
     await ensureWispProfile(data.user);
     window.location.replace("./home.html");
   } catch (error) {
@@ -76,6 +78,9 @@ form.addEventListener("submit", async (event) => {
     if (/username|duplicate|unique/i.test(String(error?.message || ""))) {
       window.location.replace("./complete-profile.html");
       return;
+    }
+    if (sessionEstablished) {
+      await supabase.auth.signOut({ scope: "local" }).catch(() => {});
     }
     showBanner(banner, "The email, password, or safety check was not accepted. Please try again.", "error");
   } finally {
@@ -134,4 +139,6 @@ if (!supabase) {
   if (!authEmailDeliveryReady) recoveryBtn.setAttribute("aria-disabled", "true");
 }
 
-window.addEventListener("pagehide", () => removeHumanCheck(humanCheck), { once: true });
+window.addEventListener("pagehide", (event) => {
+  if (!event.persisted) removeHumanCheck(humanCheck);
+});
