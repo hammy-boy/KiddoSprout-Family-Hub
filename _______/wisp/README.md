@@ -66,6 +66,10 @@ remote project.
   administrators can read stored message content.
 - Both people need the relevant chat open to receive the current in-browser call
   signal. Background ringing/push notifications are not implemented.
+- Supabase caches private-channel authorization for an open Realtime connection.
+  Blocking a contact prevents new calls and messages at the database boundary,
+  but an already-connected call channel must disconnect or reauthorize before
+  that cached permission is recalculated.
 - Message refresh hints contain no message content and are receive-only for
   browsers. Chat and inbox polling provide a fallback, but delivery is not an
   offline push-notification system.

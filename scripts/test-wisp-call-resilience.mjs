@@ -7,7 +7,7 @@ const WEBRTC = new URL("_______/wisp/frontend/scripts/webrtc.js", ROOT);
 const AUTH_GUARD = new URL("_______/wisp/frontend/scripts/authGuard.js", ROOT);
 const SUPABASE_CLIENT = new URL("_______/wisp/frontend/scripts/supabaseClient.js", ROOT);
 const ANSWER_SELECTION_MIGRATION = new URL(
-  "supabase/migrations/20261002021955_wisp_allow_answer_selection_signal.sql",
+  "supabase/migrations/20261003153258_fix_wisp_realtime_authorization.sql",
   ROOT,
 );
 
@@ -86,8 +86,10 @@ test("Wisp private call signaling permits the multi-device answer selection hand
 
   assert.match(migration, /create\s+policy\s+wisp_call_send[\s\S]*?for\s+insert[\s\S]*?to\s+authenticated/i,
     "Only authenticated private-channel members should receive call publish access.");
-  assert.match(migration, /realtime\.messages\.event\s+in\s*\([\s\S]*?['"]answer-selected['"][\s\S]*?\)/i,
-    "The database event allowlist must accept the answer selection emitted by the caller.");
+  assert.doesNotMatch(migration, /realtime\.messages\.event/i,
+    "Realtime authorizes channel access before a Broadcast event name exists, so the policy must not inspect it.");
+  assert.match(migration, /realtime\.messages\.extension\s*=\s*['"]broadcast['"]/i,
+    "The database policy must still restrict call publishing to Broadcast channels.");
   assert.match(migration, /can_signal_topic\s*\(\s*\(select\s+realtime\.topic\(\)\)\s*\)/i,
     "Answer selection must retain chat-membership authorization.");
 });

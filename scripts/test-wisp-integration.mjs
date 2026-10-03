@@ -11,6 +11,14 @@ const MIGRATION = new URL(
   "supabase/migrations/20261001135110_create_secure_wisp_messaging.sql",
   ROOT
 );
+const MESSAGE_LIFECYCLE_MIGRATION = new URL(
+  "supabase/migrations/20261001202059_wisp_message_deletion_read_receipts.sql",
+  ROOT
+);
+const REALTIME_AUTH_MIGRATION = new URL(
+  "supabase/migrations/20261003153258_fix_wisp_realtime_authorization.sql",
+  ROOT
+);
 
 async function source(url) {
   try {
@@ -51,6 +59,8 @@ const [
   scriptFiles,
   pageFiles,
   migration,
+  messageLifecycleMigration,
+  realtimeAuthMigration,
   bundledClient,
   bundleBuilder,
   packageManifest,
@@ -65,6 +75,8 @@ const [
   sourcesIn(SCRIPTS, ".js"),
   sourcesIn(PAGES, ".html"),
   source(MIGRATION),
+  source(MESSAGE_LIFECYCLE_MIGRATION),
+  source(REALTIME_AUTH_MIGRATION),
   source(new URL("frontend/vendor/supabase-js-2.116.0.js", WISP)),
   source(new URL("scripts/build-wisp-client.mjs", ROOT)),
   source(new URL("package.json", ROOT)),
@@ -482,15 +494,17 @@ test("Privileged Wisp functions stay private and no global Auth trigger is insta
 });
 
 test("Realtime authorization permits only chat members on scoped call topics", () => {
-  assert.match(migration, /alter\s+publication\s+supabase_realtime\s+add\s+table\s+public\.wisp_messages/i,
-    "Live message delivery requires wisp_messages in the Realtime publication.");
+  assert.match(messageLifecycleMigration, /alter\s+publication\s+supabase_realtime\s+drop\s+table\s+public\.wisp_messages/i,
+    "Private message rows must stay out of Postgres Changes; Wisp uses redacted Broadcast refresh hints.");
   assert.match(migration, /create\s+policy\s+["']?wisp_call_receive["']?[\s\S]*?on\s+realtime\.messages[\s\S]*?for\s+select[\s\S]*?to\s+authenticated/i);
-  assert.match(migration, /create\s+policy\s+["']?wisp_call_send["']?[\s\S]*?on\s+realtime\.messages[\s\S]*?for\s+insert[\s\S]*?to\s+authenticated/i);
-  assert.match(migration, /realtime\.topic\s*\(\s*\)|\btopic\b/i);
+  assert.match(realtimeAuthMigration, /create\s+policy\s+["']?wisp_call_send["']?[\s\S]*?on\s+realtime\.messages[\s\S]*?for\s+insert[\s\S]*?to\s+authenticated/i);
+  assert.match(realtimeAuthMigration, /realtime\.topic\s*\(\s*\)|\btopic\b/i);
   assert.match(migration, /wisp-call:/,
     "Realtime policies and frontend must share the wisp-call:<chat-id> topic prefix.");
-  assert.match(migration, /extension\s+in\s*\([^)]*['"]broadcast['"]|extension\s*=\s*['"]broadcast['"]/i,
+  assert.match(realtimeAuthMigration, /extension\s+in\s*\([^)]*['"]broadcast['"]|extension\s*=\s*['"]broadcast['"]/i,
     "Call-channel authorization must be limited to Broadcast messages.");
+  assert.doesNotMatch(realtimeAuthMigration, /realtime\.messages\.event/i,
+    "Realtime's channel-authorization probe does not include a Broadcast event name.");
   assert.match(migration, /wisp_chat_members/,
     "Realtime send/receive authorization must prove current chat membership.");
   assert.match(migration, /wisp_blocks/,
@@ -518,6 +532,8 @@ test("The integration guide keeps deployment steps safe and credential-free", ()
     "The deployment guide must include Wisp's ordered message-lifecycle migration.");
   assert.match(integrationGuide, /20261002021955_wisp_allow_answer_selection_signal\.sql/,
     "The deployment guide must include Wisp's multi-device call-selection migration.");
+  assert.match(integrationGuide, /20261003153258_fix_wisp_realtime_authorization\.sql/,
+    "The deployment guide must include the current Supabase Realtime authorization fix.");
   assert.match(integrationGuide, /\/wisp\/pages\/reset-password\.html/,
     "The Auth allow-list must use the hosted reset route, not the source-tree path.");
   assert.match(integrationGuide, /\/wisp\/pages\/complete-profile\.html/,

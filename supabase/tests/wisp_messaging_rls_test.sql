@@ -230,14 +230,14 @@ select ok(
 );
 
 select ok(
-  exists (
+  not exists (
     select 1
     from pg_publication_tables
     where pubname = 'supabase_realtime'
       and schemaname = 'public'
       and tablename = 'wisp_messages'
   ),
-  'Wisp messages are in the Supabase Realtime publication'
+  'private Wisp messages stay out of the Supabase Realtime publication'
 );
 
 select is(
@@ -269,13 +269,11 @@ select ok(
     where schemaname = 'realtime'
       and tablename = 'messages'
       and policyname = 'wisp_call_send'
-      and with_check like '%offer%'
-      and with_check like '%answer%'
-      and with_check like '%answer-selected%'
-      and with_check like '%ice-candidate%'
-      and with_check like '%end%'
+      and with_check like '%extension%'
+      and with_check like '%can_signal_topic%'
+      and with_check not like '%event%'
   ),
-  'call publishing accepts the complete required signaling event set'
+  'call publishing authorizes the private topic without testing unavailable event metadata'
 );
 
 insert into auth.users (id, email, is_anonymous)

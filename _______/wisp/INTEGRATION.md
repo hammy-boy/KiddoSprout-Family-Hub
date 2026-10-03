@@ -63,6 +63,7 @@ CDN.
    `supabase/migrations/20261001202059_wisp_message_deletion_read_receipts.sql`,
    followed by `supabase/migrations/20261001210000_wisp_secure_profile_presence.sql`,
    then `supabase/migrations/20261002021955_wisp_allow_answer_selection_signal.sql`,
+   and finally `supabase/migrations/20261003153258_fix_wisp_realtime_authorization.sql`,
    confirm the linked project again, and only then run the supported `db push`
    flow shown by the current CLI help. The migrations create only `wisp_...`
    tables/RPCs, apply RLS, explicitly grant the minimum authenticated access, deny
@@ -147,6 +148,10 @@ CDN.
 - Private Realtime authorization protects WebRTC signaling. Audio/video media is
   peer-to-peer, and reliable calling across strict networks still needs a TURN
   service configured server-side.
+- Realtime caches a private channel's authorization until it reconnects or
+  receives a new JWT. A newly blocked contact cannot start another call, but an
+  already-connected call must close or reauthorize before that cached channel
+  permission is recalculated.
 - Public/demo builds must remain read-only and must not receive live project
   credentials.
 - A browser publishable key is not a secret; RLS and narrowly scoped RPCs are the
