@@ -219,7 +219,7 @@ function createHarness(api, options = {}) {
 }
 
 const [index, childCallPage, callSource, appSource, builtAppSource, packageSource] = await Promise.all([
-  requiredSource("index.html", "the parent-side family-call controls"),
+  requiredSource("index.html", "the Wisp dashboard entry"),
   requiredSource("family-call.html", "the paired child-device call controls"),
   requiredSource("family-calls.js", "the testable family-call client"),
   requiredSource("src/family-call-app.mjs", "the safe colleague call simulator"),
@@ -244,8 +244,7 @@ for (const match of callUiSource.matchAll(/<(?:input|select|textarea)\b[^>]*(?:f
 
 const requiredButtons = [
   "callParent",
-  "acceptFamilyCall",
-  "declineFamilyCall",
+
   "hangUpFamilyCall",
   "muteFamilyCall"
 ];
@@ -263,20 +262,13 @@ assert.match(statusTag, /\brole=["']status["']/i, "Call status must be announced
 assert.match(statusTag, /\baria-live=["']polite["']/i, "Call status must use a non-interrupting live region.");
 assert.match(statusTag, /\baria-atomic=["']true["']/i, "Each complete call status must be announced together.");
 
-const incomingTag = openingTagForId(index, "incomingFamilyCall");
-assert.match(incomingTag, /\bhidden\b/i, "The incoming-call surface must start visually hidden.");
-assert.match(incomingTag, /\binert\b/i, "Hidden incoming-call controls must not remain keyboard reachable.");
-assert.match(incomingTag, /\baria-hidden=["']true["']/i, "The hidden incoming-call surface must be hidden from assistive technology.");
-const incomingLabelId = attributeValue(incomingTag, "aria-labelledby");
-const incomingDescriptionId = attributeValue(incomingTag, "aria-describedby");
-assert.ok(incomingLabelId && openingTagForId(index, incomingLabelId),
-  "The incoming-call surface needs an aria-labelledby target in index.html.");
-assert.ok(incomingDescriptionId && openingTagForId(index, incomingDescriptionId),
-  "The incoming-call surface needs an aria-describedby target in index.html.");
+assert.doesNotMatch(index, /id="incomingFamilyCall"|src="family-call-app\.js/, "The dashboard must not subscribe to the replaced Family Call service.");
+assert.equal((index.match(/href="wisp\.html"/g) || []).length, 2, "Both dashboards must open Wisp.");
+assert.match(index, /href="https:\/\/hammy-boy\.github\.io\/Projects\/"[^>]*rel="noopener noreferrer"/, "The science resource must open safely.");
 assert.match(openingTagForId(callUiSource, "familyCallRemoteAudio"), /^<audio\b/i,
   "Remote call media must be audio-only.");
 
-for (const [documentName, source] of [["index.html", index], ["family-call.html", childCallPage]]) {
+for (const [documentName, source] of [["family-call.html", childCallPage]]) {
   const modalTag = openingTagForId(source, "familyCallModal");
   assert.match(modalTag, /\baria-hidden=["']true["']/i,
     `${documentName}'s call dialog must start hidden from assistive technology.`);

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wisp · KiddoSprout</title>
+  <link rel="icon" href="kiddosprout_logo_128.png">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px 16px; font: 18px/1.6 system-ui, sans-serif; color: #173c34; background: #edf8f3; }
+    main { max-width: 640px; margin: 8vh auto; padding: clamp(20px, 5vw, 40px); border: 1px solid #bddacf; border-radius: 24px; background: white; }
+    h1 { font-size: clamp(32px, 8vw, 52px); margin: 12px 0; }
+    a { color: #126b55; overflow-wrap: anywhere; }
+    .button { display: inline-block; padding: 12px 20px; border-radius: 14px; color: white; background: #126b55; text-decoration: none; }
+    a:focus-visible { outline: 3px solid #8b62d5; outline-offset: 4px; }
+    [hidden] { display: none; }
+  </style>
+</head>
+<body>
+  <main>
+    <a href="index.html">← Back to KiddoSprout</a>
+    <h1>Wisp</h1>
+    <p>Direct messages and internet calls without a phone number.</p>
+    <p>Wisp replaces the Family Call entry in KiddoSprout. Open it with a parent to set up your account and contacts.</p>
+    <p id="wisp-status" role="status">This preview introduces Wisp. Live account setup is still being connected.</p>
+    <a class="button" id="open-wisp-app" href="wisp/pages/index.html" hidden>Continue to Wisp</a>
+    <p>Keep your password private. Wisp is not an emergency calling service.</p>
+  </main>
+  <script src="supabase-config.js"></script>
+  <script>
+    const config = window.KIDDO_SPROUT_SUPABASE;
+    if (config && config.publicDemoOnly !== true && config.url && (config.publishableKey || config.anonKey)) {
+      document.getElementById('open-wisp-app').hidden = false;
+      document.getElementById('wisp-status').textContent = 'Open the Wisp app to check account availability. Its database setup must be completed before messages and calls work.';
+    }
+  </script>
+</body>
+</html>

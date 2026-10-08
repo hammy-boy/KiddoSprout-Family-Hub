@@ -173,7 +173,7 @@
             <button data-jump="homework" data-i18n="sidebar.homework">Homework</button>
             <button data-jump="homeschoolHub" data-i18n="sidebar.homeschool">Homeschool Hub</button>
             <button data-jump="focusSession" data-i18n="sidebar.focus">Focus Session</button>
-            <button data-jump="familyCallChild" data-i18n="sidebar.familyCall">Family Calls</button>
+            <button data-jump="familyCallChild" >Wisp</button>
             <button data-jump="parentChat" data-i18n="sidebar.parentChat">Parent Chat</button>
             <button data-jump="parentNote" data-i18n="sidebar.parentNote">Parent Note</button>
             <button data-jump="dailySchedule" data-i18n="sidebar.schedule">Schedule</button>
@@ -188,7 +188,7 @@
             <summary data-i18n="sidebar.parentHome">Parent Home</summary>
             <button data-jump="parentOverview" data-i18n="sidebar.overview">Overview</button>
             <button data-jump="parentStatus" data-i18n="sidebar.familyStatus">Family Status</button>
-            <button data-jump="familyCallParent" data-i18n="sidebar.familyCall">Family Calls</button>
+            <button data-jump="familyCallParent" >Wisp</button>
             <button data-jump="controls" data-i18n="nav.controls">Controls</button>
             <button data-jump="reports" data-i18n="nav.reports">Reports</button>
           </details>
@@ -1129,6 +1129,12 @@
         </div>
       </section>
 
+      <section class="card child-only" id="littleElementsLab" aria-labelledby="elementsLabTitle" style="margin-bottom: 18px;">
+        <div class="card-head"><div><h2 id="elementsLabTitle">The Little Elements Lab</h2><p class="small">Explore the periodic table, search elements, and discover their families.</p></div></div>
+        <a class="approve button-link" href="https://hammy-boy.github.io/Projects/" target="_blank" rel="noopener noreferrer">Explore the Elements ↗</a>
+        <p class="small">Opens a separate science website in a new tab.</p>
+      </section>
+
       <section class="card child-only note-card" id="parentNote" aria-label="Parent note" style="margin-bottom: 18px;">
         <div class="card-head">
           <div>
@@ -1150,27 +1156,11 @@
         <div class="mini-grid" id="scheduleCards"></div>
       </section>
 
-      <section class="card child-only family-call-card" id="familyCallChild" aria-labelledby="familyCallChildTitle" style="margin-bottom: 18px;">
-        <div class="card-head">
-          <div>
-            <h2 id="familyCallChildTitle" data-i18n="call.child.title">Call a Parent</h2>
-            <p class="small" data-i18n="call.child.help">Use KiddoSprout internet audio. No phone number is shared or needed.</p>
-          </div>
-          <span class="family-call-icon" aria-hidden="true">☎</span>
-        </div>
-        <div class="family-call-shell">
-          <div class="family-call-state">
-            <span class="family-call-state-dot" aria-hidden="true"></span>
-            <output id="familyCallDashboardStatus" role="status" aria-live="polite" aria-atomic="true" data-i18n="call.status.separateDevice">Family calls open on a separately paired child device.</output>
-          </div>
-          <p class="family-call-limit" data-i18n="call.child.separateDevice">For privacy, calling does not start inside this parent-signed-in dashboard.</p>
-          <div class="family-call-actions">
-            <a class="approve button-link" id="openFamilyCall" href="family-call.html" data-i18n="call.openChildDevice">Open Child Call Page</a>
-            <button class="tiny" type="button" data-jump="parentChat" data-i18n="call.sendMessage">Send a Message Instead</button>
-          </div>
-          <p class="family-call-safety" data-i18n="call.notEmergency">Not for emergencies. Ask a nearby trusted adult or use local emergency services when urgent help is needed.</p>
-        </div>
+      <section class="card child-only family-call-card" id="familyCallChild" aria-labelledby="wispChildTitle" style="margin-bottom: 18px;">
+        <div class="card-head"><div><h2 id="wispChildTitle">Wisp</h2><p class="small">Open Wisp for direct messages and internet calls. No phone number is needed.</p></div></div>
+        <div class="family-call-shell"><p class="small">Wisp has its own account and contact controls. Its live service is still being connected.</p><a class="approve button-link" href="wisp.html">Open Wisp</a></div>
       </section>
+
 
       <section class="card child-only lively-panel" id="parentChat" aria-label="Parent chat" style="margin-bottom: 18px;">
         <div class="card-head">
@@ -1346,49 +1336,11 @@
 
       <div class="grid parent-only">
         <aside class="control-stack parent-only" id="controls">
-          <section class="card family-call-card" id="familyCallParent" aria-labelledby="familyCallParentTitle">
-            <div class="card-head">
-              <div>
-                <h2 id="familyCallParentTitle" data-i18n="call.parent.title">Family Calls</h2>
-                <p class="small" data-i18n="call.parent.help">Pair a child device, then answer KiddoSprout internet audio calls while both devices are online.</p>
-              </div>
-              <span class="family-call-icon" aria-hidden="true">☎</span>
-            </div>
-            <div class="family-call-shell">
-              <section class="family-call-pairing" aria-labelledby="familyCallPairingTitle">
-                <div>
-                  <h3 id="familyCallPairingTitle" data-i18n="call.pairing.title">Pair a Child Device</h3>
-                  <p class="small" id="familyCallPairingHelp" data-i18n="call.pairing.help">Create a one-time code, then enter it only on the child device you want to pair.</p>
-                </div>
-                <label for="familyCallPairingCode">
-                  <span class="small" data-i18n="call.pairing.code">Pairing code</span>
-                  <input class="family-call-code" id="familyCallPairingCode" type="text" value="" placeholder="Not created" data-i18n-placeholder="call.pairing.placeholder" aria-describedby="familyCallPairingHelp familyCallPairingStatus" readonly>
-                </label>
-                <div class="family-call-actions">
-                  <button class="approve" id="createFamilyCallPairing" type="button" disabled aria-disabled="true" data-i18n="call.pairing.create">Create Pairing Code</button>
-                  <button class="tiny" id="copyFamilyCallPairing" type="button" disabled aria-disabled="true" data-i18n="call.pairing.copy">Copy Code</button>
-                  <button class="tiny" id="revokeFamilyCallPairing" type="button" disabled aria-disabled="true" data-i18n="call.pairing.revoke">Revoke Device</button>
-                </div>
-                <output id="familyCallPairingStatus" role="status" aria-live="polite" aria-atomic="true" data-i18n="call.pairing.status">Secure pairing service is not connected.</output>
-              </section>
-              <section class="family-call-incoming" id="incomingFamilyCall" role="alert" aria-labelledby="incomingFamilyCallTitle" aria-describedby="incomingFamilyCallDescription" aria-hidden="true" hidden inert>
-                <div>
-                  <strong id="incomingFamilyCallTitle" data-i18n="call.incoming">Incoming family call</strong>
-                  <span class="small" id="incomingFamilyCallDescription" data-i18n="call.noPhone">KiddoSprout audio uses no phone number.</span>
-                </div>
-                <div class="family-call-actions">
-                  <button class="approve" id="acceptFamilyCall" type="button" disabled data-i18n="call.answer">Answer</button>
-                  <button class="block" id="declineFamilyCall" type="button" disabled data-i18n="call.decline">Decline</button>
-                </div>
-              </section>
-              <p class="family-call-limit" data-i18n="call.parent.requirement">When calling becomes available, the parent must keep KiddoSprout open on another paired device and both devices must be online.</p>
-              <p class="family-call-limit" data-family-call-preview-only>Demo Mode keeps real pairing, microphones, and ringing off. Use the silent simulator to test the complete call controls without contacting anyone.</p>
-              <div class="family-call-actions" data-family-call-preview-only>
-                <a class="approve button-link" href="family-call.html">Try the No-Audio Call Simulator</a>
-              </div>
-              <p class="family-call-safety" data-i18n="call.privacy">KiddoSprout does not record call audio. Calls are not for emergencies.</p>
-            </div>
-          </section>
+      <section class="card family-call-card" id="familyCallParent" aria-labelledby="wispParentTitle" style="margin-bottom: 18px;">
+        <div class="card-head"><div><h2 id="wispParentTitle">Wisp</h2><p class="small">Open Wisp for direct messages and internet calls. No phone number is needed.</p></div></div>
+        <div class="family-call-shell"><p class="small">Wisp has its own account and contact controls. Its live service is still being connected.</p><a class="approve button-link" href="wisp.html">Open Wisp</a></div>
+      </section>
+
 
           <section class="card">
             <div class="card-head">
@@ -1550,35 +1502,6 @@
     </main>
   </div>
 
-  <section class="modal family-call-modal" id="familyCallModal" aria-hidden="true" inert>
-    <div class="modal-panel family-call-modal-panel" role="dialog" aria-modal="true" aria-labelledby="familyCallTitle" aria-describedby="familyCallDescription">
-      <div class="modal-head">
-        <div>
-          <h2 id="familyCallTitle" data-i18n="call.modal.title">KiddoSprout Family Call</h2>
-          <p class="small" id="familyCallDescription" data-i18n="call.modal.description">Internet audio with a securely paired family device. No phone number is used.</p>
-        </div>
-      </div>
-      <div class="modal-body family-call-stage">
-        <div class="family-call-avatar" aria-hidden="true">KS</div>
-        <output class="family-call-live-status" id="familyCallLiveStatus" role="status" aria-live="polite" aria-atomic="true" data-i18n="call.modal.waiting">Waiting for the secure call service.</output>
-        <time class="family-call-timer" id="familyCallTimer" datetime="PT0S" aria-live="off">00:00</time>
-        <audio id="familyCallRemoteAudio" autoplay playsinline aria-label="Remote family call audio" data-i18n-aria-label="call.remoteAudio"></audio>
-        <div class="family-call-controls" aria-label="Call controls" data-i18n-aria-label="call.controls">
-          <button class="tiny" id="muteFamilyCall" type="button" aria-pressed="false" disabled>
-            <span aria-hidden="true">🎙</span>
-            <span data-family-call-mute-label data-i18n="call.mute">Mute</span>
-          </button>
-          <button class="block" id="hangUpFamilyCall" type="button" disabled>
-            <span aria-hidden="true">☎</span>
-            <span data-family-call-action-label data-i18n="call.end">End Call</span>
-          </button>
-        </div>
-        <p class="family-call-limit" data-family-call-preview-only data-i18n="call.modal.disabled">The call client is not connected, so this screen cannot request the microphone or contact another device.</p>
-        <p class="family-call-safety" data-i18n="call.notEmergency">Not for emergencies. Ask a nearby trusted adult or use local emergency services when urgent help is needed.</p>
-      </div>
-    </div>
-  </section>
-
   <section class="modal" id="appModal" aria-hidden="true" inert>
     <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="appTitle" aria-describedby="appSubtitle">
       <div class="modal-head">
@@ -1669,7 +1592,7 @@
   <script src="family-state-cloud.js?v=2"></script>
   <script src="passcode-security.js?v=1"></script>
   <script src="js.js?v=41"></script>
-  <script src="family-calls.js?v=1"></script>
-  <script src="family-call-app.js?v=2"></script>
+
+
 </body>
 </html>

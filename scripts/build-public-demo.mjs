@@ -108,6 +108,7 @@ export const PUBLIC_FILES = Object.freeze([
   "portal/index.html",
   "portal/404.html",
   "family-call.html",
+  "wisp.html",
   "offline.html",
   "recipe.html",
   "app_7.html",
