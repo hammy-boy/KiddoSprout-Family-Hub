@@ -154,6 +154,44 @@ for (const spec of GAME_SPECS) {
     `${spec.title} must stay self-contained without network or telemetry APIs.`);
 }
 
+const learningWorldModule = { exports: {} };
+vm.runInNewContext(await read("games/learning-world/subjects.js"), {
+  module: learningWorldModule,
+  Math
+}, { filename: "games/learning-world/subjects.js" });
+const learningSubjects = learningWorldModule.exports.subjects;
+assert.deepEqual(
+  Array.from(learningSubjects, ({ id }) => id),
+  ["maths", "english", "science", "geography", "history", "computing", "art", "music", "languages"],
+  "Learning World must provide study guides and quizzes for every core subject."
+);
+for (const subject of learningSubjects) {
+  assert.ok(subject.study.length >= 4, `${subject.name} needs at least four browsable study topics.`);
+  for (const topic of subject.study) {
+    for (const field of ["title", "text", "example", "check", "answer"]) {
+      assert.equal(typeof topic[field], "string", `${subject.name} study topic ${topic.title} needs ${field}.`);
+      assert.ok(topic[field].trim(), `${subject.name} study topic ${topic.title} has empty ${field}.`);
+    }
+  }
+  assert.ok(subject.questions.length >= 8, `${subject.name} needs a substantial quiz.`);
+  assert.equal(subject.questions.every((question) => (
+    Array.isArray(question) && question.length === 5 && question.every((part) => typeof part === "string" && part.trim())
+  )), true, `${subject.name} has malformed quiz questions.`);
+}
+assert.equal(learningSubjects.find(({ id }) => id === "maths")?.game?.href,
+  "../multiplication-runner/index.html",
+  "The Maths guide must retain a direct link to Math Runner.");
+const learningWorldPage = await read("games/learning-world/index.html");
+const learningWorldGame = await read("games/learning-world/game.js");
+assert.match(learningWorldPage, /0 \/ 9 badges/,
+  "The passport must include the new Maths subject.");
+assert.match(learningWorldGame, /function openStudyGuide\(item\)/,
+  "Choosing a subject must open its interactive study guide before the quiz.");
+assert.match(learningWorldGame, /checkButton\.onclick/,
+  "Each study topic must offer an interactive answer reveal.");
+assert.match(learningWorldGame, /studyCard\.setAttribute\('aria-live','polite'\)/,
+  "Changing a study topic must be announced to screen readers.");
+
 const accessSource = await read("games/arcade-access.js");
 assert.match(accessSource,
   /const allowed = await Promise\.resolve\(window\.KiddoHubGate\.protect\("arcade", accessTitle\)\);/,
@@ -281,8 +319,8 @@ assert.ok(workerRuntimeMatch, "The service worker runtime allow-list is missing.
 const runtimeGames = JSON.parse(workerRuntimeMatch[1]).filter((path) => path.startsWith("/games/")).sort();
 assert.deepEqual(runtimeGames, PUBLIC_GAME_FILES.map((path) => `/${path}`).sort(),
   "Offline runtime caching must include exactly the reviewed arcade files.");
-assert.match(workerSource, /const KIDDOSPROUT_CACHE_VERSION = ["']shell-v118["']/,
-  "The mobile layout release needs the v118 shell cache so older clients receive it.");
+assert.match(workerSource, /const KIDDOSPROUT_CACHE_VERSION = ["']shell-v120["']/,
+  "The Learning World study guides need a fresh shell cache so older clients receive them.");
 assert.deepEqual(runtimeGames.filter((path) => path.endsWith(".svg")), ["/games/multiplication-runner/map.svg"],
   "Only the reviewed Math Runner map SVG may enter the offline allow-list.");
 
