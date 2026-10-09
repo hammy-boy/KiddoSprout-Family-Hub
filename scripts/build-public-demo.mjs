@@ -103,6 +103,42 @@ const PUBLIC_GAME_FILES = Object.freeze([
 // allow-list on purpose: adding a new server, migration, secret, installer, or
 // development file to the repository can never add it to the public bundle.
 export const PUBLIC_FILES = Object.freeze([
+  "wisp/pages/calls.html",
+  "wisp/pages/chat.html",
+  "wisp/pages/complete-profile.html",
+  "wisp/pages/contacts.html",
+  "wisp/pages/home.html",
+  "wisp/pages/index.html",
+  "wisp/pages/login.html",
+  "wisp/pages/profile.html",
+  "wisp/pages/reset-password.html",
+  "wisp/pages/signup.html",
+  "wisp/scripts/authGuard.js",
+  "wisp/scripts/calls.js",
+  "wisp/scripts/chat.js",
+  "wisp/scripts/chatData.js",
+  "wisp/scripts/completeProfile.js",
+  "wisp/scripts/config.js",
+  "wisp/scripts/contacts.js",
+  "wisp/scripts/home.js",
+  "wisp/scripts/humanCheckClient.js",
+  "wisp/scripts/login.js",
+  "wisp/scripts/presence.js",
+  "wisp/scripts/profile.js",
+  "wisp/scripts/resetPassword.js",
+  "wisp/scripts/signup.js",
+  "wisp/scripts/supabaseClient.js",
+  "wisp/scripts/tabBar.js",
+  "wisp/scripts/theme.js",
+  "wisp/scripts/validation.js",
+  "wisp/scripts/webrtc.js",
+  "wisp/styles/auth.css",
+  "wisp/styles/base.css",
+  "wisp/styles/chat.css",
+  "wisp/styles/onboarding.css",
+  "wisp/styles/screens.css",
+  "wisp/styles/tokens.css",
+  "wisp/vendor/supabase-js-2.116.0.js",
   "404.html",
   "index.html",
   "portal/index.html",
@@ -566,7 +602,10 @@ export async function buildPublicDemo() {
       if (extname(file).toLowerCase() === ".svg") {
         await assertReviewedPublicSvg(file, join(ROOT, file));
       }
-      await copyPublicFile(join(ROOT, file), join(stagingDirectory, file));
+      const sourceFile = file.startsWith("wisp/")
+        ? `_______/wisp/frontend/${file.slice("wisp/".length)}`
+        : file;
+      await copyPublicFile(join(ROOT, sourceFile), join(stagingDirectory, file));
     }
 
     // The source pages use this synchronous head script to move accidental
@@ -579,6 +618,10 @@ export async function buildPublicDemo() {
       let publicSource = extname(file).toLowerCase() === ".html"
         ? html.replace(LOCAL_DOCKER_REDIRECT_TAG, "")
         : html;
+      if (file.startsWith("wisp/pages/")) {
+        publicSource = publicSource.replaceAll('src="/supabase-config.js"', 'src="../../supabase-config.js"')
+          .replaceAll('src="/human-check.js"', 'src="../../human-check.js"');
+      }
       if (file === "index.html") {
         if (!publicSource.includes("<body>")) {
           throw new Error("Public demo could not mark the dashboard as demo-only before first paint.");

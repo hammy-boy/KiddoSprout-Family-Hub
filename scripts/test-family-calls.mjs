@@ -263,7 +263,7 @@ assert.match(statusTag, /\baria-live=["']polite["']/i, "Call status must use a n
 assert.match(statusTag, /\baria-atomic=["']true["']/i, "Each complete call status must be announced together.");
 
 assert.doesNotMatch(index, /id="incomingFamilyCall"|src="family-call-app\.js/, "The dashboard must not subscribe to the replaced Family Call service.");
-assert.equal((index.match(/href="wisp\.html"/g) || []).length, 2, "Both dashboards must open Wisp.");
+assert.equal((index.match(/href="wisp\/pages\/index\.html"/g) || []).length, 3, "Daily Spark and both dashboards must open the actual Wisp app.");
 assert.match(index, /href="https:\/\/hammy-boy\.github\.io\/Projects\/"[^>]*rel="noopener noreferrer"/, "The science resource must open safely.");
 assert.match(openingTagForId(callUiSource, "familyCallRemoteAudio"), /^<audio\b/i,
   "Remote call media must be audio-only.");
