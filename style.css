@@ -5494,6 +5494,78 @@
       cursor: not-allowed;
     }
 
+    body:not(.mode-child):not(.mode-login):not(.mode-signup) .feature-sidebar > .sidebar-title,
+    body:not(.mode-child):not(.mode-login):not(.mode-signup) #parentHomeFolder {
+      display: none;
+    }
+
+    body:not(.mode-child):not(.mode-login):not(.mode-signup) .parent-controls-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    body:not(.mode-child):not(.mode-login):not(.mode-signup) #controls {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    body:not(.mode-child):not(.mode-login):not(.mode-signup) #controls > .card:nth-child(3) {
+      grid-column: 1 / -1;
+    }
+
+    body:not(.mode-child):not(.mode-login):not(.mode-signup) #reports {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (max-width: 900px) {
+      body:not(.mode-child):not(.mode-login):not(.mode-signup) .hero {
+        min-height: 420px;
+      }
+
+      body:not(.mode-child):not(.mode-login):not(.mode-signup) .hero-content {
+        padding-top: 48px;
+        padding-bottom: 52px;
+      }
+
+      body:not(.mode-child):not(.mode-login):not(.mode-signup) .hero h1 {
+        font-size: clamp(40px, 8vw, 72px);
+      }
+
+      body:not(.mode-child):not(.mode-login):not(.mode-signup) #parentStatus {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (min-width: 561px) and (max-width: 900px) {
+      body:not(.mode-child):not(.mode-login):not(.mode-signup) .topbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 10px 16px;
+      }
+
+      body:not(.mode-child):not(.mode-login):not(.mode-signup) .topbar .nav {
+        grid-column: 1 / -1;
+        grid-row: 2;
+      }
+
+      body:not(.mode-child):not(.mode-login):not(.mode-signup) .topbar .top-actions {
+        grid-column: 2;
+        grid-row: 1;
+        width: auto;
+      }
+    }
+
+    @media (max-width: 560px) {
+      body:not(.mode-child):not(.mode-login):not(.mode-signup) #parentStatus,
+      body:not(.mode-child):not(.mode-login):not(.mode-signup) #controls,
+      body:not(.mode-child):not(.mode-login):not(.mode-signup) #reports {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      body:not(.mode-child):not(.mode-login):not(.mode-signup) #controls > .card:nth-child(3) {
+        grid-column: auto;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       button:hover,
       .google-auth-button:hover,

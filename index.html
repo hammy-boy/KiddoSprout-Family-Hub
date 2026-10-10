@@ -184,7 +184,7 @@
             <button data-jump="chores" data-i18n="sidebar.chores">Chores</button>
             <button data-jump="kindness" data-i18n="sidebar.kindness">Kindness Quest</button>
           </details>
-          <details class="feature-folder parent-only" open>
+          <details class="feature-folder parent-only" id="parentHomeFolder" open>
             <summary data-i18n="sidebar.parentHome">Parent Home</summary>
             <button data-jump="parentOverview" data-i18n="sidebar.overview">Overview</button>
             <button data-jump="parentStatus" data-i18n="sidebar.familyStatus">Family Status</button>
@@ -415,6 +415,25 @@
           <p class="small" data-i18n="parent.dashboard.help">Start with the four cards below: daily allowance, requests, blocked sites, and bedtime. Open setup panels only when you need to change details.</p>
         </div>
         <button class="tiny" data-jump="controls" data-i18n="parent.goControls">Go to Controls</button>
+      </section>
+
+      <section class="status-strip parent-only" id="parentStatus" aria-label="Family status">
+        <article class="metric">
+          <span>Daily allowance setting</span>
+          <strong id="timeLeft">—</strong>
+        </article>
+        <article class="metric">
+          <span>Pending requests</span>
+          <strong id="pendingCount">0</strong>
+        </article>
+        <article class="metric">
+          <span>Blocked web hits</span>
+          <strong id="blockedHits">0</strong>
+        </article>
+        <article class="metric">
+          <span>Bedtime schedule</span>
+          <strong id="lockState">Off</strong>
+        </article>
       </section>
 
       <details class="card parent-only setup-panel" id="manageChildren" aria-label="Child profiles" style="margin-bottom: 18px;">
@@ -799,25 +818,6 @@
         </div>
         <textarea id="parentNoteInput" aria-labelledby="parentNoteHeading" placeholder="A short message the child sees today"></textarea>
       </details>
-
-      <section class="status-strip parent-only" id="parentStatus" aria-label="Family status">
-        <article class="metric">
-          <span>Daily allowance setting</span>
-          <strong id="timeLeft">—</strong>
-        </article>
-        <article class="metric">
-          <span>Pending requests</span>
-          <strong id="pendingCount">0</strong>
-        </article>
-        <article class="metric">
-          <span>Blocked web hits</span>
-          <strong id="blockedHits">0</strong>
-        </article>
-        <article class="metric">
-          <span>Bedtime schedule</span>
-          <strong id="lockState">Off</strong>
-        </article>
-      </section>
 
       <section class="card child-only" id="childStart" aria-label="Child mode" style="margin-bottom: 18px;">
         <div class="card-head">
@@ -1342,7 +1342,7 @@
         <div class="filter-list" id="childChores"></div>
       </section>
 
-      <div class="grid parent-only">
+      <div class="grid parent-only parent-controls-layout">
         <aside class="control-stack parent-only" id="controls">
       <section class="card family-call-card" id="familyCallParent" aria-labelledby="wispParentTitle" style="margin-bottom: 18px;">
         <div class="card-head"><div><h2 id="wispParentTitle">Wisp</h2><p class="small">Open Wisp for direct messages and internet calls. No phone number is needed.</p></div></div>

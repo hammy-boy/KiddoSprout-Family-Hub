@@ -716,6 +716,14 @@ assert.match(index, /id="rulesInput" aria-labelledby="familyRulesHeading"/);
 assert.match(index, /id="choresInput" aria-labelledby="familyChoresHeading"/);
 assert.match(index, /id="focusInput"[^>]*aria-labelledby="familyFocusHeading"/);
 assert.match(index, /id="parentNoteInput" aria-labelledby="parentNoteHeading"/);
+assert.ok(
+  index.indexOf('id="parentStatus"') < index.indexOf('id="manageChildren"'),
+  "Family status must appear before the optional setup panels on the parent home."
+);
+assert.match(index, /id="parentHomeFolder"/,
+  "The redundant parent-home sidebar group must be identifiable separately from setup.");
+assert.match(index, /class="grid parent-only parent-controls-layout"/,
+  "Parent controls must have a layout that uses the available dashboard width.");
 
 assert.equal((index.match(/data-avatar-choice="[^\"]+"[^>]*aria-pressed="false"/g) || []).length, 7);
 assert.match(index, /class="avatar-choice-grid" role="group" aria-label="Profile picture choices"/);
@@ -725,6 +733,16 @@ assert.match(index, /<label class="small" for="kidCostume">Costume<\/label>/);
 assert.match(app, /button\.setAttribute\("aria-pressed", String\(selected\)\)/);
 
 assert.match(style, /\.feature-sidebar\s*\{[\s\S]*?max-height:\s*calc\(100dvh - 100px\);[\s\S]*?overflow-y:\s*auto;/);
+assert.match(style, /body:not\(\.mode-child\):not\(\.mode-login\):not\(\.mode-signup\) \.feature-sidebar > \.sidebar-title,\s*body:not\(\.mode-child\):not\(\.mode-login\):not\(\.mode-signup\) #parentHomeFolder\s*\{\s*display:\s*none;/,
+  "Parent navigation should not repeat the header's Today, Controls, and Reports links.");
+assert.match(style, /body:not\(\.mode-child\):not\(\.mode-login\):not\(\.mode-signup\) \.parent-controls-layout\s*\{\s*grid-template-columns:\s*minmax\(0, 1fr\);/);
+assert.match(style, /body:not\(\.mode-child\):not\(\.mode-login\):not\(\.mode-signup\) #controls\s*\{\s*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/,
+  "The parent controls should use a balanced two-column layout on larger screens.");
+assert.match(style, /body:not\(\.mode-child\):not\(\.mode-login\):not\(\.mode-signup\) #controls > \.card:nth-child\(3\)\s*\{\s*grid-column:\s*1 \/ -1;/);
+assert.match(style, /@media \(max-width: 900px\)[\s\S]*?body:not\(\.mode-child\):not\(\.mode-login\):not\(\.mode-signup\) #parentStatus\s*\{\s*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/,
+  "Tablet-sized parent dashboards should keep their four status cards in a compact two-column grid.");
+assert.match(style, /@media \(max-width: 560px\)[\s\S]*?body:not\(\.mode-child\):not\(\.mode-login\):not\(\.mode-signup\) #parentStatus,[\s\S]*?body:not\(\.mode-child\):not\(\.mode-login\):not\(\.mode-signup\) #controls,[\s\S]*?body:not\(\.mode-child\):not\(\.mode-login\):not\(\.mode-signup\) #reports\s*\{\s*grid-template-columns:\s*minmax\(0, 1fr\);/,
+  "Small phones should keep parent status, controls, and reports in one readable column.");
 assert.match(style, /\.feature-folder summary\s*\{[\s\S]*?min-height:\s*44px;[\s\S]*?font-size:\s*16px;/,
   "Feature-folder summaries need readable text and a full touch target.");
 assert.match(style, /\.feature-folder button\s*\{[\s\S]*?min-height:\s*44px;[\s\S]*?font-size:\s*16px;/,
