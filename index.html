@@ -92,6 +92,7 @@
       </div>
       <nav class="nav parent-only" aria-label="Dashboard sections" data-i18n-aria-label="nav.dashboardSections">
         <button class="active" data-jump="today" data-i18n="nav.today" aria-current="location">Today</button>
+        <button data-jump="approveRequests" data-i18n="parent.approveRequests">Requests</button>
         <button data-jump="controls" data-i18n="nav.controls">Controls</button>
         <button data-jump="reports" data-i18n="nav.reports">Reports</button>
       </nav>
@@ -143,7 +144,7 @@
         <h1 id="heroTitle">KiddoSprout helps kids grow online.</h1>
         <p id="heroDescription" data-i18n="hero.parent.description">A brighter family hub for parent approvals, child requests, homework focus, recipe ideas, smart spending, safe games, and calm screen-time routines.</p>
         <div class="hero-actions">
-          <button class="primary parent-only" data-jump="controls" data-i18n="hero.review">Review Requests</button>
+          <button class="primary parent-only" data-jump="approveRequests" data-i18n="hero.review">Review Requests</button>
           <button class="secondary parent-only" id="heroChildMode" data-i18n="hero.child">Open Child Mode</button>
         </div>
       </div>
@@ -1350,15 +1351,14 @@
       </section>
 
 
-          <section class="card">
+          <section class="card" id="approveRequests" aria-labelledby="approveRequestsTitle">
             <div class="card-head">
               <div>
-                <h2 data-i18n="parent.approveRequests">Approve Requests</h2>
+                <h2 id="approveRequestsTitle" data-i18n="parent.approveRequests">Approve Requests</h2>
                 <p class="small">Apps, games, extra time, and chores from Child Mode.</p>
               </div>
             </div>
             <div class="request" id="requestCard">
-              <div class="app-icon" id="appInitial">-</div>
               <div>
                 <h3 id="appName">No request yet</h3>
                 <span class="small" id="appMeta">Requests appear here after a child profile exists.</span>

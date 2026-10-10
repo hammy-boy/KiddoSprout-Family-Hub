@@ -716,12 +716,24 @@ assert.match(index, /id="rulesInput" aria-labelledby="familyRulesHeading"/);
 assert.match(index, /id="choresInput" aria-labelledby="familyChoresHeading"/);
 assert.match(index, /id="focusInput"[^>]*aria-labelledby="familyFocusHeading"/);
 assert.match(index, /id="parentNoteInput" aria-labelledby="parentNoteHeading"/);
+assert.doesNotMatch(index, /id="appInitial"/,
+  "The pending approval request must not display a decorative initial tile.");
+assert.doesNotMatch(app, /#appInitial/,
+  "Request rendering must not depend on the removed initial tile.");
+assert.match(style, /\.request\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\);/,
+  "The request details should expand into the space left by the removed tile.");
 assert.ok(
   index.indexOf('id="parentStatus"') < index.indexOf('id="manageChildren"'),
   "Family status must appear before the optional setup panels on the parent home."
 );
 assert.match(index, /id="parentHomeFolder"/,
   "The redundant parent-home sidebar group must be identifiable separately from setup.");
+assert.match(index, /<button[^>]*data-jump="approveRequests"[^>]*data-i18n="parent\.approveRequests">Requests<\/button>/,
+  "Parent navigation must provide a direct Requests destination.");
+assert.match(index, /class="primary parent-only" data-jump="approveRequests"[^>]*>Review Requests<\/button>/,
+  "The main Review Requests action must target the request card, not the controls section.");
+assert.match(index, /<section class="card" id="approveRequests" aria-labelledby="approveRequestsTitle">[\s\S]*?<h2 id="approveRequestsTitle"[^>]*>Approve Requests<\/h2>/,
+  "The request card must be a stable, accessible scroll destination.");
 assert.match(index, /class="grid parent-only parent-controls-layout"/,
   "Parent controls must have a layout that uses the available dashboard width.");
 

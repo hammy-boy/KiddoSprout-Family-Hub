@@ -6990,7 +6990,6 @@
       document.querySelector("#appMeta").textContent = request
         ? child.currentRequest[1]
         : translate("parent.noRequestHelp", {}, "Requests appear here after a child profile exists.");
-      document.querySelector("#appInitial").textContent = request ? child.currentRequest[2] : "-";
       const approveButton = document.querySelector("#approveBtn");
       approveButton.disabled = !request;
       const approveKey = request?.[3] === "appDownload" ? "parent.review" : "parent.approve";
@@ -7024,7 +7023,6 @@
       document.querySelector("#deviceSub").textContent = translate("parent.noChildHelp", {}, "Create a child profile before using controls.");
       document.querySelector("#appName").textContent = translate("parent.noRequest", {}, "No request yet");
       document.querySelector("#appMeta").textContent = translate("parent.noRequestHelp", {}, "Requests appear here after a child profile exists.");
-      document.querySelector("#appInitial").textContent = "-";
       document.querySelector("#approveBtn").dataset.i18n = "parent.approve";
       document.querySelector("#approveBtn").textContent = translate("parent.approve", {}, "Approve");
       document.querySelector("#blockBtn").dataset.i18n = "parent.decline";
