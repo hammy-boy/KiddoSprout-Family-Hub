@@ -226,7 +226,10 @@
     renderTranscript();
     renderQuickPrompts();
     setServiceAvailability();
-    setRequestStatus(mode.kind === "ai" ? "AI tutor connected." : unavailableStatusMessage(mode), mode.kind === "ai" ? "" : "error");
+    // The live mode banner announces connection state. Keep the composer status
+    // for validation and request results instead of repeating the same message
+    // in two places on first load.
+    setRequestStatus("");
     familyContextReady = true;
   }
 
@@ -278,7 +281,12 @@
   async function resolveTutorMode() {
     const candidates = resolveTutorCandidates();
     if (!candidates.length) {
-      return { kind: "unavailable", origin: null, remote: false, reason: "not-configured" };
+      return {
+        kind: "unavailable",
+        origin: null,
+        remote: false,
+        reason: publicDemoOnly() ? "demo-only" : "not-configured"
+      };
     }
     if (!isUuidV4(sessionId)) {
       return {
@@ -369,6 +377,10 @@
 
   function isGitHubPagesHost(hostname) {
     return hostname === "github.io" || hostname.endsWith(".github.io");
+  }
+
+  function publicDemoOnly() {
+    return window.KIDDO_SPROUT_SUPABASE?.publicDemoOnly === true;
   }
 
   async function verifyTutorHealth(origin, accessToken, expectedIdentity) {
@@ -462,11 +474,17 @@
     dom.modeBanner.classList.add("is-unavailable");
     dom.modeTitle.textContent = mode.reason === "signed-out"
       ? "Parent sign-in needed"
-      : "AI tutor unavailable";
+      : mode.reason === "demo-only"
+        ? "AI tutor preview"
+        : "AI tutor unavailable";
     dom.modeDescription.textContent = unavailableModeDescription(mode);
-    if (dom.retry) dom.retry.hidden = false;
+    // The reviewed public demo has no account or Worker endpoint by design, so
+    // retrying there can never connect. Other failures remain retryable.
+    if (dom.retry) dom.retry.hidden = mode.reason === "demo-only";
     if (dom.privacyStorage) {
-      dom.privacyStorage.textContent = "No question is sent while the AI tutor is unavailable. This page keeps only its short status message in this browser tab. New chat clears this browser copy.";
+      dom.privacyStorage.textContent = mode.reason === "demo-only"
+        ? "This public preview does not send or save a question. Open the secured KiddoSprout account app when the live tutor has been deployed."
+        : "No question is sent while the AI tutor is unavailable. This page keeps only its short status message in this browser tab. New chat clears this browser copy.";
     }
   }
 
@@ -479,6 +497,9 @@
     }
     if (currentMode.reason === "approval-needed") {
       return "KiddoSprout needs to check parent approval again before another question can be sent.";
+    }
+    if (currentMode.reason === "demo-only") {
+      return "This public colleague preview does not send questions. Live AI is available only through the secured KiddoSprout account app after its Worker is deployed.";
     }
     if (currentMode.reason === "account-changed") {
       return "The parent account or child profile changed. Return to the Child Site and open Sprout Tutor again.";
@@ -504,6 +525,9 @@
     }
     if (currentMode.reason === "approval-needed") {
       return "Parent approval needs checking again. No new question will be sent until access is confirmed.";
+    }
+    if (currentMode.reason === "demo-only") {
+      return "This public preview does not send questions to an AI service.";
     }
     if (currentMode.reason === "account-changed") {
       return "The family profile changed, so this chat was safely closed. Return to the Child Site and reopen Sprout Tutor.";
@@ -604,9 +628,19 @@
     }
   }
 
+  function storageIdentitiesMatch(openedIdentity, currentIdentity) {
+    if (!openedIdentity && !currentIdentity) return true;
+    return Boolean(openedIdentity && currentIdentity && openedIdentity === currentIdentity);
+  }
+
   async function currentStorageScopeMatches() {
     const currentIdentity = readStorageIdentity();
-    if (!storageIdentity || !currentIdentity || currentIdentity !== storageIdentity) return false;
+    // The fictional public demo deliberately has no Auth identity. Two absent
+    // identities are stable, not evidence that a parent or child changed. AI
+    // mode still fails closed because resolving it requires a real token and a
+    // parsed parent/child identity.
+    if (!storageIdentitiesMatch(storageIdentity, currentIdentity)) return false;
+    if (!storageIdentity) return true;
     if (!storageScope) return true;
     const currentScope = await deriveStorageScope(currentIdentity);
     return Boolean(currentScope && currentScope === storageScope);
@@ -836,7 +870,9 @@
       : {
           role: "tutor",
           source: "notice",
-          text: "Sprout Tutor is an AI learning helper, but the secure AI service is not connected right now. No question can be sent until the connection is ready. Choose Try AI again, or ask a parent to open the live KiddoSprout app."
+          text: mode.reason === "demo-only"
+            ? "This preview shows the Sprout Tutor learning space. Questions are disabled here because the public demo has no parent account or AI connection."
+            : "Sprout Tutor is an AI learning helper, but the secure AI service is not connected right now. No question can be sent until the connection is ready. Choose Try AI again, or ask a parent to open the live KiddoSprout app."
         };
     transcript = boundTranscript([entry]);
     saveTranscript();
@@ -1019,7 +1055,7 @@
     renderTranscript();
     renderQuickPrompts();
     setServiceAvailability();
-    setRequestStatus(unavailableStatusMessage(mode), "error");
+    setRequestStatus("");
     if (dom.retry && !dom.retry.hidden && !dom.page?.classList.contains("hidden")) dom.retry.focus();
     if (oldMode?.kind === "ai" && isUuidV4(oldSessionId)) {
       void clearRemoteConversation(oldSessionId, oldMode.origin);
@@ -1069,7 +1105,7 @@
           };
           describeMode();
           renderQuickPrompts();
-          setRequestStatus(unavailableStatusMessage(mode), "error");
+          setRequestStatus("");
           return;
         }
         const refreshedIdentity = readStorageIdentity();
@@ -1094,10 +1130,7 @@
       renderTranscript();
       renderQuickPrompts();
       updateMessagePlaceholder();
-      setRequestStatus(
-        mode.kind === "ai" ? "AI tutor connected. You can ask a question now." : unavailableStatusMessage(mode),
-        mode.kind === "ai" ? "" : "error"
-      );
+      setRequestStatus(mode.kind === "ai" ? "AI tutor connected. You can ask a question now." : "");
     } catch (error) {
       mode = {
         kind: "unavailable",
@@ -1111,7 +1144,7 @@
       describeMode();
       renderTranscript();
       renderQuickPrompts();
-      setRequestStatus(unavailableStatusMessage(mode), "error");
+      setRequestStatus("");
     } finally {
       retrying = false;
       if (dom.retry) dom.retry.disabled = false;

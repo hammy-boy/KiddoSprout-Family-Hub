@@ -62,6 +62,21 @@ for (const learningExample of [
     `Browser privacy filtering blocked an ordinary learning statement: ${learningExample}`);
 }
 
+const identityMatchFunctionSource = controller.match(
+  /function storageIdentitiesMatch\(openedIdentity, currentIdentity\) \{[\s\S]*?\n  \}/
+)?.[0];
+assert.ok(identityMatchFunctionSource, "Could not inspect the tutor identity comparison.");
+const storageIdentitiesMatch = vm.runInNewContext(
+  `${identityMatchFunctionSource}; storageIdentitiesMatch`,
+  {}
+);
+assert.equal(storageIdentitiesMatch("", ""), true,
+  "The account-free public demo must not mistake two absent identities for a family switch.");
+assert.equal(storageIdentitiesMatch("parent-a\\0child-a", "parent-a\\0child-a"), true);
+assert.equal(storageIdentitiesMatch("parent-a\\0child-a", ""), false);
+assert.equal(storageIdentitiesMatch("", "parent-a\\0child-a"), false);
+assert.equal(storageIdentitiesMatch("parent-a\\0child-a", "parent-a\\0child-b"), false);
+
 const configWindow = {
   KIDDO_SPROUT_TUTOR_ORIGIN: "https://primary.example.workers.dev",
   KIDDO_SPROUT_TUTOR_ORIGINS: [
@@ -106,11 +121,13 @@ assert.doesNotMatch(markup, /<[^>]+\son[a-z]+\s*=/i,
 
 const gateIndex = markup.indexOf('src="kid-hub-gate.js?v=10"');
 const configIndex = markup.indexOf('src="sprout-tutor-config.js?v=2"');
-const controllerIndex = markup.indexOf('src="sprout-tutor.js?v=2"');
+const controllerIndex = markup.indexOf('src="sprout-tutor.js?v=3"');
 assert.ok(gateIndex >= 0 && configIndex > gateIndex && controllerIndex > configIndex,
   "Family gate and endpoint config must load before the tutor controller.");
 assert.match(markup, /id=["']retry-tutor["'][^>]*\bhidden\b[^>]*>Try AI again</i,
   "The tutor must offer an accessible retry action when its Worker is unavailable.");
+assert.match(markup, /id=["']mode-banner["'][^>]*\brole=["']status["'][^>]*\baria-live=["']polite["'][^>]*\baria-atomic=["']true["']/i,
+  "Connection-state changes must be announced without duplicating them in the composer status.");
 assert.match(markup, /id=["']message-input["'][^>]*\baria-errormessage=["']request-status["'][^>]*\bdisabled\b/i,
   "The composer must start disabled and keep validation errors associated with the question field.");
 assert.match(markup, /id=["']send-message["'][^>]*\bdisabled\b/i,
@@ -135,6 +152,12 @@ assert.match(controller, /window\.location\.protocol === "https:"[\s\S]*?!isGitH
   "A same-origin HTTPS Worker or custom Worker domain may be considered as an AI candidate.");
 assert.match(controller, /hostname === "github\.io" \|\| hostname\.endsWith\("\.github\.io"\)/,
   "GitHub Pages must not be mistaken for a same-origin AI Worker.");
+assert.match(controller, /reason: publicDemoOnly\(\) \? "demo-only" : "not-configured"/,
+  "The account-free public demo needs an honest, non-retryable preview state.");
+assert.match(controller, /dom\.retry\.hidden = mode\.reason === "demo-only"/,
+  "The public demo must not offer an AI retry that cannot succeed without a Worker endpoint.");
+assert.match(controller, /function currentStorageScopeMatches\(\)[\s\S]*?storageIdentitiesMatch\(storageIdentity, currentIdentity\)[\s\S]*?if \(!storageIdentity\) return true;/,
+  "Account-free demo rechecks must not manufacture a family-profile change.");
 assert.match(controller, /HEALTH_PATH = "\/api\/sprout-tutor\/health"/);
 assert.match(controller, /accessToken = await getTutorAccessToken\(\)[\s\S]*?verifyTutorHealth\(candidate\.origin, accessToken, expectedIdentity\)[\s\S]*?if \(!health\?\.ready\) continue;[\s\S]*?kind: "ai"/,
   "A current parent session and authenticated candidate service must both pass before the page claims AI is ready.");
@@ -240,8 +263,8 @@ assert.match(controller, /async function retryTutorConnection\(\)[\s\S]*?mode = 
   "A learner must be able to retry the real Worker connection without reloading the whole page.");
 assert.match(controller, /const refreshedIdentity = readStorageIdentity\(\);[\s\S]*?refreshedIdentity !== storageIdentity[\s\S]*?closeConversationForIdentityChange\("account-changed"[\s\S]*?storageIdentity = refreshedIdentity/,
   "Retrying after a parent or child switch must clear the previous draft before adopting the new identity scope.");
-assert.match(controller, /const allowed = await window\.KiddoHubGate\.protect\(APP_ID, APP_TITLE\);[\s\S]*?if \(allowed !== true\)[\s\S]*?describeMode\(\);[\s\S]*?setRequestStatus\(unavailableStatusMessage\(mode\), "error"\);[\s\S]*?return;/,
-  "A failed family recheck must leave retry in a clear unavailable state instead of a permanent loading state.");
+assert.match(controller, /const allowed = await window\.KiddoHubGate\.protect\(APP_ID, APP_TITLE\);[\s\S]*?if \(allowed !== true\)[\s\S]*?describeMode\(\);[\s\S]*?setRequestStatus\(""\);[\s\S]*?return;/,
+  "A failed family recheck must leave the live mode banner in a clear unavailable state instead of a permanent loading state.");
 
 assert.match(styles, /@media\s*\(max-width:\s*(?:6[0-9]{2}|7[0-2][0-9])px\)/i,
   "The tutor needs a phone layout.");
