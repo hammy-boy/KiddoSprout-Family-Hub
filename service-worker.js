@@ -6,7 +6,7 @@ const KIDDOSPROUT_SCOPE_PATH = KIDDOSPROUT_SCOPE_URL.pathname.endsWith("/")
   : `${KIDDOSPROUT_SCOPE_URL.pathname}/`;
 const KIDDOSPROUT_CACHE_PREFIX = `kiddosprout-app-${encodeURIComponent(KIDDOSPROUT_SCOPE_PATH)}-`;
 // Change this version whenever a public runtime page or shared stylesheet changes.
-const KIDDOSPROUT_CACHE_VERSION = "shell-v120";
+const KIDDOSPROUT_CACHE_VERSION = "shell-v121";
 const KIDDOSPROUT_CACHE = `${KIDDOSPROUT_CACHE_PREFIX}${KIDDOSPROUT_CACHE_VERSION}`;
 // Runtime content deliberately survives shell upgrades. Keeping it separate
 // avoids downloading a second copy of every viewed story before an update can
@@ -119,6 +119,17 @@ const KIDDOSPROUT_RUNTIME_ASSETS = [
   "/games/learning-world/style.css",
   "/games/learning-world/subjects.js",
   "/games/learning-world/game.js",
+  "/games/learning-world/lab.css",
+  "/games/learning-world/subject-lab.js",
+  "/games/learning-world/maths.html",
+  "/games/learning-world/english.html",
+  "/games/learning-world/science.html",
+  "/games/learning-world/geography.html",
+  "/games/learning-world/history.html",
+  "/games/learning-world/computing.html",
+  "/games/learning-world/art.html",
+  "/games/learning-world/music.html",
+  "/games/learning-world/languages.html",
   "/games/brick-breaker/index.html",
   "/games/brick-breaker/style.css",
   "/games/brick-breaker/engine.js",

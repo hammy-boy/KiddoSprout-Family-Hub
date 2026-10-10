@@ -48,7 +48,13 @@ const PUBLIC_GAME_FILES = Object.freeze([
     `games/${directory}/style.css`,
     ...scripts.map((script) => `games/${directory}/${script}`),
     ...assets.map((asset) => `games/${directory}/${asset}`)
-  ])
+  ]),
+  ...[
+    "maths.html", "english.html", "science.html", "geography.html", "history.html",
+    "computing.html", "art.html", "music.html", "languages.html"
+  ].map((file) => `games/learning-world/${file}`),
+  "games/learning-world/lab.css",
+  "games/learning-world/subject-lab.js"
 ]);
 
 async function isFile(path) {
@@ -185,12 +191,46 @@ const learningWorldPage = await read("games/learning-world/index.html");
 const learningWorldGame = await read("games/learning-world/game.js");
 assert.match(learningWorldPage, /0 \/ 9 badges/,
   "The passport must include the new Maths subject.");
-assert.match(learningWorldGame, /function openStudyGuide\(item\)/,
-  "Choosing a subject must open its interactive study guide before the quiz.");
-assert.match(learningWorldGame, /checkButton\.onclick/,
-  "Each study topic must offer an interactive answer reveal.");
-assert.match(learningWorldGame, /studyCard\.setAttribute\('aria-live','polite'\)/,
-  "Changing a study topic must be announced to screen readers.");
+assert.match(learningWorldGame, /b\.href=`\$\{item\.id\}\.html`/,
+  "Choosing a subject must open its dedicated lab page.");
+const subjectLabController = await read("games/learning-world/subject-lab.js");
+for (const subject of learningSubjects) {
+  const labPage = await read(`games/learning-world/${subject.id}.html`);
+  assert.match(labPage, new RegExp(`data-subject=["']${subject.id}["']`),
+    `${subject.name} needs a dedicated subject lab page.`);
+  assert.match(labPage, /data-files=["']subjects\.js,subject-lab\.js["']/,
+    `${subject.name} lab logic must load only after parent access is checked.`);
+  assert.match(labPage, /href=["']lab\.css["']/,
+    `${subject.name} needs the shared subject-lab design.`);
+  assert.ok(subject.activity.rounds.length >= 4,
+    `${subject.name} needs at least four hands-on activity rounds.`);
+}
+for (const activityType of ["number-pairs", "spell-it", "lab-selection", "compass-route",
+  "timeline", "robot-route", "colour-mixer", "rhythm", "word-match"]) {
+  assert.ok(learningSubjects.some(({ activity }) => activity.type === activityType),
+    `The subject labs must include the ${activityType} interactive activity.`);
+}
+const robotRounds = learningSubjects.find(({ activity }) => activity.type === "robot-route").activity.rounds;
+for (const [index, round] of robotRounds.entries()) {
+  const distance = Math.abs(round.target - round.start);
+  assert.ok(distance <= round.width - 1, `Robot route ${index + 1} must fit on its track.`);
+  assert.ok(!round.blocked.includes(round.start) && !round.blocked.includes(round.target),
+    `Robot route ${index + 1} must not start or finish on a wall.`);
+  assert.ok(Array.from({ length: distance }, (_, step) => (
+    round.start + Math.sign(round.target - round.start) * (step + 1)
+  )).every((position) => !round.blocked.includes(position)),
+  `Robot route ${index + 1} must have a clear path to its star.`);
+}
+assert.match(subjectLabController, /function startQuiz\(/,
+  "Every subject lab must provide a quiz after its hands-on activity.");
+assert.match(subjectLabController, /subject\.study\.forEach/,
+  "Every standalone lab must offer browsable subject learning before its activity.");
+assert.match(subjectLabController, /subject\.questions\.length\} questions/,
+  "Each lab must display the actual number of quiz questions it contains.");
+assert.match(subjectLabController, /\$\('quiz-next'\)\.hidden=true/,
+  "Restarting a quiz must clear any stale next-question state.");
+assert.match(subjectLabController, /sprout-learning-passport/,
+  "Subject lab quiz completion must preserve learning badges.");
 
 const accessSource = await read("games/arcade-access.js");
 assert.match(accessSource,
@@ -319,8 +359,8 @@ assert.ok(workerRuntimeMatch, "The service worker runtime allow-list is missing.
 const runtimeGames = JSON.parse(workerRuntimeMatch[1]).filter((path) => path.startsWith("/games/")).sort();
 assert.deepEqual(runtimeGames, PUBLIC_GAME_FILES.map((path) => `/${path}`).sort(),
   "Offline runtime caching must include exactly the reviewed arcade files.");
-assert.match(workerSource, /const KIDDOSPROUT_CACHE_VERSION = ["']shell-v120["']/,
-  "The Learning World study guides need a fresh shell cache so older clients receive them.");
+assert.match(workerSource, /const KIDDOSPROUT_CACHE_VERSION = ["']shell-v121["']/,
+  "The standalone subject laboratory pages need a fresh shell cache.");
 assert.deepEqual(runtimeGames.filter((path) => path.endsWith(".svg")), ["/games/multiplication-runner/map.svg"],
   "Only the reviewed Math Runner map SVG may enter the offline allow-list.");
 
